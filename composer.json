@@ -6,7 +6,8 @@
  "authors":[
   {
    "name":"Oleksandr Kushnirov",
-   "email":"aleksandr.kushnirov@gmail.com"
+   "email":"aleksandr.kushnirov@gmail.com",
+   "role":"Developer"
   }
  ],
  "minimum-stability":"stable",
