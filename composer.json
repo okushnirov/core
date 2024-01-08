@@ -1,0 +1,21 @@
+{
+ "name":"okushnirov/core",
+ "description":"core: rooting & libraries",
+ "type":"library",
+ "license":"MIT",
+ "authors":[
+  {
+   "name":"Oleksandr Kushnirov",
+   "email":"aleksandr.kushnirov@gmail.com"
+  }
+ ],
+ "minimum-stability":"stable",
+ "autoload":{
+  "psr-4":{
+   "okushnirov\\core\\":"src/"
+  }
+ },
+ "require":{
+  "php":">=8.2"
+ }
+}
