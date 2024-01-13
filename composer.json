@@ -13,10 +13,16 @@
  "minimum-stability":"stable",
  "autoload":{
   "psr-4":{
-   "okushnirov\\core\\":"src/"
+   "okushnirov\\core\\":"src/",
+   "core\\":"php/classes"
   }
  },
  "require":{
   "php":">=8.2"
+ },
+ "require-dev": {
+  "phpmailer/phpmailer": "^v6.9.1",
+  "phpoffice/phpspreadsheet":"^1.29.0",
+  "phpoffice/phpword":"^1.2.0"
  }
 }
