@@ -117,7 +117,7 @@ final class DbSQLAnywhere implements DbSQL
   public static function getSettings():mixed
   {
     
-    return File::parse(['\json\dbase.json']);
+    return File::parse(['/json/dbase.json']);
   }
   
   public static function query(
@@ -228,6 +228,10 @@ final class DbSQLAnywhere implements DbSQL
             $result[] = $array;
           }
         }
+        
+        break;
+      
+      default:
     }
     
     $result = SQLAnywhere::OBJECT == $type || SQLAnywhere::OBJECT_ALL == $type ? (object)$result : $result;

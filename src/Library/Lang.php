@@ -14,7 +14,7 @@ final class Lang
   
   public static function getSettings():void
   {
-    self::$settings = File::parse(['\json\language.json']);
+    self::$settings = File::parse(['/json/language.json']);
   }
   
   public static function set(SessionType $session = SessionType::DB, CookieType $cookie = CookieType::Yes):void

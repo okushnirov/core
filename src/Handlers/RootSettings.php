@@ -30,8 +30,9 @@ class RootSettings
       $folder = $matches ? str_replace('\r', '', trim($matches[0][0] ?? '')) : '';
     }
     
-    $folder = isset($folder) && $folder ? $folder :
-      mb_eregi_replace(str_replace("\\", '-', Root::ROOT_PATH.Root::ROOT_FOLDERS), '', str_replace('\\', '-',
+    $folder = isset($folder) && $folder
+      ? $folder
+      : mb_eregi_replace(str_replace("\\", '-', Root::ROOT_PATH.Root::ROOT_FOLDERS), '', str_replace('\\', '-',
         mb_strtolower($reflectionClass->getNamespaceName().'-'.$reflectionClass->getShortName())));
     $folder = 'core-root-index' === $folder ? '/' : "$folder";
     
@@ -39,14 +40,5 @@ class RootSettings
     
     self::$json = File::parse(array_merge(['/json/root.json'], $file && File::isFile($file) ? [$file] : [], $JSON));
     self::$root = self::$json->root->{$folder} ?? false;
-  }
-  
-  protected static function checkAccess(bool $accessDenied = false):void
-  {
-    if ($accessDenied) {
-      header('Location: /error/');
-      
-      exit;
-    }
   }
 }

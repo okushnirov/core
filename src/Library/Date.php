@@ -7,6 +7,167 @@ use JetBrains\PhpStorm\ArrayShape;
 
 final class Date
 {
+  public static function getAge(string $birthday):bool | int | string
+  {
+    if (empty($birthday)) {
+      
+      return false;
+    }
+    
+    $birthdayTimestamp = strtotime($birthday);
+    
+    if (false === $birthdayTimestamp) {
+      
+      return false;
+    }
+    
+    $age = date('Y') - date('Y', $birthdayTimestamp);
+    
+    return date('md', $birthdayTimestamp) > date('md') ? $age - 1 : $age;
+  }
+  
+  public static function getDateProp(string $lang = 'uk'):string
+  {
+    if ('en' === $lang) {
+      
+      return date('F j, Y');
+    }
+    
+    $month = match ($lang) {
+      'ru' => [
+        'января',
+        'февраля',
+        'марта',
+        'апреля',
+        'мая',
+        'июня',
+        'июля',
+        'августа',
+        'сентября',
+        'октября',
+        'ноября',
+        'декабря'
+      ],
+      'de' => [
+        'Januar',
+        'Februar',
+        'März',
+        'April',
+        'Mai',
+        'Juni',
+        'Juli',
+        'August',
+        'September',
+        'Oktober',
+        'November',
+        'Dezember'
+      ],
+      'pl' => [
+        'stycznia',
+        'luty',
+        'marsz',
+        'kwietnia',
+        'może',
+        'czerwca',
+        'lipiec',
+        'sierpień',
+        'wrzesień',
+        'październik',
+        'listopad',
+        'grudnia'
+      ],
+      default => [
+        'січня',
+        'лютого',
+        'березня',
+        'квітня',
+        'травня',
+        'червня',
+        'липня',
+        'серпня',
+        'вересня',
+        'жовтня',
+        'листопада',
+        'грудня'
+      ]
+    };
+    
+    $ltr_year = match ($lang) {
+      'ru' => 'года',
+      'de' => 'Jahr',
+      'pl' => 'rok',
+      default => 'року'
+    };
+    
+    return date('j').' '.$month[date('n') - 1].' '.date('Y').' '.$ltr_year;
+  }
+  
+  public static function getFirstQuarterDay(int $monthNumber):string
+  {
+    
+    return match (intval(($monthNumber + 2) / 3)) {
+      1 => date('Y-01-01'),
+      2 => date('Y-04-01'),
+      3 => date('Y-07-01'),
+      4 => date('Y-10-01'),
+      default => ''
+    };
+    
+  }
+  
+  public static function getMonthName(int $month, string $lang):string
+  {
+    $name = match ($lang) {
+      'ru' => [
+        false,
+        "Январь",
+        "Февраль",
+        "Март",
+        "Апрель",
+        "Май",
+        "Июнь",
+        "Июль",
+        "Август",
+        "Сентябрь",
+        "Октябрь",
+        "Ноябрь",
+        "Декабрь"
+      ],
+      'en' => [
+        false,
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      default => [
+        false,
+        "Січень",
+        "Лютий",
+        "Березень",
+        "Квітень",
+        "Травень",
+        "Червень",
+        "Липень",
+        "Серпень",
+        "Вересень",
+        "Жовтень",
+        "Листопад",
+        "Грудень"
+      ],
+    };
+    
+    return $name[empty($month) ? (int)date('m') : $month];
+  }
+  
   public static function getPeriod():array
   {
     
@@ -120,221 +281,7 @@ final class Date
     ];
   }
   
-  public static function getAge(string $birthday):bool | int | string
-  {
-    if (empty($birthday)) {
-      
-      return false;
-    }
-    
-    $birthdayTimestamp = strtotime($birthday);
-    
-    if (false === $birthdayTimestamp) {
-      
-      return false;
-    }
-    
-    $age = date('Y') - date('Y', $birthdayTimestamp);
-    
-    return date('md', $birthdayTimestamp) > date('md') ? $age - 1 : $age;
-  }
-  
-  public static function getDateProp(string $lang = 'uk'):string
-  {
-    if ('en' === $lang) {
-      
-      return date('F j, Y');
-    }
-    
-    $month = match ($lang) {
-      'ru' => [
-        'января',
-        'февраля',
-        'марта',
-        'апреля',
-        'мая',
-        'июня',
-        'июля',
-        'августа',
-        'сентября',
-        'октября',
-        'ноября',
-        'декабря'
-      ],
-      'de' => [
-        'Januar',
-        'Februar',
-        'März',
-        'April',
-        'Mai',
-        'Juni',
-        'Juli',
-        'August',
-        'September',
-        'Oktober',
-        'November',
-        'Dezember'
-      ],
-      'pl' => [
-        'stycznia',
-        'luty',
-        'marsz',
-        'kwietnia',
-        'może',
-        'czerwca',
-        'lipiec',
-        'sierpień',
-        'wrzesień',
-        'październik',
-        'listopad',
-        'grudnia'
-      ],
-      default => [
-        'січня',
-        'лютого',
-        'березня',
-        'квітня',
-        'травня',
-        'червня',
-        'липня',
-        'серпня',
-        'вересня',
-        'жовтня',
-        'листопада',
-        'грудня'
-      ]
-    };
-    
-    $ltr_year = match ($lang) {
-      'ru' => 'года',
-      'de' => 'Jahr',
-      'pl' => 'rok',
-      default => 'року'
-    };
-    
-    return date('j').' '.$month[date('n') - 1].' '.date('Y').' '.$ltr_year;
-  }
-  
-  public static function getFirstQuarterDay(int $monthNumber):string
-  {
-    
-    return match (intval(($monthNumber + 2) / 3)) {
-      1 => date('Y-01-01'),
-      2 => date('Y-04-01'),
-      3 => date('Y-07-01'),
-      4 => date('Y-10-01'),
-      default => ''
-    };
-    
-  }
-  
-  public static function getWeekDay(string $lang = 'uk'):string
-  {
-    $weekday = match ($lang) {
-      'de' => [
-        'Sonntag',
-        'Montag',
-        'Dienstag',
-        'Mittwoch',
-        'Donnerstag',
-        'Freitag',
-        'Samstag'
-      ],
-      'pl' => [
-        'Niedziela',
-        'Poniedziałek',
-        'Wtorek',
-        'Środa',
-        'Czwartek',
-        'Piątek',
-        'Sobota'
-      ],
-      'ru' => [
-        'Воскресенье',
-        'Понедельник',
-        'Вторник',
-        'Среда',
-        'Четверг',
-        'Пятница',
-        'Суббота'
-      ],
-      'en' => [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday'
-      ],
-      default => [
-        'Неділя',
-        'Понеділок',
-        'Вівторок',
-        'Середа',
-        'Четвер',
-        "П'ятниця",
-        'Субота'
-      ],
-    };
-    
-    return $weekday[date('w')];
-  }
-  
-  public static function getMonthName(int $month, string $lang):string
-  {
-    $name = match ($lang) {
-      'ru' => [
-        false,
-        "Январь",
-        "Февраль",
-        "Март",
-        "Апрель",
-        "Май",
-        "Июнь",
-        "Июль",
-        "Август",
-        "Сентябрь",
-        "Октябрь",
-        "Ноябрь",
-        "Декабрь"
-      ],
-      'en' => [
-        false,
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ],
-      default => [
-        false,
-        "Січень",
-        "Лютий",
-        "Березень",
-        "Квітень",
-        "Травень",
-        "Червень",
-        "Липень",
-        "Серпень",
-        "Вересень",
-        "Жовтень",
-        "Листопад",
-        "Грудень"
-      ],
-    };
-    
-    return $name[empty($month) ? (int)date('m') : $month];
-  }
-  
-  public static function setPeriodObject():array
+  public static function getPeriodObject():array
   {
     $yesterday = (new \DateTime('yesterday'));
     $monthPreviousFrom = (new \DateTime('first day of previous month'));
@@ -466,6 +413,59 @@ final class Date
         ]
       ]
     ];
+  }
+  
+  public static function getWeekDay(string $lang = 'uk'):string
+  {
+    $weekday = match ($lang) {
+      'de' => [
+        'Sonntag',
+        'Montag',
+        'Dienstag',
+        'Mittwoch',
+        'Donnerstag',
+        'Freitag',
+        'Samstag'
+      ],
+      'pl' => [
+        'Niedziela',
+        'Poniedziałek',
+        'Wtorek',
+        'Środa',
+        'Czwartek',
+        'Piątek',
+        'Sobota'
+      ],
+      'ru' => [
+        'Воскресенье',
+        'Понедельник',
+        'Вторник',
+        'Среда',
+        'Четверг',
+        'Пятница',
+        'Суббота'
+      ],
+      'en' => [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday'
+      ],
+      default => [
+        'Неділя',
+        'Понеділок',
+        'Вівторок',
+        'Середа',
+        'Четвер',
+        "П'ятниця",
+        'Субота'
+      ],
+    };
+    
+    return $weekday[date('w')];
   }
   
   #[ArrayShape([

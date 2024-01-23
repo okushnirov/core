@@ -15,9 +15,7 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   {
     parent::__construct();
     
-    self::$_set = File::parse([
-      '\json\dbase.json'
-    ]);
+    self::$_set = File::parse(['/json/dbase.json']);
     
     if (empty(self::$_set->dbase)) {
       

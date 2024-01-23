@@ -23,6 +23,8 @@ final class Root extends \Exception
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
     self::$query = trim((string)parse_url($request, PHP_URL_QUERY));
     
+    Location::$folder = $folder;
+    
     if (self::$debug) {
       trigger_error(__METHOD__." Start\n".json_encode([
           "Auth " => $loginType->name ?? '',

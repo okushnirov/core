@@ -16,9 +16,9 @@ final class PVBKI
   
   private static string $_pass = '';
   
-  private static string $_url = 'https://secure.pvbki.com/reverse-service/Default.asmx?WSDL';
+  private static string $_url = '';
   
-  private static string $_urlAuth = 'https://service.pvbki.com/reverse';
+  private static string $_urlAuth = '';
   
   private static string $_user = '';
   
@@ -31,6 +31,8 @@ final class PVBKI
     self::$_authKey = $settings->key ?? self::$_authKey;
     self::$_authName = $settings->name ?? self::$_authName;
     self::$_pass = $settings->pass ?? '';
+    self::$_url = $settings->url ?? self::$_url;
+    self::$_urlAuth = $settings->urlAuth ?? self::$_urlAuth;
     self::$_user = $settings->user ?? '';
   }
   

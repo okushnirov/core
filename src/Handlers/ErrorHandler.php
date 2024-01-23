@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Handlers;
 
-require_once __DIR__.'/../../php/classes/Constant.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/php/classes/Constant.php';
 
 class ErrorHandler
 {

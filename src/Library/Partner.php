@@ -12,13 +12,13 @@ final class Partner
   
   public function setValue(array $user):Partner
   {
-    $ID = trim($user['partnerID'] ?? '');
-    $this->id = '' === $ID ? null : (int)$ID;
+    $id = trim($user['partnerID'] ?? '');
+    $this->id = '' === $id ? null : (int)$id;
     
     $this->logo = $user['partnerLogo'] ?? '';
     
     $this->name = $user['partnerName'] ?? '';
-
+    
     return $this;
   }
 }

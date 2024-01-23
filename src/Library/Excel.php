@@ -80,8 +80,8 @@ final class Excel
     
     try {
       self::$settings = File::parse([
-        '\site.webmanifest',
-        '\json\dbase.json'
+        '/site.webmanifest',
+        '/json/dbase.json'
       ]);
     } catch (\Exception $e) {
       $errorMessage = 'No error' === $e->getMessage() ? '' : $e->getMessage();

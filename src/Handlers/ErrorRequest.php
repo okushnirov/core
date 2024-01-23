@@ -6,6 +6,7 @@ define('DO_LANG_HANDLER', 1);
 
 define('DO_REQUEST_HANDLER', 2);
 
+use core\Handlers\{ErrorPath, ErrorLang};
 use okushnirov\core\Library\{Location, Session};
 
 class ErrorRequest
@@ -56,8 +57,7 @@ class ErrorRequest
         # Language handler
         if ($flags & DO_LANG_HANDLER && !empty($path[0])) {
           try {
-            $className = 'core\Handlers\\'.DO_LANG_HANDLER;
-            $result = (new $className)::run($path[0]);
+            $result = ErrorLang::run($path[0]);
           } catch (\Exception $e) {
             trigger_error($e->getMessage());
             $result = false;
@@ -86,8 +86,7 @@ class ErrorRequest
         # Path handler (If it needs)
         if ($flags & DO_REQUEST_HANDLER && 'error' !== Location::$folder) {
           try {
-            $className = 'core\Handlers\\'.DO_REQUEST_HANDLER;
-            (new $className)::run(self::$_request);
+            ErrorPath::run(self::$_request);
           } catch (\Exception $e) {
             trigger_error($e->getMessage());
           }

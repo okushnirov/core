@@ -12,7 +12,7 @@ final class WebService
   
   public function __construct(mixed $settings = null)
   {
-    self::$settings = $settings->ws ?? File::parse(['\json\settings.json'])->ws ?? [];
+    self::$settings = $settings->ws ?? File::parse(['/json/settings.json'])->ws ?? [];
   }
   
   public function get(string $wsName, bool $test = TEST_SERVER):object
@@ -56,7 +56,7 @@ final class WebService
       $json = $response ? json_decode($response) : null;
       
       if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
-      
+        
         throw new \Exception(json_last_error_msg() ? : 'Empty response', -2);
       }
     } catch (\Exception $e) {
@@ -76,7 +76,7 @@ final class WebService
       $json = $response ? json_decode($response) : null;
       
       if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
-      
+        
         throw new \Exception(json_last_error_msg() ? : 'Empty response', -2);
       }
     } catch (\Exception $e) {
@@ -134,7 +134,7 @@ final class WebService
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
       if (empty($xml) || empty($xml->getName())) {
-      
+        
         throw new \Exception('Empty response', -2);
       }
     } catch (\Exception $e) {
@@ -155,7 +155,7 @@ final class WebService
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
       if (empty($xml) || empty($xml->getName())) {
-      
+        
         throw new \Exception('Empty or wrong response', -2);
       }
     } catch (\Exception $e) {

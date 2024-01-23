@@ -9,8 +9,8 @@ final class Curl
   public static mixed $curlHttpInfo;
   
   public static function exec(
-    string     $url, array $header = [], mixed $data = '', string $userLogin = '', string $userPassword = '', int $post = 1,
-    bool | int $ssl = false, int $timeout = 10):bool | string
+    string     $url, array $header = [], mixed $data = '', string $userLogin = '', string $userPassword = '',
+    int        $post = 1, bool | int $ssl = false, int $timeout = 10):bool | string
   {
     if (empty($url)) {
       $back = debug_backtrace();

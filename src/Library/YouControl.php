@@ -90,19 +90,9 @@ final class YouControl
    */
   private string $APIKeyData = '';
   
-  /**
-   * Адреса API
-   *
-   * @var string
-   */
-  private string $url = "https://api.youscore.com.ua/";
+  private string $url = '';
   
-  /**
-   * Попередній результат
-   *
-   * @var mixed|array
-   */
-  private mixed $result = [];
+  private mixed $prevResult = [];
   
   public function __construct(array $request)
   {
@@ -112,8 +102,11 @@ final class YouControl
     
     $settings = File::parse(['/json/you-control.json']);
     
+    self::$disabled = $settings->disabled ?? self::$disabled;
+    
     $this->APIKeyAnalytics = $settings->keyAnalytics ?? $this->APIKeyAnalytics;
     $this->APIKeyData = $settings->keyData ?? $this->APIKeyData;
+    $this->url = $settings->url ?? $this->url;
     
     # Тип контрагента
     $this->subject = mb_convert_case(trim($request['subject'] ?? ''), MB_CASE_UPPER);
@@ -134,7 +127,7 @@ final class YouControl
     $this->documentSeries = $request['documentSeries'] ?? $this->documentSeries;
     
     # Попередній результат перевірки (за наявності)
-    $this->result = $request['result'] ?? $this->result;
+    $this->prevResult = $request['result'] ?? $this->prevResult;
   }
   
   /**
@@ -204,12 +197,12 @@ final class YouControl
   private function _getPreviousResult(string $nameCheck):mixed
   {
     if ($this->debug) {
-      trigger_error(__METHOD__." Check [$nameCheck] isset[".isset($this->result->{$nameCheck}).'] type ['
-        .gettype($this->result->{"$nameCheck"} ?? null).']');
+      trigger_error(__METHOD__." Check [$nameCheck] isset[".isset($this->prevResult->{$nameCheck}).'] type ['
+        .gettype($this->prevResult->{"$nameCheck"} ?? null).']');
     }
     
-    return isset($this->result->{$nameCheck}) && 'string' !== gettype($this->result->{$nameCheck})
-      ? $this->result->{$nameCheck} : null;
+    return isset($this->prevResult->{$nameCheck}) && 'string' !== gettype($this->prevResult->{$nameCheck})
+      ? $this->prevResult->{$nameCheck} : null;
   }
   
   /**

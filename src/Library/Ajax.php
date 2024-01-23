@@ -22,16 +22,22 @@ final class Ajax
     }
     
     Lang::set($session);
-    Location::$folder = SessionType::NONE === $session ? '' : ($_SESSION['folder'] ?? '');
+    Location::$folder = SessionType::NONE === $session ? (Location::$folder ?? '') : ($_SESSION['folder'] ?? '');
     
     self::$out = new AjaxOut();
     
+    $filename = '/json/root'.match (Location::$folder) {
+        '', '/' => '',
+        default => '-'.Location::$folder
+      }.'.json';
+    
+    $JSONRoot = $filename && File::isFile($filename) ? [$filename] : [];
+    
     self::$settings = File::parse(array_merge([
-      '\json\dbase.json',
-      '\json\error.json',
-      '\json\message.json',
-      '\json\root'.('/' === Location::$folder ? '' : '-'.Location::$folder).'.json'
-    ], is_array($JSON) ? $JSON : []));
+      '/json/dbase.json',
+      '/json/error.json',
+      '/json/message.json'
+    ], $JSONRoot, is_array($JSON) ? $JSON : []));
   }
   
   public static function init(bool $onlyLocal = true):bool

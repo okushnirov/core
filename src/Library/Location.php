@@ -6,26 +6,22 @@ use okushnirov\core\Library\Enums\SessionType;
 
 final class Location
 {
-  public static ?string $folder;
+  public static string $folder = '';
+  
+  public static function errorRedirect(bool $accessDenied = false):void
+  {
+    if ($accessDenied) {
+      header('Location: /error/');
+      
+      exit;
+    }
+  }
   
   public static function getLocation(string $endSlash = '/'):string
   {
     
-    return '' === self::$folder || '/' === self::$folder ? self::serverName($endSlash) :
-      self::serverName().self::$folder.$endSlash;
-  }
-  
-  public static function serverName(string $endSlash = '/'):string
-  {
-    $port = TEST_SERVER ? TEST_SERVER_PORT : SERVER_PORT;
-    
-    $name = 'http';
-    $name .= 80 !== $port ? 's' : '';
-    $name .= '://'.$_SERVER['SERVER_NAME'];
-    $name .= 80 === $port || 443 === $port ? '' : ":$port";
-    $name .= $endSlash;
-    
-    return $name;
+    return '' === self::$folder || '/' === self::$folder ? self::serverName($endSlash)
+      : self::serverName().self::$folder.$endSlash;
   }
   
   public static function httpsRedirect(string $location = '/'):void
@@ -60,5 +56,18 @@ final class Location
     }
     
     exit;
+  }
+  
+  public static function serverName(string $endSlash = '/'):string
+  {
+    $port = TEST_SERVER ? TEST_SERVER_PORT : SERVER_PORT;
+    
+    $name = 'http';
+    $name .= 80 !== $port ? 's' : '';
+    $name .= '://'.$_SERVER['SERVER_NAME'];
+    $name .= 80 === $port || 443 === $port ? '' : ":$port";
+    $name .= $endSlash;
+    
+    return $name;
   }
 }

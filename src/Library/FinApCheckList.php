@@ -137,42 +137,24 @@ final class FinApCheckList
    */
   public static int $userPCID = 2;
   
-  /**
-   * Пароль
-   *
-   * @var string
-   */
-  private static string $_pass = "";
+  private static string $_pass = '';
   
-  /**
-   * URL
-   *
-   * @var string
-   */
-  private static string $_url = "https://finap.com.ua:9443/api";
+  private static string $_url = '';
   
-  /**
-   * Логін
-   *
-   * @var string
-   */
-  private static string $_user = "";
+  private static string $_user = '';
   
   public function __construct()
   {
     $settings = File::parse(['/json/fin-ap-checklist.json']);
     
     self::$disabled = $settings->disabled ?? self::$disabled;
+    
     self::$listData = $settings->listData ?? self::$listData;
     self::$_pass = $settings->pass ?? self::$_pass;
+    self::$_url = $settings->url ?? self::$_url;
     self::$_user = $settings->user ?? self::$_user;
   }
   
-  /**
-   * Підготовка запиту
-   *
-   * @return array
-   */
   private static function _getRequest():array
   {
     # Запрос
@@ -198,11 +180,6 @@ final class FinApCheckList
     return $request;
   }
   
-  /**
-   * Ініціалізація
-   *
-   * @param \stdClass $data
-   */
   public static function init(\stdClass $data):void
   {
     if (self::$debug) {
@@ -217,11 +194,6 @@ final class FinApCheckList
     self::$userPCID = (int)($data->userPCID ?? self::$userPCID);
   }
   
-  /**
-   * Запит до API
-   *
-   * @return string
-   */
   public static function sendRequest():string
   {
     if (self::$disabled) {

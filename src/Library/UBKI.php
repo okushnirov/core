@@ -36,13 +36,13 @@ final class UBKI
   
   private static string $_sessionID = '';
   
-  private static string $_sessionIDFile = "\\log\\ubki-session-id.log";
+  private static string $_sessionIDFile = '';
   
-  private static string $_url = "https://secure.ubki.ua/b2_api_xml/ubki/xml";
+  private static string $_url = '';
   
-  private static string $_urlAuth = "https://secure.ubki.ua/b2_api_xml/ubki/auth";
+  private static string $_urlAuth = '';
   
-  private static string $_urlTest = "https://test.ubki.ua/b2_api_xml/ubki/xml";
+  private static string $_urlTest = '';
   
   private static string $_user = '';
   
@@ -51,8 +51,13 @@ final class UBKI
     $settings = File::parse(['/json/ubki.json']);
     
     self::$disabled = $settings->disabled ?? self::$disabled;
-    self::$_pass = $settings->pass ?? '';
     self::$testMode = $testMode;
+    
+    self::$_pass = $settings->pass ?? '';
+    self::$_sessionIDFile = $settings->sessionFile ?? self::$_sessionIDFile;
+    self::$_url = $settings->url ?? self::$_url;
+    self::$_urlAuth = $settings->urlAuth ?? self::$_urlAuth;
+    self::$_urlTest = $settings->urlTest ?? self::$_urlTest;
     self::$_user = $settings->user ?? '';
   }
   
@@ -187,18 +192,16 @@ final class UBKI
       case 15:
       case 26:
         $xmlRequest = '
-<request reqtype="'.self::$requestType.'" reqreason="2" reqdate="'.date("Y-m-d").'" reqsource="1">
-  <i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i>
-</request>';
+<request reqtype="'.self::$requestType.'" reqreason="2" reqdate="'.date("Y-m-d")
+          .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
         
         break;
       
       # 22 - Досьє підприємця
       case 22:
         $xmlRequest = '
-<request reqtype="'.self::$requestType.'" reqreason="6" reqdate="'.date("Y-m-d").'" reqsource="1">
-  <i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i>
-</request>';
+<request reqtype="'.self::$requestType.'" reqreason="6" reqdate="'.date("Y-m-d")
+          .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
     }
     
     if (self::$debug) {

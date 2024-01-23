@@ -200,7 +200,7 @@ final class Authorization
     return true;
   }
   
-  private function getSettings(array $files = ['\json\login.json']):mixed
+  private function getSettings(array $files = ['/json/login.json']):mixed
   {
     
     return File::parse($files);
@@ -214,7 +214,7 @@ final class Authorization
   
   private function testDB(int | bool $connection):bool
   {
-    $settings = self::getSettings(['\json\dbase.json']);
+    $settings = self::getSettings(['/json/dbase.json']);
     
     if (empty($settings)) {
       
@@ -232,7 +232,6 @@ final class Authorization
     
     DbSQLAnywhere::disconnect();
     
-    # Test DB connect
     if (!DbSQLAnywhere::connect($connection)) {
       
       throw new \Exception('Wrong DB connect', -110);
