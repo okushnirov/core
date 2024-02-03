@@ -2,11 +2,13 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Library\Enums\Charset;
+
 final class WebService
 {
-  public static int $httpCode = 0;
-  
   public static bool $debug = false;
+  
+  public static int $httpCode = 0;
   
   private static mixed $settings;
   
@@ -30,6 +32,11 @@ final class WebService
     $ws = new \stdClass();
     $ws->url = $data->{'url'.($test ? 'Test' : '')} ?? $data->url ?? '';
     
+    if ('' === $ws->url) {
+      
+      throw new \Exception("Empty webservice url", -2);
+    }
+    
     if (isset($data->connect)) {
       if ('string' === gettype(self::$settings->connection->{$data->connect})) {
         $ws->connection = self::$settings->connection->{$data->connect};
@@ -49,15 +56,16 @@ final class WebService
   
   public function json(
     string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5):mixed
+    int    $timeout = 5, Charset $charset = Charset::UTF8):mixed
   {
     try {
       $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
+      $response = Charset::WINDOWS1251 === $charset ? Encoding::decode($response) : $response;
       $json = $response ? json_decode($response) : null;
       
       if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
         
-        throw new \Exception(json_last_error_msg() ? : 'Empty response', -2);
+        throw new \Exception(json_last_error_msg() ? : 'Empty or wrong response', -2);
       }
     } catch (\Exception $e) {
       
@@ -67,6 +75,9 @@ final class WebService
     return $json;
   }
   
+  /**
+   * @deprecated
+   */
   public function jsonWindows1251(
     string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
     int    $timeout = 5):mixed
@@ -101,10 +112,8 @@ final class WebService
     self::$httpCode = 0;
     
     if (isset($ws->url)) {
-      $response = Curl::exec($ws->url, $header
-        ? : [
-          "charset=\"utf-8\""
-        ], $data, $ws->user ?? false, $ws->pass ?? false, $post, $ssl, $timeout);
+      $response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? false, $ws->pass ?? false, $post, $ssl,
+        $timeout);
       self::$httpCode = Curl::$curlHttpCode;
     } else {
       $response = '';
@@ -125,6 +134,34 @@ final class WebService
     return $response ? : '';
   }
   
+  public function xml(
+    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
+    int    $timeout = 5, Charset $charset = Charset::UTF8):\SimpleXMLElement
+  {
+    $data = Charset::WINDOWS1251 === $charset ? Encoding::encode($data) : $data;
+    
+    try {
+      $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
+      
+      $response = Charset::WINDOWS1251 === $charset ? Str::replaceHeader($response) : $response;
+      
+      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
+      
+      if (empty($xml) || empty($xml->getName())) {
+        
+        throw new \Exception('Empty or wrong response', -2);
+      }
+    } catch (\Exception $e) {
+      
+      throw new \Exception($e->getMessage(), -3);
+    }
+    
+    return $xml;
+  }
+  
+  /**
+   * @deprecated
+   */
   public function xmlUtf8(
     string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
     int    $timeout = 5):\SimpleXMLElement
@@ -145,6 +182,9 @@ final class WebService
     return $xml;
   }
   
+  /**
+   * @deprecated
+   */
   public function xmlWindows1251(
     string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
     int    $timeout = 5):\SimpleXMLElement
