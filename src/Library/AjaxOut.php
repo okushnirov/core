@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-final class AjaxOut
+final class AjaxOut extends \stdClass
 {
   public ?int $errorCode = null;
   
