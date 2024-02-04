@@ -10,6 +10,8 @@ final class WebService
   
   public static int $httpCode = 0;
   
+  public static string $response = '';
+  
   private static mixed $settings;
   
   public function __construct(mixed $settings = null)
@@ -110,28 +112,27 @@ final class WebService
     }
     
     self::$httpCode = 0;
+    self::$response = '';
     
     if (isset($ws->url)) {
-      $response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? false, $ws->pass ?? false, $post, $ssl,
+      self::$response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? false, $ws->pass ?? false, $post, $ssl,
         $timeout);
       self::$httpCode = Curl::$curlHttpCode;
-    } else {
-      $response = '';
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode
-        ."]\n$response");
+      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
+        .self::$response);
     }
     
     if (200 !== Curl::$curlHttpCode) {
-      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode
-        ."]\n$response");
+      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
+        .self::$response);
       
-      throw new \Exception($response, -2);
+      throw new \Exception(self::$response, -2);
     }
     
-    return $response ? : '';
+    return self::$response;
   }
   
   public function xml(

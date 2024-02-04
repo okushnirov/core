@@ -24,12 +24,16 @@ final class Location
       : self::serverName().self::$folder.$endSlash;
   }
   
-  public static function httpsRedirect(string $location = '/'):void
+  public static function httpsRedirect(string $location = ''):void
   {
     $redirect = TEST_SERVER ? TEST_SERVER_REDIRECT : SERVER_REDIRECT;
     
     if (80 === (int)$_SERVER['SERVER_PORT'] && $redirect) {
-      header('Location: '.('' === $location || '/' === $location ? self::getLocation() : $location));
+      $folder = trim($location, '/');
+      
+      header('Location: '.('' === $folder || self::$folder === $folder
+          ? self::getLocation() : (false === mb_stripos($location, 'https')
+            ? self::getLocation(str_starts_with($location, '/') ? '' : '/').$location : $location)));
       
       exit;
     }
