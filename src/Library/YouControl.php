@@ -6,100 +6,36 @@ use okushnirov\core\Library\Enums\YouControlEnum;
 
 final class YouControl
 {
-  /**
-   * Дата народження контрагента
-   *
-   * @var string
-   */
   public string $birthday = '';
   
-  /**
-   * Код контрагента
-   *
-   * @var string
-   */
   public string $code = '';
   
-  /**
-   * Режим налаштування
-   *
-   * @var bool
-   */
-  public bool $debug = false;
+  public static bool $debug = false;
   
-  /**
-   * Стан сервісу
-   * true - відключений
-   * false - працює
-   */
   public static bool $disabled = true;
   
-  /**
-   * Номер документа
-   *
-   * @var string
-   */
   public string $documentNumber = '';
   
-  /**
-   * Серія документа
-   *
-   * @var string
-   */
   public string $documentSeries = '';
   
-  /**
-   * Ім'я контрагента
-   *
-   * @var string
-   */
   public string $firstName = '';
   
-  /**
-   * Прізвище контрагента
-   *
-   * @var string
-   */
   public string $lastName = '';
   
-  /**
-   * По батькові контрагента
-   *
-   * @var string
-   */
   public string $middleName = '';
   
-  /**
-   * Тип контрагента
-   *
-   * @var string
-   */
   public string $subject;
   
-  /**
-   * Ключ API "Аналітика"
-   *
-   * @var string
-   */
   private string $APIKeyAnalytics = '';
   
-  /**
-   * Ключ API "Дані"
-   *
-   * @var string
-   */
   private string $APIKeyData = '';
   
   private string $url = '';
   
   private mixed $prevResult = [];
   
-  public function __construct(array $request)
+  public function __construct()
   {
-    if ($this->debug) {
-      trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-    
     $settings = File::parse(['/json/you-control.json']);
     
     self::$disabled = $settings->disabled ?? self::$disabled;
@@ -107,6 +43,13 @@ final class YouControl
     $this->APIKeyAnalytics = $settings->keyAnalytics ?? $this->APIKeyAnalytics;
     $this->APIKeyData = $settings->keyData ?? $this->APIKeyData;
     $this->url = $settings->url ?? $this->url;
+  }
+  
+  public function init(array $request):void
+  {
+    if (self::$debug) {
+      trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
     
     # Тип контрагента
     $this->subject = mb_convert_case(trim($request['subject'] ?? ''), MB_CASE_UPPER);
@@ -130,11 +73,6 @@ final class YouControl
     $this->prevResult = $request['result'] ?? $this->prevResult;
   }
   
-  /**
-   * Запит до API YouControl
-   *
-   * @return string
-   */
   public function sendRequest():string
   {
     
@@ -194,9 +132,16 @@ final class YouControl
     $photo->photo = "data:$contentType;base64, ".base64_encode($file);
   }
   
+  /**
+   * Результат попереднього запиту
+   *
+   * @param string $nameCheck
+   *
+   * @return mixed
+   */
   private function _getPreviousResult(string $nameCheck):mixed
   {
-    if ($this->debug) {
+    if (self::$debug) {
       trigger_error(__METHOD__." Check [$nameCheck] isset[".isset($this->prevResult->{$nameCheck}).'] type ['
         .gettype($this->prevResult->{"$nameCheck"} ?? null).']');
     }
@@ -396,7 +341,7 @@ final class YouControl
     # Запит
     $response = Curl::exec($requestURL, $requestHeader, false, '', '', 0, false, 5);
     
-    if ($this->debug) {
+    if (self::$debug) {
       trigger_error(__METHOD__." [$requestType->name]\n$requestURL\nResponse [HTTP ".Curl::$curlHttpCode
         ."]\n$response");
     }
@@ -423,7 +368,7 @@ final class YouControl
         # Повторний запит
         $response = Curl::exec($requestURL, $requestHeader, false, '', '', 0, false, 5);
         
-        if ($this->debug) {
+        if (self::$debug) {
           trigger_error(__METHOD__." [$requestType->name] Loop[$i of 3]\n$requestURL\nResponse [HTTP "
             .Curl::$curlHttpCode."]\n$response");
         }
@@ -581,12 +526,15 @@ final class YouControl
      * Інформація відсутня
      * []
      */
-    $result = self::_ws(YouControlEnum::fig, "v1/fig?contractorCode=$this->code", null);
+    return self::_ws(YouControlEnum::fig, "v1/fig?contractorCode=$this->code", null);
     
+    // TODO: Перевірка вимкнена
+    /*
     if ('string' === gettype($result) || empty($result)) {
       
       return $result;
     }
+    
     
     # Детальна інформація про ФПГ / Information about FIG
     /*foreach ($result as $fig) {
@@ -598,9 +546,9 @@ final class YouControl
       }
       
       $fig->details = self::_ws(YouControlEnum::fig, "v1/fig/$id?");
-    }*/
+    }
     
-    return $result;
+    return $result;*/
   }
   
   /**
@@ -833,23 +781,15 @@ final class YouControl
      */
     return self::_ws(YouControlEnum::wanted, "v1/wantedOrDisappearedPersons?$query");
     
-    /**
-     * {
-     * "disappearedPersonsRegistryUpdateTime": "2019-10-14T23:32:00Z",
-     * "wantedPersonsRegistryUpdateTime": "2019-10-14T23:34:00Z",
-     * "disappearedPersons": [],
-     * "wantedPersons": []
-     * }
-     */
+    // TODO: Перевірка вимкнена
     /*
-    $result = self::_ws(YouControlEnum::wanted, "v1/wantedOrDisappearedPersons?$query");
-    
     if ('string' === gettype($result) || 200 !== Curl::$curlHttpCode
       || empty($result->disappearedPersons)
       && empty($result->wantedPersons)) {
       
       return $result;
     }
+    
     
     # Пошук фото в реєстрі осіб, зниклих безвісти
     foreach ($result->disappearedPersons as $person) {

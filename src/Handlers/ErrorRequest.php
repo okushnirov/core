@@ -6,8 +6,12 @@ define('DO_LANG_HANDLER', 1);
 
 define('DO_REQUEST_HANDLER', 2);
 
+define('NO_COOKIE', 4);
+
+define('NO_SESSION', 8);
+
 use core\Handlers\{ErrorPath, ErrorLang};
-use okushnirov\core\Library\{Location, Session};
+use okushnirov\core\Library\{Enums\CookieType, Enums\SessionType, Location, Session};
 
 class ErrorRequest
 {
@@ -100,7 +104,15 @@ class ErrorRequest
     }
     
     try {
-      (new Root())::handler(Location::$folder, self::$_request);
+      if ($flags & NO_COOKIE) {
+        (new Root())::handler(Location::$folder, self::$_request, cookie: CookieType::No);
+      } elseif ($flags & NO_SESSION) {
+        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE);
+      } elseif ($flags & NO_SESSION & NO_SESSION) {
+        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE, cookie: CookieType::No);
+      } else {
+        (new Root())::handler(Location::$folder, self::$_request);
+      }
     } catch (\Exception $e) {
       try {
         (new \core\Root\Folders\Error())::index(self::$_http_code, $e->getCode(), $e->getMessage(), self::$_request);
