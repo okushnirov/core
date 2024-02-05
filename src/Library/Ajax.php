@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\{Handlers\ErrorRequest, Library\Enums\Auth, Library\Enums\SessionType};
+use okushnirov\core\{Handlers\ErrorRequest, Library\Enums\Auth, Library\Enums\CookieType, Library\Enums\SessionType};
 use JetBrains\PhpStorm\NoReturn;
 
 final class Ajax
@@ -15,13 +15,14 @@ final class Ajax
   
   public static mixed $settings;
   
-  public function __construct(array $JSON = [], SessionType $session = SessionType::DB)
+  public function __construct(array      $JSON = [], SessionType $session = SessionType::DB,
+                              CookieType $cookie = CookieType::Yes)
   {
     if (SessionType::NONE !== $session) {
       Session::sessionStart($session);
     }
     
-    Lang::set($session);
+    Lang::set($session, $cookie);
     Location::$folder = SessionType::NONE === $session ? (Location::$folder ?? '') : ($_SESSION['folder'] ?? '');
     
     self::$out = new AjaxOut();
