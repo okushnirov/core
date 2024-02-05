@@ -1,7 +1,8 @@
 .idea
-json
-php
-test
+json/
+php/
+test/
 vendor
 .htaccess
 site.webmanifest
+/test/
