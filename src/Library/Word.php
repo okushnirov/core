@@ -27,6 +27,8 @@ final class Word
   
   private bool $isConvert = false;
   
+  private bool $isLinks = false;
+  
   private string $path = "\\files\\templates\\";
   
   private string $pathImage = "\\files\\templates\\images\\";
@@ -85,6 +87,8 @@ final class Word
     $this->fileDownload = '' === $this->fileDownload ? "Document ".$this->dateTime->format('YmdHis')
       : $this->fileDownload;
     $this->fileDownload .= $this->fileExtOut->value;
+    
+    $this->isLinks = isset($xml->ссылки) && $xml->ссылки->ссылка->count();
     
     $this->testMode = $testMode;
     
@@ -209,6 +213,10 @@ final class Word
       throw new \Exception('Помилка створення копії шаблону файла', -30);
     }
     
+    if ($this->isLinks) {
+      self::_links();
+    }
+    
     if ($this->isConvert) {
       self::_convert();
     }
@@ -249,6 +257,34 @@ final class Word
         unlink($fileImage);
       }
     }
+  }
+  
+  private function _links():void
+  {
+    $zip = new \ZipArchive();
+    
+    if (!$zip->open($this->fileCopy, 0)) {
+      $zip->close();
+      
+      return;
+    }
+    
+    $relsName = 'word/_rels/document.xml.rels';
+    $xmlStr = $zip->getFromName($relsName);
+    
+    foreach ($this->xml->ссылки->ссылка as $link) {
+      $linkID = trim($link['id'] ?? '');
+      
+      if ('' === $linkID) {
+        
+        continue;
+      }
+      
+      $xmlStr = str_replace("link_$linkID", htmlspecialchars((string)$link, ENT_XML1), $xmlStr);
+    }
+    
+    $zip->addFromString($relsName, $xmlStr);
+    $zip->close();
   }
   
   private function _replaceImages():void

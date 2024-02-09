@@ -173,7 +173,10 @@ final class Excel
                   ->setBold(true);
       $this->sheet->getStyle('A1')
                   ->getAlignment()
-                  ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                  ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+                  ->setVertical(Alignment::VERTICAL_CENTER);
+      $this->sheet->getRowDimension('1')
+                  ->setRowHeight(30);
       
       # Об'єднати комірки заголовка
       try {
