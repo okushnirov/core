@@ -59,8 +59,8 @@ final class DbSQLAnywhere implements DbSQL
     self::$connect = sasql_connect("HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP;");
     
     if (self::$debug) {
-      trigger_error(__METHOD__." for[$connection][$user:$pass]".(self::$connect ? ' ok ['.self::$connect.']'
-          : ' failed')."\n".json_encode(debug_backtrace()[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+      trigger_error(__METHOD__." for[$connection][$user:$pass] -> HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP; -> ".(self::$connect ? 'ok ['.self::$connect.']'
+          : 'failed')."\n".json_encode(debug_backtrace()[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
         ."\nsettings[$c->connection][$c->user:$c->pass]");
     }
     

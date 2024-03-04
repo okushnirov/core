@@ -22,7 +22,7 @@
  },
  "require-dev": {
   "phpmailer/phpmailer": "^v6.9.1",
-  "phpoffice/phpspreadsheet":"^1.29.0",
+  "phpoffice/phpspreadsheet":"^2.0.0",
   "phpoffice/phpword":"^1.2.0"
  }
 }
