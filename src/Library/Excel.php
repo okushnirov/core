@@ -323,6 +323,10 @@ final class Excel
         $this->posX++;
       }
       
+      if ($this->posY === $this->rowFirst) {
+        $this->highestColumn = $this->sheet->getHighestColumn();
+      }
+      
       $this->posY++;
     }
   }
