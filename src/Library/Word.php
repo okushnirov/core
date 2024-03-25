@@ -153,27 +153,20 @@ final class Word
         continue;
       }
       
-      # Обробка блоків/таблиць
       if ('' !== $col) {
-        $isCloneTable = true;
-        
-        # Таблиця
         try {
           $this->word->cloneRow("$col", $cntNode);
+          self::_replaceNodeValue($alias, $node, $col);
         } catch (Exception) {
-          $isCloneTable = false;
         }
         
-        # Блок
-        if (!$isCloneTable) {
-          $cloneBlock = $this->word->cloneBlock("b$col", $cntNode, true, true);
-          
-          # Не знайдено блоку
-          if (empty($cloneBlock)) {
-            
-            continue;
-          }
+        $cloneBlock = $this->word->cloneBlock("b$col", $cntNode, true, true);
+        
+        if (!empty($cloneBlock)) {
+          self::_replaceNodeValue($alias, $node, $col);
         }
+        
+        continue;
       }
       
       self::_replaceNodeValue($alias, $node, $col);

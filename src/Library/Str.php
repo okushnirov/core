@@ -103,6 +103,19 @@ final class Str
       $string);
   }
   
+  public static function separateEntity(string $string, string $tagName):string
+  {
+    
+    return '' === $string
+      ? ''
+      : ('' === $tagName
+        ? $string
+        : implode('', array_map(function($value) use ($tagName) {
+          
+          return "<$tagName>$value</$tagName>";
+        }, str_split($string))));
+  }
+  
   public static function upperCase(string $value):string
   {
     
