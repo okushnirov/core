@@ -104,12 +104,12 @@ class ErrorRequest
     }
     
     try {
-      if ($flags & NO_COOKIE) {
-        (new Root())::handler(Location::$folder, self::$_request, cookie: CookieType::No);
+      if ($flags & NO_SESSION & NO_SESSION) {
+        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE, cookie: CookieType::No);
       } elseif ($flags & NO_SESSION) {
         (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE);
-      } elseif ($flags & NO_SESSION & NO_SESSION) {
-        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE, cookie: CookieType::No);
+      } elseif ($flags & NO_COOKIE) {
+        (new Root())::handler(Location::$folder, self::$_request, cookie: CookieType::No);
       } else {
         (new Root())::handler(Location::$folder, self::$_request);
       }
