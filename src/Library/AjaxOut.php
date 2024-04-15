@@ -4,8 +4,9 @@ namespace okushnirov\core\Library;
 
 final class AjaxOut extends \stdClass
 {
-  public ?int $errorCode = null;
+  public string $console = '';
   
+  public ?int $errorCode = null;
   public string $errorMessage = '';
   
   public string $html = '';
