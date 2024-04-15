@@ -6,11 +6,7 @@ define('DO_LANG_HANDLER', 1);
 
 define('DO_REQUEST_HANDLER', 2);
 
-define('NO_COOKIE', 4);
-
-define('NO_SESSION', 8);
-
-use core\Handlers\{ErrorPath, ErrorLang};
+use core\{Handlers\ErrorLang, Handlers\ErrorPath, Root\Folders\Error};
 use okushnirov\core\Library\{Enums\CookieType, Enums\SessionType, Location, Session};
 
 class ErrorRequest
@@ -34,7 +30,8 @@ class ErrorRequest
     }
   }
   
-  public static function run($flags = 0):void
+  public static function run(
+    $flags = 0, SessionType $session = SessionType::NONE, CookieType $cookie = CookieType::No):void
   {
     Location::$folder = 'error';
     
@@ -44,7 +41,7 @@ class ErrorRequest
       case 401:
       case 403:
         try {
-          (new \core\Root\Folders\Error())::index(self::$_http_code, 0, '', self::$_request);
+          (new Error())::index(self::$_http_code, 0, '', self::$_request);
         } catch (\Exception) {
           header('Location: '.Location::serverName());
         }
@@ -58,7 +55,6 @@ class ErrorRequest
         $path = explode('/', trim(mb_strtolower(parse_url(self::$_request, PHP_URL_PATH)), '/'));
         Location::$folder = 1 < count($path) ? implode('/', $path) : $path[0] ?? Location::$folder;
         
-        # Language handler
         if ($flags & DO_LANG_HANDLER && !empty($path[0])) {
           try {
             $result = ErrorLang::run($path[0]);
@@ -70,7 +66,6 @@ class ErrorRequest
           if ($result) {
             array_shift($path);
             
-            # Reload page
             if (empty($path)) {
               header('Location: '.Location::getLocation());
               
@@ -104,18 +99,10 @@ class ErrorRequest
     }
     
     try {
-      if ($flags & NO_SESSION & NO_SESSION) {
-        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE, cookie: CookieType::No);
-      } elseif ($flags & NO_SESSION) {
-        (new Root())::handler(Location::$folder, self::$_request, session: SessionType::NONE);
-      } elseif ($flags & NO_COOKIE) {
-        (new Root())::handler(Location::$folder, self::$_request, cookie: CookieType::No);
-      } else {
-        (new Root())::handler(Location::$folder, self::$_request);
-      }
+      (new Root())::handler(Location::$folder, self::$_request, session: $session, cookie: $cookie);
     } catch (\Exception $e) {
       try {
-        (new \core\Root\Folders\Error())::index(self::$_http_code, $e->getCode(), $e->getMessage(), self::$_request);
+        (new Error())::index(self::$_http_code, $e->getCode(), $e->getMessage(), self::$_request);
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
         

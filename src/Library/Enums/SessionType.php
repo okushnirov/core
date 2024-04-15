@@ -6,7 +6,12 @@ enum SessionType
 {
   case NONE;
   
+  /**
+   * @deprecated
+   */
   case DB;
   
   case PHP;
+  
+  case WS;
 }

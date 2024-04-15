@@ -2,7 +2,9 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\{Handlers\SessionHandler, Library\Enums\Decrypt, Library\Enums\SessionType};
+use okushnirov\core\{Handlers\SessionHandler, Handlers\SessionHandlerWs, Library\Enums\Decrypt,
+  Library\Enums\SessionType
+};
 
 final class Session
 {
@@ -33,12 +35,15 @@ final class Session
   public static function sessionStart(SessionType $session):bool
   {
     if (!session_id()) {
-      if (SessionType::DB === $session) {
-        try {
+      
+      try {
+        if (SessionType::DB === $session) {
           new SessionHandler();
-        } catch (\Exception $e) {
-          trigger_error(__METHOD__.' '.$e->getMessage());
+        } elseif (SessionType::WS === $session) {
+          new SessionHandlerWs();
         }
+      } catch (\Exception $e) {
+        trigger_error(__METHOD__.' '.$e->getMessage());
       }
       
       session_start();

@@ -46,7 +46,7 @@ final class Authorization
   }
   
   public function check(
-    Auth $type = Auth::DB_USER, bool | int | null $connection = false, SessionType $session = SessionType::DB):bool
+    Auth $type = Auth::DB_USER, bool | int | null $connection = false, SessionType $session = SessionType::WS):bool
   {
     if (self::$debug) {
       trigger_error(__METHOD__." auth[$type->name] connection[$connection] session[$session->name]");

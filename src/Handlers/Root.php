@@ -17,7 +17,7 @@ final class Root extends \Exception
   public static ?string $query;
   
   public static function handler(
-    string     $folder, string $request = '/', ?Auth $loginType = null, SessionType $session = SessionType::DB,
+    string     $folder, string $request = '/', ?Auth $loginType = null, SessionType $session = SessionType::WS,
     CookieType $cookie = CookieType::Yes, bool $redirect = true):void
   {
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
@@ -120,9 +120,8 @@ final class Root extends \Exception
         trigger_error($e->getMessage());
         
         (new ErrorRequest('/error/', 404, [
-          'REQUEST' => $_REQUEST ?? [],
-          'SERVER' => $_SERVER ?? []
-        ]))::run();
+          'REQUEST' => $_REQUEST ?? []
+        ]))::run(session: $session, cookie: $cookie);
       }
     }
   }

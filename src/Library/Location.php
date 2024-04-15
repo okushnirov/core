@@ -40,7 +40,7 @@ final class Location
   }
   
   public static function logout(
-    string $location, string $query, SessionType $session = SessionType::DB, bool $reloadHome = true):void
+    string $location, string $query, SessionType $session = SessionType::WS, bool $reloadHome = true):void
   {
     parse_str(mb_strtolower($query), $result);
     

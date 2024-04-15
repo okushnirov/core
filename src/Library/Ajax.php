@@ -15,8 +15,8 @@ final class Ajax
   
   public static mixed $settings;
   
-  public function __construct(array      $JSON = [], SessionType $session = SessionType::DB,
-                              CookieType $cookie = CookieType::Yes)
+  public function __construct(
+    array $JSON = [], SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes)
   {
     if (SessionType::NONE !== $session) {
       Session::sessionStart($session);
@@ -51,7 +51,6 @@ final class Ajax
         'DEBUG' => debug_backtrace(),
         'COOKIE' => $_COOKIE ?? [],
         'REQUEST' => $_REQUEST ?? [],
-        'SERVER' => $_SERVER ?? [],
         'SESSION' => Session::decryptCRC($_SESSION ?? [])
       ]))::run();
       

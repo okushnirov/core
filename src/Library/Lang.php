@@ -17,7 +17,7 @@ final class Lang
     self::$settings = File::parse(['/json/language.json']);
   }
   
-  public static function set(SessionType $session = SessionType::DB, CookieType $cookie = CookieType::Yes):void
+  public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
   {
     if (self::$debug) {
       trigger_error(__METHOD__.json_encode([
