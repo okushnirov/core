@@ -16,7 +16,8 @@ final class WebService
   
   public function __construct(mixed $settings = null)
   {
-    self::$settings = $settings->ws ?? File::parse(['/json/settings.json'])->ws ?? [];
+    self::$settings = $settings->ws ??
+      File::parse(['/json/ws.json'])->ws ?? File::parse(['/json/settings.json'])->ws ?? [];
   }
   
   public function get(string $wsName, bool $test = TEST_SERVER):object
@@ -126,8 +127,10 @@ final class WebService
     }
     
     if (200 !== Curl::$curlHttpCode) {
-      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
-        .self::$response);
+      if (!self::$debug) {
+        trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
+          .self::$response);
+      }
       
       throw new \Exception(self::$response, -2);
     }

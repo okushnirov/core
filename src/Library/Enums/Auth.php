@@ -11,4 +11,8 @@ enum Auth
   case LDAP;
   
   case LDAP_DB;
+  
+  case WS;
+  
+  case WS_DATA;
 }

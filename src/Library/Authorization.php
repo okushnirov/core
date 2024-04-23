@@ -70,7 +70,8 @@ final class Authorization
       Auth::DB => self::testDB($connection),
       Auth::LDAP => self::testLDAP(),
       Auth::LDAP_DB => self::testLDAP() || self::testDB($connection),
-      Auth::DB_USER => true
+      Auth::DB_USER => true,
+      Auth::WS, Auth::WS_DATA => self::testWS($session, Auth::WS_DATA === $type)
     };
     
     if (self::$debug) {
@@ -80,6 +81,11 @@ final class Authorization
     if (!self::$isLogin) {
       
       return false;
+    }
+    
+    if (Auth::WS === $type || Auth::WS_DATA === $type) {
+      
+      return true;
     }
     
     $user = $this->getUser(self::$userLogin);
@@ -331,5 +337,64 @@ final class Authorization
     }
     
     return self::$isLogin;
+  }
+  
+  private function testWS(SessionType $session, bool $withData = false):bool
+  {
+    $settings = self::getSettings();
+    
+    $webService = new WebService($settings->login);
+    $webService::$debug = self::$debug;
+    
+    $request = [
+      'request' => [
+        'type' => 'get',
+        'lang' => Lang::getShort(Lang::$lang)
+      ]
+    ];
+    
+    if ($withData) {
+      $request['password'] = self::$userPassword;
+    }
+    
+    try {
+      $response = $webService->json('auth', json_encode($request), header: [
+        'Content-Type: application/json; charset=utf-8',
+        'Authorization: Basic '.base64_encode(self::$userLogin.':'.self::$userPassword)
+      ], timeout: 3);
+    } catch (\Exception $e) {
+      $response = [];
+    }
+    
+    if (401 === $webService::$httpCode) {
+      throw new \Exception($settings->login->error->{-115}->{Lang::$lang}, -115);
+    }
+    
+    if (200 !== $webService::$httpCode || empty($response)) {
+      throw new \Exception($settings->login->error->{-20}->{Lang::$lang}, -20);
+    }
+    
+    if (0 !== $response->serviceInfo->errorCode) {
+      throw new \Exception($response->serviceInfo->errorCode, -50);
+    }
+    
+    if (!isset($response->user)) {
+      throw new \Exception($settings->login->error->{-60}->{Lang::$lang}, -60);
+    }
+    
+    if (SessionType::NONE === $session) {
+      
+      return true;
+    }
+    
+    self::$isLogin = true;
+    
+    $session = $this->getUserDB($response->user);
+    
+    if ($session && $withData) {
+      $_SESSION['CRC']['ws:data'] = $response->data;
+    }
+    
+    return $session;
   }
 }
