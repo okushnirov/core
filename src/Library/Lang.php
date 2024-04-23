@@ -17,6 +17,15 @@ final class Lang
     self::$settings = File::parse(['/json/language.json']);
   }
   
+  public static function getShort(string $lang = ''):string
+  {
+    if (empty(self::$settings)) {
+      self::getSettings();
+    }
+    
+    return self::$settings->language->lang->{$lang ? : self::$lang}->short ?? '';
+  }
+  
   public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
   {
     if (self::$debug) {
@@ -50,21 +59,13 @@ final class Lang
       if (self::$debug) {
         trigger_error(__METHOD__.' Request read ['.self::$lang.']');
       }
-      
-      goto set;
-    }
-    
-    if (CookieType::Yes === $cookie && self::existsLang($_COOKIE['lang'] ?? '')) {
+    } elseif (CookieType::Yes === $cookie && self::existsLang($_COOKIE['lang'] ?? '')) {
       self::$lang = $_COOKIE['lang'];
       
       if (self::$debug) {
         trigger_error(__METHOD__.' Cookie read ['.self::$lang.']');
       }
-      
-      goto set;
-    }
-    
-    if (SessionType::NONE !== $session && Session::sessionStart($session)
+    } elseif (SessionType::NONE !== $session && Session::sessionStart($session)
       && self::existsLang($_SESSION['lang'] ?? '')) {
       self::$lang = $_SESSION['lang'];
       
@@ -72,8 +73,6 @@ final class Lang
         trigger_error(__METHOD__.' Session read ['.self::$lang.']');
       }
     }
-    
-    set:
     
     self::$lang = self::existsLang(self::$lang) ? self::$lang : self::$settings->language->default;
     

@@ -7,7 +7,8 @@ final class AjaxOut extends \stdClass
   public string $console = '';
   
   public ?int $errorCode = null;
-  public string $errorMessage = '';
+  
+  public ?string $errorMessage = '';
   
   public string $html = '';
   
