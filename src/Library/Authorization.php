@@ -342,7 +342,7 @@ final class Authorization
   {
     $settings = self::getSettings();
     
-    if (empty($settings) || !isset($settings->login->auth)) {
+    if (empty($settings) || !isset($settings->login->ws->auth)) {
       
       throw new \Exception('Empty ws auth settings', -10);
     }
