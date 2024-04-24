@@ -98,9 +98,8 @@ final class Authorization
     $settings = self::getSettings();
     
     if (empty($settings) || !isset($settings->login->block)) {
-      trigger_error(__METHOD__." Відсутній сервіс зміни лічильника помилок входу користувача");
       
-      return false;
+      throw new \Exception('Empty user block settings', -10);
     }
     
     $ws = $settings->login->block;
@@ -113,7 +112,7 @@ final class Authorization
       'userID' => $userID
     ]), false, false, 1, 2, 5);
     
-    return !empty($response);
+    return 200 === Curl::$curlHttpCode && !empty($response);
   }
   
   public function getUser(string $userLogin = '', ?int $userID = null)
@@ -343,6 +342,11 @@ final class Authorization
   {
     $settings = self::getSettings();
     
+    if (empty($settings) || !isset($settings->login->auth)) {
+      
+      throw new \Exception('Empty ws auth settings', -10);
+    }
+    
     $webService = new WebService($settings->login);
     $webService::$debug = self::$debug;
     
@@ -362,23 +366,27 @@ final class Authorization
         'Content-Type: application/json; charset=utf-8',
         'Authorization: Basic '.base64_encode(self::$userLogin.':'.self::$userPassword)
       ], timeout: 3);
-    } catch (\Exception $e) {
+    } catch (\Exception) {
       $response = [];
     }
     
     if (401 === $webService::$httpCode) {
+      
       throw new \Exception($settings->login->error->{-115}->{Lang::$lang}, -115);
     }
     
     if (200 !== $webService::$httpCode || empty($response)) {
+      
       throw new \Exception($settings->login->error->{-20}->{Lang::$lang}, -20);
     }
     
     if (0 !== $response->serviceInfo->errorCode) {
+      
       throw new \Exception($response->serviceInfo->errorCode, -50);
     }
     
     if (!isset($response->user)) {
+      
       throw new \Exception($settings->login->error->{-60}->{Lang::$lang}, -60);
     }
     

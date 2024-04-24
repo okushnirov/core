@@ -127,10 +127,6 @@ final class WebService
     }
     
     if (200 !== Curl::$curlHttpCode) {
-      if (!self::$debug) {
-        trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
-          .self::$response);
-      }
       
       throw new \Exception(self::$response, -2);
     }

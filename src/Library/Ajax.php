@@ -82,10 +82,10 @@ final class Ajax
   {
     if (!self::$out->success && !self::$out->reload) {
       self::$out->errorCode = null === self::$out->errorCode ? $errorCode : self::$out->errorCode;
-      self::$out->errorMessage = '' === trim(self::$out->errorMessage)
-        ? (self::$settings->error->{self::$out->errorCode}->{Lang::$lang} ??
-          self::$settings->error->{self::$out->errorCode} ?? 'Undefined error ['.self::$out->errorCode.']')
-        : self::$out->errorMessage;
+      self::$out->errorMessage = '' !== self::$out->errorMessage
+        ? self::$out->errorMessage
+        : (self::$settings->error->{self::$out->errorCode}->{Lang::$lang} ??
+          self::$settings->error->{self::$out->errorCode} ?? 'Undefined error ['.self::$out->errorCode.']');
     }
     
     exit(json_encode(self::$out));
