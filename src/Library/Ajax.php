@@ -9,6 +9,8 @@ final class Ajax
 {
   public static string $case = '';
   
+  public static false | string $contents = false;
+  
   public static ?array $in = [];
   
   public static AjaxOut $out;
@@ -63,6 +65,7 @@ final class Ajax
     if (self::$out->success) {
       unset($_POST['case']);
       
+      self::$contents = file_get_contents('php://input');
       self::$in = $_POST ?? [];
     }
     

@@ -85,7 +85,7 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     }
     
     try {
-      $response = (new WebService($session))->xml('session', $request->saveXML(), timeout: 1);
+      $response = (new WebService($session))->xml('session', $request->saveXML(), timeout: 2);
       unset($request);
     } catch (\Exception $e) {
       throw new \Exception($e->getMessage(), $e->getCode());
