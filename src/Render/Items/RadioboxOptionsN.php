@@ -8,7 +8,9 @@ use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\
 
 class RadioboxOptionsN extends Render implements HtmlInterface
 {
-  public static function html(\SimpleXMLElement $xmlItem, $objID = false, $xmlData = false, $variables = false):string
+  public static function html(
+    \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
+    mixed             $variables = false):string
   {
     if (!isset($xmlItem->source)) {
       

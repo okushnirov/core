@@ -37,7 +37,9 @@ use okushnirov\core\{Library\Crypt, Library\Enums\Encrypt, Render\Items\Interfac
  */
 class TagN extends Render implements HtmlInterface
 {
-  public static function html(\SimpleXMLElement $xmlItem, $objID = false, $xmlData = false, $variables = false):string
+  public static function html(
+    \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
+    mixed             $variables = false):string
   {
     $attribute = '';
     $isAfter = 'after' === (string)($xmlItem['position'] ?? '');
@@ -68,7 +70,7 @@ class TagN extends Render implements HtmlInterface
     $attribute .= self::getAttribute($xmlItem);
     
     if ('' !== $methodRef) {
-      $method = self::getMethodData($methodRef, self::getMethodList((int)$objID));
+      $method = self::getMethodData($methodRef, self::getMethodList($objID));
       
       if (1 !== $method->access) {
         

@@ -6,8 +6,7 @@ use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, User};
 
 class OptionsDict
 {
-  public static function get(
-    ?\SimpleXMLElement $xml, bool | int $objID = false):array
+  public static function get(?\SimpleXMLElement $xml, int $objID = 0):array
   {
     $id = (int)($xml['id'] ?? 0);
     
@@ -25,7 +24,7 @@ class OptionsDict
     $parent = (string)($xml['parent'] ?? '');
     $parentName = (string)($xml['parentName'] ?? '');
     
-    if ($parentName && !empty($objID)) {
+    if ($parentName && 0 !== $objID) {
       $parentNameEscape = DbSQLAnywhere::escape($parentName, true);
       
       $SQL = "SELECT \"_объект_значение_поля\"($objID,$parentNameEscape)";

@@ -62,7 +62,9 @@ use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Library\Option
  */
 class SelectN extends Render implements HtmlInterface
 {
-  public static function html(\SimpleXMLElement $xmlItem, $objID = false, $xmlData = false, $variables = false):string
+  public static function html(
+    \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
+    mixed             $variables = false):string
   {
     # Class
     $class = (string)($xmlItem['class'] ?? '');

@@ -111,8 +111,7 @@ class Render
   }
   
   public static function xml2HTML(
-    \DOMDocument $dom, bool | int $objID = false, \SimpleXMLElement | bool $xmlData = false,
-    mixed        $variables = false):string
+    \DOMDocument $dom, int $objID = 0, \SimpleXMLElement | bool $xmlData = false, mixed $variables = false):string
   {
     $xpath = new \DOMXPath($dom);
     
@@ -165,7 +164,7 @@ class Render
   }
   
   public static function xmlFile2HTML(
-    string $file, bool | int $objID = false, \SimpleXMLElement | bool $xmlData = false, mixed $variables = false):string
+    string $file, int $objID = 0, \SimpleXMLElement | bool $xmlData = false, mixed $variables = false):string
   {
     if (!File::isFile($file)) {
       
@@ -303,7 +302,7 @@ class Render
         
         break;
       
-      # *CHAR
+      # ...CHAR
       case (mb_stristr($fieldType, 'char') ? $fieldType : ''):
         $attribute .= false === mb_stripos($attribute, 'maxlength="') && !empty($fieldWidth)
           ? " maxlength=\"$fieldWidth\"" : '';

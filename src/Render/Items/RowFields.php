@@ -6,65 +6,27 @@ use okushnirov\core\{Library\Lang, Library\Str, Render\Items\Interfaces\HtmlInte
 
 class RowFields extends Render implements HtmlInterface
 {
-  /**
-   * Add title
-   *
-   * @var array|string[]
-   */
-  private static array $_add = [
+  private static array $add = [
     'uk' => 'Додати',
     'ru' => 'Добавить'
   ];
   
-  /**
-   * Debug
-   *
-   * @var bool
-   */
-  private static bool $_debug = false;
+  private static bool $debug = false;
   
-  /**
-   * Disabled
-   *
-   * @var bool
-   */
-  private static bool $_disabled = false;
+  private static bool $disabled = false;
   
-  /**
-   * Fields
-   *
-   * @var array
-   */
-  private static array $_fields = [];
+  private static array $fields = [];
   
-  /**
-   * Moved rows
-   *
-   * @var bool
-   */
-  private static bool $_moved = true;
+  private static bool $moved = true;
   
-  /**
-   * Remove title
-   *
-   * @var array|string[]
-   */
-  private static array $_remove = [
+  private static array $remove = [
     'uk' => 'Видалити',
     'ru' => 'Удалить'
   ];
   
-  /**
-   * Render
-   *
-   * @param \SimpleXMLElement $xmlItem
-   * @param int|bool $objID
-   * @param \SimpleXMLElement|bool $xmlData
-   * @param mixed $variables
-   *
-   * @return string
-   */
-  public static function html(\SimpleXMLElement $xmlItem, $objID = false, $xmlData = false, $variables = false):string
+  public static function html(
+    \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
+    mixed             $variables = false):string
   {
     if (empty($xmlItem['name'] ?? '')) {
       
@@ -72,15 +34,15 @@ class RowFields extends Render implements HtmlInterface
     }
     
     # Disabled
-    self::$_disabled = self::isTrue($xmlItem['disabled'] ?? $variables['readonly'] ?? '');
+    self::$disabled = self::isTrue($xmlItem['disabled'] ?? $variables['readonly'] ?? '');
     
     # Moved
-    self::$_moved = self::isTrue($xmlItem['moved'] ?? true);
+    self::$moved = self::isTrue($xmlItem['moved'] ?? true);
     
     unset($xmlItem['disabled'], $xmlItem['moved']);
     
     # Attributes
-    $attribute = trim(self::getAttribute($xmlItem).(self::$_disabled ? ' disabled="" tabindex="-1"' : ''));
+    $attribute = trim(self::getAttribute($xmlItem).(self::$disabled ? ' disabled="" tabindex="-1"' : ''));
     
     # Value
     $fieldData = [];
@@ -105,15 +67,15 @@ class RowFields extends Render implements HtmlInterface
             continue;
           }
           
-          if (!isset(self::$_fields[$fieldName])) {
-            self::$_fields[$fieldName] = [];
+          if (!isset(self::$fields[$fieldName])) {
+            self::$fields[$fieldName] = [];
           }
           
-          if (!isset(self::$_fields[$fieldName][$rowID])) {
-            self::$_fields[$fieldName][$rowID] = [];
+          if (!isset(self::$fields[$fieldName][$rowID])) {
+            self::$fields[$fieldName][$rowID] = [];
           }
           
-          self::$_fields[$fieldName][$rowID][$name] = (string)$cell;
+          self::$fields[$fieldName][$rowID][$name] = (string)$cell;
         }
       }
     }
@@ -125,7 +87,7 @@ class RowFields extends Render implements HtmlInterface
       && $xmlItem->header->children()
                          ->count()) {
       $headerAttr = self::getAttribute($xmlItem->header);
-      $htmlHeader = self::$_disabled || !self::$_moved ? '' : '<div class="header-wrap"></div>';
+      $htmlHeader = self::$disabled || !self::$moved ? '' : '<div class="header-wrap"></div>';
       
       foreach ($xmlItem->header->children() as $cell) {
         $isPrepare = self::isTrue($cell['prepare'] ?? '');
@@ -139,7 +101,7 @@ class RowFields extends Render implements HtmlInterface
           ."</{$cell->getName()}>";
       }
       
-      $htmlHeader .= self::$_disabled || !self::$_moved ? '' : '<div class="header-wrap"></div>';
+      $htmlHeader .= self::$disabled || !self::$moved ? '' : '<div class="header-wrap"></div>';
       
       $html .= $htmlHeader ? "<div $headerAttr>$htmlHeader</div>" : '';
     }
@@ -156,41 +118,33 @@ class RowFields extends Render implements HtmlInterface
     }
     
     # Actions
-    $html = "<div $attribute>".$html.(self::$_disabled
+    $html = "<div $attribute>".$html.(self::$disabled
         ? ''
         : self::_getRow($xmlItem, -1).'<div class="fld-action">
-<button type="button" data-ref="row-add">'.(self::$_add[Lang::$lang] ?? 'Add').'</button>
-<button type="button" data-ref="row-remove" disabled="">'.(self::$_remove[Lang::$lang] ?? 'Remove').'</button>
+<button type="button" data-ref="row-add">'.(self::$add[Lang::$lang] ?? 'Add').'</button>
+<button type="button" data-ref="row-remove" disabled="">'.(self::$remove[Lang::$lang] ?? 'Remove').'</button>
 <input class="fld-cell-el" type="hidden" name="row:change"/>
 </div>').'</div>';
     
-    if (self::$_debug) {
+    if (self::$debug) {
       trigger_error($html);
     }
     
     return $html;
   }
   
-  /**
-   * Get row data
-   *
-   * @param \SimpleXMLElement $xmlItem
-   * @param int $rowID
-   *
-   * @return string
-   */
   private static function _getRow(\SimpleXMLElement $xmlItem, int $rowID = -1):string
   {
     $fieldName = (string)$xmlItem['name'];
-    $rowsAttr = trim(self::getAttribute($xmlItem->rows ?? '').(-1 === $rowID ? ' data-empty=""' : '').(self::$_disabled
-      || !self::$_moved ? ' data-not-moved=""' : ''));
+    $rowsAttr = trim(self::getAttribute($xmlItem->rows ?? '').(-1 === $rowID ? ' data-empty=""' : '').(self::$disabled
+      || !self::$moved ? ' data-not-moved=""' : ''));
     
     # Checkbox
-    $html = self::$_disabled ? ''
+    $html = self::$disabled ? ''
       : '<div class="fld-check"><input class="checkbox-n no-update" type="checkbox" /></div>';
     
-    if (self::$_debug && 0 < $rowID) {
-      trigger_error(json_encode(self::$_fields[$fieldName][$rowID] ?? "Data field #$fieldName not found",
+    if (self::$debug && 0 < $rowID) {
+      trigger_error(json_encode(self::$fields[$fieldName][$rowID] ?? "Data field #$fieldName not found",
         JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
@@ -208,7 +162,7 @@ class RowFields extends Render implements HtmlInterface
           
           if (empty($itemName)) {
             $html .= Render::xml2HTML(Render::xml2DOM($item), false, false, [
-              'readonly' => self::$_disabled
+              'readonly' => self::$disabled
             ]);
             
             continue;
@@ -221,19 +175,17 @@ class RowFields extends Render implements HtmlInterface
           ], true) ? 'source' : 'value';
           
           if (isset($item->{$itemValue})) {
-            $item->{$itemValue} = -1 == $rowID ? '' : (string)(self::$_fields[$fieldName][$rowID][$itemName] ?? '');
+            $item->{$itemValue} = -1 == $rowID ? '' : (string)(self::$fields[$fieldName][$rowID][$itemName] ?? '');
           }
           
-          if (self::$_debug && 0 < $rowID) {
+          if (self::$debug && 0 < $rowID) {
             trigger_error($rowID.' -> '.$itemName.' = '.$item->value);
           }
           
           # Get HTML element | DOM2HTML
           $htmlEl = Render::xml2HTML(Render::xml2DOM($item), false, false, [
-            'readonly' => self::$_disabled
+            'readonly' => self::$disabled
           ]);
-          
-          # Correction node this
           
           $html .= $htmlEl;
         }
@@ -245,7 +197,7 @@ class RowFields extends Render implements HtmlInterface
     }
     
     # Moved
-    $html .= self::$_disabled || !self::$_moved ? ''
+    $html .= self::$disabled || !self::$moved ? ''
       : '<div class="fld-moved"><div class="cmd-move" data-ref="row-up"></div><div class="cmd-move" data-ref="row-down"></div></div>';
     
     return $html ? "<div $rowsAttr>$html</div>" : '';
