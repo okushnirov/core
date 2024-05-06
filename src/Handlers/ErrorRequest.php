@@ -57,7 +57,7 @@ class ErrorRequest
         
         if ($flags & DO_LANG_HANDLER && !empty($path[0])) {
           try {
-            $result = ErrorLang::run($path[0]);
+            $result = ErrorLang::run($path[0], $session, $cookie);
           } catch (\Exception $e) {
             trigger_error($e->getMessage());
             $result = false;
@@ -79,7 +79,7 @@ class ErrorRequest
         
         Location::$folder = 1 < count($path) ? implode('/', $path) : $path[0] ?? Location::$folder;
         
-        # Cut folder from request
+        # Cut separator from request
         self::$_request = Location::serverName().ltrim(self::$_request, '/');
         
         # Path handler (If it needs)
