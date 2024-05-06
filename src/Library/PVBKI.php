@@ -10,17 +10,17 @@ final class PVBKI
   
   public static bool $disabled = true;
   
-  private static array $_authKey = [];
+  private static array $authKey = [];
   
-  private static string $_authName = '';
+  private static string $authName = '';
   
-  private static string $_pass = '';
+  private static string $pass = '';
   
-  private static string $_url = '';
+  private static string $url = '';
   
-  private static string $_urlAuth = '';
+  private static string $urlAuth = '';
   
-  private static string $_user = '';
+  private static string $user = '';
   
   public function __construct()
   {
@@ -28,12 +28,12 @@ final class PVBKI
     
     self::$disabled = $settings->disabled ?? self::$disabled;
     
-    self::$_authKey = $settings->key ?? self::$_authKey;
-    self::$_authName = $settings->name ?? self::$_authName;
-    self::$_pass = $settings->pass ?? '';
-    self::$_url = $settings->url ?? self::$_url;
-    self::$_urlAuth = $settings->urlAuth ?? self::$_urlAuth;
-    self::$_user = $settings->user ?? '';
+    self::$authKey = $settings->key ?? self::$authKey;
+    self::$authName = $settings->name ?? self::$authName;
+    self::$pass = $settings->pass ?? '';
+    self::$url = $settings->url ?? self::$url;
+    self::$urlAuth = $settings->urlAuth ?? self::$urlAuth;
+    self::$user = $settings->user ?? '';
   }
   
   public static function init(\stdClass $data):void
@@ -48,7 +48,7 @@ final class PVBKI
   public static function sendRequest():string
   {
     try {
-      $client = new \SoapClient(self::$_url, [
+      $client = new \SoapClient(self::$url, [
         'trace' => 1,
         'exceptions' => 1
       ]);
@@ -66,13 +66,13 @@ final class PVBKI
     
     try {
       $client->__setSoapHeaders([
-        new \SoapHeader(self::$_urlAuth, 'AuthenticationCredential', [
-          'UserName' => self::$_user,
-          'Password' => self::$_pass
+        new \SoapHeader(self::$urlAuth, 'AuthenticationCredential', [
+          'UserName' => self::$user,
+          'Password' => self::$pass
         ], 'false'),
-        new \SoapHeader(self::$_urlAuth, 'AuthenticationIdentity', [
-          'Name' => self::$_authName,
-          'Key' => implode(array_map('chr', self::$_authKey))
+        new \SoapHeader(self::$urlAuth, 'AuthenticationIdentity', [
+          'Name' => self::$authName,
+          'Key' => implode(array_map('chr', self::$authKey))
         ], 'false')
       ]);
     } catch (\Exception $e) {

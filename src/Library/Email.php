@@ -81,10 +81,8 @@ final class Email
       $mail->Port = self::$port;
       $mail->Timeout = self::$timeout;
       
-      // Відправник
       $mail->setFrom(self::$sender[0], self::$sender[1] ?? self::$sender[0]);
       
-      // Отримувачі
       foreach ($addresses as $address) {
         if (empty($address)) {
           
@@ -98,12 +96,10 @@ final class Email
         }
       }
       
-      // Контент
       $mail->isHTML();
       $mail->Subject = $subject;
       $mail->Body = $message;
       
-      // Вкладення
       foreach ($attachments as $attachment) {
         if (empty($attachment)) {
           

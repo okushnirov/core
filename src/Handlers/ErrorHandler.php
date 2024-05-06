@@ -4,7 +4,7 @@ namespace okushnirov\core\Handlers;
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/php/classes/Constant.php';
 
-class ErrorHandler
+final class ErrorHandler
 {
   static array $errorType = [
     E_ERROR => 'Помилка',

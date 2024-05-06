@@ -18,9 +18,9 @@ class Render
     
     if (is_object($methodData)) {
       foreach ($methodData->method as $method) {
-        $ref = (string)($method['Идентификатор'] ?? '');
+        $ref = trim($method['Идентификатор'] ?? '');
         
-        if (empty($ref)) {
+        if ('' === $ref) {
           
           continue;
         }
@@ -31,36 +31,27 @@ class Render
       }
     }
     
-    # Access
     $data->access = empty($methodName) || empty($methods)
       ? -1 : (array_key_exists($methodName, $methods)
         ? (int)$methods[$methodName]['доступен'] : -2);
     
-    if (1 !== $data->access) {
+    if (1 === $data->access) {
+      $data->name = Str::prepare($methods[$methodName]['название'] ??
+        $methods[$methodName]['название_'.Lang::$lang] ?? '');
       
-      goto end;
+      $data->attribute = ' data-method-ref="'.$methodName.'"';
+      $data->attribute .= ' data-method-state="'.(int)(1 === $data->access).'"';
+      
+      $data->request = !empty($methods[$methodName]['подтверждение']);
+      $data->reset = !empty($methods[$methodName]['перезагрузка']);
     }
-    
-    # Name
-    $data->name = Str::prepare($methods[$methodName]['название'] ??
-      $methods[$methodName]['название_'.Lang::$lang] ?? '');
-    
-    # Attribute
-    $data->attribute = ' data-method-ref="'.$methodName.'"';
-    $data->attribute .= ' data-method-state="'.(int)(1 === $data->access).'"';
-    //$data->attribute .= empty($methods[$methodName]["подтверждение"]) ? '' : ' data-method-request="1"';
-    
-    $data->request = !empty($methods[$methodName]['подтверждение']);
-    $data->reset = !empty($methods[$methodName]['перезагрузка']);
-    
-    end:
     
     return $data;
   }
   
   public static function getMethodList(int $objID = 0):array
   {
-    $SQL = "CALL \"dbo\".\"_метод_список\"(".(0 < $objID ? $objID : 'null').")";
+    $SQL = "CALL \"dbo\".\"_метод_список\"(".(0 < $objID ? $objID : 'null').')';
     $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, false, User::$login, User::$pass, 'идентификатор');
     
     return empty($methods) ? [] : $methods;
@@ -115,7 +106,6 @@ class Render
   {
     $xpath = new \DOMXPath($dom);
     
-    # Remove comments
     foreach ($xpath->query('//comment()') as $comment) {
       $comment->parentNode->removeChild($comment);
     }
@@ -168,7 +158,7 @@ class Render
   {
     if (!File::isFile($file)) {
       
-      goto skipHandler;
+      return '';
     }
     
     $dom = new \DOMDocument();
@@ -178,8 +168,6 @@ class Render
     } catch (\Exception $e) {
       trigger_error($e->getMessage());
     }
-    
-    skipHandler:
     
     return empty($dom) ? '' : static::xml2HTML($dom, $objID, $xmlData, $variables);
   }
@@ -200,12 +188,12 @@ class Render
   
   protected static function getAttribute(?\SimpleXMLElement $xml):string
   {
-    $html = '';
-    
     if (empty($xml)) {
       
-      return $html;
+      return '';
     }
+    
+    $html = '';
     
     foreach ($xml->attributes() as $key => $value) {
       $html .= " $key=\"$value\"";
@@ -215,7 +203,7 @@ class Render
       foreach ($xml->attr->children() as $key => $value) {
         $isPrepare = static::isTrue($value['prepare'] ?? '');
         $attrValue = (string)($value->{Lang::$lang} ?? $value ?? '');
-        //trigger_error("{$key} = {$attrValue}");
+        
         $html .= " $key=\"".($isPrepare ? Str::prepare($attrValue) : $attrValue)."\"";
       }
     }
@@ -265,27 +253,17 @@ class Render
     
     skip:
     
-    # Field ID/Name
     if (false === mb_stripos($attribute, 'name="')) {
       $fieldID = (int)($f[0]['id'] ?? 0);
       $attribute .= 0 < $fieldID ? ' name="'.Crypt::action($fieldID, Encrypt::CHR).'"' : '';
     }
     
-    # Field Required
     $fieldRequired = 'y' === strtolower($f[0]['required'] ?? '');
-    //$attribute .= $fieldRequired && false === mb_stripos($attribute, 'required="') ? ' required=""' : '';
-    // Продумать автоматическую НЕ установку для элементов checkbox, tumbler
     
-    # Field type
     $fieldType = trim($f[0]['type'] ?? '');
     $fieldWidth = (int)($f[0]['width'] ?? 0);
     
     switch ($fieldType) {
-      # Skip
-      case '' :
-        
-        break;
-      
       # DOUBLE, NUMERIC
       case mb_stristr($fieldType, 'numeric'):
       case 'double' :
@@ -323,7 +301,7 @@ class Render
     $array = $xmlData->xpath($isLang ? mb_ereg_replace('\$lang', Lang::$lang, $xml['xpath']) : $xml['xpath']) ?? [];
     $value = (string)($array[0] ?? '');
     
-    # Numeric leading zero fix
+    # Fix numeric leading zero
     $value = false === mb_stripos($array[0]['type'] ?? '', 'numeric') || '' === $value ? $value : (float)$value;
     
     return $isPrepare ? Str::prepare($value) : $value;

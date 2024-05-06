@@ -1,6 +1,6 @@
 <?php
 
-namespace okushnirov\core\Render\Items\Library;
+namespace okushnirov\core\Render\Items\Options;
 
 use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, User};
 
@@ -18,7 +18,7 @@ class OptionsDict
     /**
      * 0 - Назва
      * 1 - ID
-     * інакше isnull("Порядок", "Назва")
+     * інакше - isnull("Порядок", "Назва")
      */
     $order = (int)($xml['order'] ?? 0);
     $parent = (string)($xml['parent'] ?? '');

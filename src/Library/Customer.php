@@ -10,7 +10,6 @@ final class Customer
   
   public static function checkCode(string $code, CustomerType | int | string $type):bool
   {
-    # Наявність 6 або більше символів, що повторюються
     preg_match_all('/(.)\1{6,}/', $code, $matches, PREG_SET_ORDER);
     
     if (isset($matches[0])) {
@@ -23,11 +22,8 @@ final class Customer
       CustomerType::COMPANY => preg_match('/^\d{8}$/', $code),
       CustomerType::BUSINESSMAN => Str::isINN($code),
       CustomerType::PERSON => Str::isINN($code)
-        # Серія та номер паспорта
         || preg_match('/^[АБВГДЕЖЗИКЛМНОПРСТУФХЧШЮЯ]{2}\d{6}$/u', $code)
-        # Номер паспорта у вигляді ID карти
         || preg_match('/^\d{9}$/', $code),
-      # Помилка типу клієнта
       default => false
     };
     

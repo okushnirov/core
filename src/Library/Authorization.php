@@ -129,13 +129,7 @@ final class Authorization
     $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')}, [
       "charset=\"utf-8\"",
       "Authorization: Basic ".base64_encode("$ws->user:$ws->pass")
-    ], http_build_query(0 < $userID
-      ? [
-        'userID' => $userID
-      ]
-      : [
-        'userLogin' => $userLogin
-      ]), false, false, 1, 2, 5);
+    ], http_build_query(0 < $userID ? ['userID' => $userID] : ['userLogin' => $userLogin]), false, false, 1, 2, 5);
     
     try {
       $xml = empty($response) ? null : new \SimpleXMLElement($response);
@@ -166,15 +160,14 @@ final class Authorization
     $_SESSION['isAvatar'] = false;
     $_SESSION['isDev'] = false;
     $_SESSION['isLogin'] = self::$isLogin;
-    
     $_SESSION['CRC'] = [];
     
     foreach ($user as $key => $value) {
       $value = (string)$value;
       
       if ('role' === $key) {
-        $_SESSION['isAdmin'] = $_SESSION['isAdmin'] || 'рлАдминистратор' == $value;
-        $_SESSION['isDev'] = $_SESSION['isDev'] || 'рлРазработчик' == $value;
+        $_SESSION['isAdmin'] = $_SESSION['isAdmin'] || 'рлАдминистратор' === $value;
+        $_SESSION['isDev'] = $_SESSION['isDev'] || 'рлРазработчик' === $value;
       }
       
       $_SESSION['CRC'][$key] = 'avatar' === $key ? $value : Crypt::action($value, Encrypt::CHR);

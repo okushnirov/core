@@ -2,8 +2,8 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\Items\Library\Options,
-  Render\Items\Library\OptionsDict, Render\Items\Library\OptionsSQL, Render\Render
+use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\Items\Options\Options,
+  Render\Items\Options\OptionsDict, Render\Items\Options\OptionsSQL, Render\Render
 };
 
 class CheckboxOptionsN extends Render implements HtmlInterface
@@ -21,8 +21,7 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     
     if (isset($xmlItem->dict)) {
       $source = OptionsDict::get($xmlItem->dict, $objID);
-    } # SQL
-    elseif (isset($xmlItem->sql)) {
+    } elseif (isset($xmlItem->sql)) {
       $source = OptionsSQL::get($xmlItem->sql);
     }
     
@@ -31,31 +30,24 @@ class CheckboxOptionsN extends Render implements HtmlInterface
       return '';
     }
     
-    # Class
     $chkClass = trim($xmlItem->source['class'] ?? '');
     
-    # Readonly
     $readonly = self::isTrue($xmlItem->input['readonly'] ?? $variables['readonly'] ?? '');
     
-    # Separator
     $separator = $xmlItem->input['data-separator'] ?? ';';
     
-    # Values
     $value = isset($xmlItem->source['xpath']) ? self::getXPathValue($xmlItem->source, $xmlData) : '';
     $value = '' === $value ? self::getValue($xmlItem->source) : $value;
     $array = Options::explode($source, $value, $separator);
     
-    # Filter
     $filter = trim($xmlItem->filter ?? '');
     
-    # Label
     $labelIsAfter = 'after' === strtolower(trim($xmlItem->label['position'] ?? 'after'));
     
     unset($xmlItem->label['position']);
     
     $labelAttribute = self::getAttribute($xmlItem->label);
     
-    # Settings
     if ($readonly) {
       $chkAttribute = 'readonly="" tabindex="-1"';
       $chkClass .= ' no-update';
@@ -69,11 +61,9 @@ class CheckboxOptionsN extends Render implements HtmlInterface
       $html = "<input type=\"hidden\" ".self::getAttribute($xmlItem->input)." value=\"$value\" />";
     }
     
-    # Attribute
     $chkAttribute = trim('class="'.trim($chkClass).'" '.$chkAttribute);
     $chkAttribute .= !$readonly && $name ? " data-name=\"$name\"" : '';
     
-    # Container
     $htmlContainer = isset($xmlItem->container) ? "<fieldset ".self::getAttribute($xmlItem->container).">" : '';
     
     foreach ($source as $key => $label) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace okushnirov\core\Render\Items\Library;
+namespace okushnirov\core\Render\Items\Options;
 
 class OptionsSQL
 {

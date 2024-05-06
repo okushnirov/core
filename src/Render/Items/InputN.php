@@ -38,15 +38,12 @@ class InputN extends Render implements HtmlInterface
     \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
     mixed             $variables = false):string
   {
-    # Class
     $class = (string)($xmlItem['class'] ?? '');
     
-    # Readonly
     $readonly = self::isTrue($xmlItem['readonly'] ?? (is_object($variables)
       ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
         : '')));
     
-    # Settings
     if ($readonly) {
       $tagName = 'div';
       $class .= ' no-update';
@@ -61,10 +58,8 @@ class InputN extends Render implements HtmlInterface
         ? self::getXPathAttribute($xmlItem->value, $xmlData, $attribute) : $attribute;
     }
     
-    # Attribute
     $attribute = trim('class="'.trim($class).'" '.$attribute);
     
-    # Value
     $value = isset($xmlItem->value) && isset($xmlItem->value['xpath']) ? self::getXPathValue($xmlItem->value, $xmlData)
       : '';
     $value = '' === $value ? self::getValue($xmlItem->value ?? null) : $value;

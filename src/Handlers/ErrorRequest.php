@@ -9,23 +9,23 @@ define('DO_REQUEST_HANDLER', 2);
 use core\{Handlers\ErrorLang, Handlers\ErrorPath, Root\Folders\Error};
 use okushnirov\core\Library\{Enums\CookieType, Enums\SessionType, Location, Session};
 
-class ErrorRequest
+final class ErrorRequest
 {
-  private static int $_http_code;
+  private static int $http_code;
   
-  private static string $_request;
+  private static string $request;
   
   public function __construct(string $request, int $http_code, array $trace = [])
   {
-    self::$_request = $request;
-    self::$_http_code = empty($http_code) ? 404 : $http_code;
+    self::$request = $request;
+    self::$http_code = empty($http_code) ? 404 : $http_code;
     
     if (!empty($trace)) {
       if (isset($trace['SESSION'])) {
         $trace['SESSION'] = Session::decryptCRC($trace['SESSION']);
       }
       
-      trigger_error(__METHOD__."\nHTTP ".self::$_http_code."\n".json_encode($trace,
+      trigger_error(__METHOD__."\nHTTP ".self::$http_code."\n".json_encode($trace,
           JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), E_USER_WARNING);
     }
   }
@@ -35,13 +35,13 @@ class ErrorRequest
   {
     Location::$folder = 'error';
     
-    switch (self::$_http_code) {
+    switch (self::$http_code) {
       # 401 Unauthorized
       # 403 Forbidden
       case 401:
       case 403:
         try {
-          (new Error())::index(self::$_http_code, 0, '', self::$_request);
+          (new Error())::index(self::$http_code, 0, '', self::$request);
         } catch (\Exception) {
           header('Location: '.Location::serverName());
         }
@@ -52,8 +52,8 @@ class ErrorRequest
       # 404 Not Found
       case 200:
       case 404:
-        $path = explode('/', trim(mb_strtolower(parse_url(self::$_request, PHP_URL_PATH)), '/'));
-        Location::$folder = 1 < count($path) ? implode('/', $path) : $path[0] ?? Location::$folder;
+        $path = explode('/', trim(mb_strtolower(parse_url(self::$request, PHP_URL_PATH)), '/'));
+        Location::$folder = 1 < count($path) ? implode('/', $path) : ($path[0] ?? Location::$folder);
         
         if ($flags & DO_LANG_HANDLER && !empty($path[0])) {
           try {
@@ -73,19 +73,19 @@ class ErrorRequest
             }
             
             # Cut language from request
-            self::$_request = mb_substr(self::$_request, 3);
+            self::$request = mb_substr(self::$request, 3);
           }
         }
         
-        Location::$folder = 1 < count($path) ? implode('/', $path) : $path[0] ?? Location::$folder;
+        Location::$folder = 1 < count($path) ? implode('/', $path) : ($path[0] ?? Location::$folder);
         
         # Cut separator from request
-        self::$_request = Location::serverName().ltrim(self::$_request, '/');
+        self::$request = Location::serverName().ltrim(self::$request, '/');
         
         # Path handler (If it needs)
         if ($flags & DO_REQUEST_HANDLER && 'error' !== Location::$folder) {
           try {
-            ErrorPath::run(self::$_request);
+            ErrorPath::run(self::$request);
           } catch (\Exception $e) {
             trigger_error($e->getMessage());
           }
@@ -95,14 +95,14 @@ class ErrorRequest
       
       default:
         
-        exit(http_response_code(self::$_http_code));
+        exit(http_response_code(self::$http_code));
     }
     
     try {
-      (new Root())::handler(Location::$folder, self::$_request, session: $session, cookie: $cookie);
+      (new Root())::handler(Location::$folder, self::$request, session: $session, cookie: $cookie);
     } catch (\Exception $e) {
       try {
-        (new Error())::index(self::$_http_code, $e->getCode(), $e->getMessage(), self::$_request);
+        (new Error())::index(self::$http_code, $e->getCode(), $e->getMessage(), self::$request);
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
         

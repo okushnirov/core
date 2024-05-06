@@ -16,14 +16,14 @@ final class Str
     }
     
     # IN: YYYY-MM-DD OUT: d.m.Y H:i:s || Y-m-d H:i:s
-    if ($formatOut == DateRu::DATETIME || $formatOut == DateEn::DATETIME) {
+    if ($formatOut === DateRu::DATETIME || $formatOut === DateEn::DATETIME) {
       $dateOut = strtotime($dateIn);
       
       return empty($dateOut) ? '' : date($formatOut->value, $dateOut);
     }
     
     # IN: YYYY-MM-DD OUT: d.m.Y H:i || Y-m-d H:i
-    if ($formatOut == DateRu::TIMESTAMP || $formatOut == DateEn::TIMESTAMP) {
+    if ($formatOut === DateRu::TIMESTAMP || $formatOut === DateEn::TIMESTAMP) {
       $dateOut = strtotime($dateIn);
       
       return empty($dateOut) ? '' : date($formatOut->value, $dateOut);
@@ -32,9 +32,9 @@ final class Str
     # IN: YYYY-MM-DD OUT: DD.MM.YYYY
     $dateOut = date_create($dateIn);
     
-    if ($formatOut == DateRu::ISO) {
+    if ($formatOut === DateRu::ISO) {
       
-      return empty($dateOut) ? '' : $dateOut->format(DateRu::ISO->value);
+      return empty($dateOut) ? '' : $dateOut->format($formatOut->value);
     }
     
     # IN: DD.MM.YYYY OUT: YYYY-MM-DD

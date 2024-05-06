@@ -35,7 +35,6 @@ final class Session
   public static function sessionStart(SessionType $session):bool
   {
     if (!session_id()) {
-      
       try {
         if (SessionType::DB === $session) {
           new SessionHandler();

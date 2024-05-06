@@ -24,7 +24,7 @@ final class Curl
     curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $post ? 'POST' : 'GET');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $data ? : []);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data ? : '');
     
     if ($_SERVER['HTTP_USER_AGENT'] ?? '') {
       curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);

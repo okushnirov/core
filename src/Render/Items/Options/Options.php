@@ -1,6 +1,6 @@
 <?php
 
-namespace okushnirov\core\Render\Items\Library;
+namespace okushnirov\core\Render\Items\Options;
 
 use okushnirov\core\{Library\DbSQLAnywhere, Library\Enums\CookieType, Library\Enums\SQLAnywhere, Library\Lang,
   Library\Str, Render\Render

@@ -40,17 +40,17 @@ final class DbSQLAnywhere implements DbSQL
   
   public static int $queryNumRows = 0;
   
-  private static mixed $_settings;
+  private static mixed $settings;
   
   public static function connect(
     bool | int $connection = false, bool | string $user = false, bool | string $pass = false):bool
   {
-    self::$_settings = self::getSettings();
+    self::$settings = self::getSettings();
     
     $c = new \stdClass();
-    $c->connection = false === $connection ? (int)self::$_settings->dbase->{'dbase'.(TEST_SERVER ? 'Test' : '')}
+    $c->connection = false === $connection ? (int)self::$settings->dbase->{'dbase'.(TEST_SERVER ? 'Test' : '')}
       : (int)$connection;
-    $s = &self::$_settings->dbase->{$c->connection};
+    $s = &self::$settings->dbase->{$c->connection};
     
     $c->user = false === $user ? $s->user : $user;
     $c->pass = false === $pass ? $s->pass : $pass;
@@ -59,9 +59,10 @@ final class DbSQLAnywhere implements DbSQL
     self::$connect = sasql_connect("HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP;");
     
     if (self::$debug) {
-      trigger_error(__METHOD__." for[$connection][$user:$pass] -> HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP; -> ".(self::$connect ? 'ok ['.self::$connect.']'
-          : 'failed')."\n".json_encode(debug_backtrace()[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-        ."\nsettings[$c->connection][$c->user:$c->pass]");
+      trigger_error(__METHOD__
+        ." for[$connection][$user:$pass] -> HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP; -> "
+        .(self::$connect ? 'ok ['.self::$connect.']' : 'failed')."\n".json_encode(debug_backtrace()[0],
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\nsettings[$c->connection][$c->user:$c->pass]");
     }
     
     unset($c, $s);

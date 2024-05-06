@@ -53,7 +53,6 @@ final class Excel
       }
     }
     
-    # Encoding request
     if (!empty($request['e'])) {
       foreach ($this->request as $key => $value) {
         if (in_array($key, [
@@ -146,7 +145,6 @@ final class Excel
     
     $highestRow = $this->sheet->getHighestRow();
     
-    # Стилі комірки
     $this->sheet->getStyle('A'.$this->rowFirst.':'.$this->highestColumn.$highestRow)
                 ->applyFromArray([
                   'borders' => [
@@ -156,17 +154,14 @@ final class Excel
                   ]
                 ]);
     
-    # Автофільтр
     $this->sheet->setAutoFilter('A'.$this->rowFirst.':'.$this->highestColumn.$highestRow);
     
-    # Автоматический размер
     foreach (range('A', $this->highestColumn) as $col) {
       $this->sheet->getColumnDimension($col)
                   ->setAutoSize(true);
     }
     
     if ('' !== $title) {
-      # Заголовок таблиці
       $this->sheet->setCellValue('A1', $title);
       $this->sheet->getStyle('A1')
                   ->getFont()
@@ -178,7 +173,6 @@ final class Excel
       $this->sheet->getRowDimension('1')
                   ->setRowHeight(30);
       
-      # Об'єднати комірки заголовка
       try {
         $this->sheet->mergeCells('A1:'.$this->highestColumn.'1');
       } catch (Exception $e) {
@@ -333,7 +327,6 @@ final class Excel
   
   private function _fillValue(array $coordinate, string $value):void
   {
-    # DATE
     if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", substr($value, 0, 10))) {
       $this->sheet->setCellValue($coordinate,
         \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(\DateTime::createFromFormat('Y-m-d H:i:s',
@@ -341,13 +334,13 @@ final class Excel
                   ->getStyle($coordinate)
                   ->getNumberFormat()
                   ->setFormatCode('dd.mm.yyyy');
-    } # NUMBER
+    }
     elseif (is_numeric($value) && is_float($value * 1)) {
       $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_NUMERIC)
                   ->getStyle($coordinate)
                   ->getNumberFormat()
                   ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-    } # TEXT
+    }
     else {
       $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_STRING);
     }

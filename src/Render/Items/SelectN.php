@@ -2,8 +2,8 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Library\Options, Items\Library\OptionsCount,
-  Items\Library\OptionsDict, Items\Library\OptionsSQL, Render
+use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Options, Items\Options\OptionsCount,
+  Items\Options\OptionsDict, Items\Options\OptionsSQL, Render
 };
 
 /**
@@ -66,15 +66,12 @@ class SelectN extends Render implements HtmlInterface
     \SimpleXMLElement $xmlItem, int $objID = 0, \SimpleXMLElement | bool $xmlData = false,
     mixed             $variables = false):string
   {
-    # Class
     $class = (string)($xmlItem['class'] ?? '');
     
-    # Disabled
     $disabled = self::isTrue($xmlItem['disabled'] ?? (is_object($variables)
       ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
         : '')));
     
-    # Attribute
     if ($disabled) {
       $class .= ' no-update';
       $attribute = 'disabled="" tabindex="-1"';
@@ -88,19 +85,15 @@ class SelectN extends Render implements HtmlInterface
     
     $attribute = trim('class="'.trim($class).'" '.$attribute);
     
-    # Settings
     $type = (string)($xmlItem->source['type'] ?? 'string');
     
-    # Value
     $value = isset($xmlItem->source) && isset($xmlItem->source['xpath']) ? self::getXPathValue($xmlItem->source,
       $xmlData) : '';
     $value = '' === $value ? self::getValue($xmlItem->source ?? null) : $value;
     $value = 'string' === $type || '' === $value ? $value : (int)$value;
     
-    # Filter
     $filter = trim($xmlItem->filter ?? '');
     
-    # Source
     $source = [];
     $isPrepare = false;
     
@@ -121,7 +114,6 @@ class SelectN extends Render implements HtmlInterface
         $isPrepare = static::isTrue($xmlItem->sql['prepare'] ?? '');
     }
     
-    # Option
     $option = isset($xmlItem->option) ? Options::first($xmlItem->option, false, $type, $value) : '';
     
     return "<select $attribute>$option".Options::list($source, $type, $value, $isPrepare, 0, $filter)."</select>";

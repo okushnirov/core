@@ -5,7 +5,7 @@ namespace okushnirov\core\Handlers;
 use core\Render\Auth\Authentication;
 use okushnirov\core\Library\{Authorization, Enums\Auth};
 
-class RootLogin
+final class RootLogin
 {
   public static function handler(Auth $loginType):void
   {
@@ -23,6 +23,6 @@ class RootLogin
     session_destroy();
     http_response_code(200);
     
-    exit ((new Authentication())::render());
+    exit((new Authentication())::render());
   }
 }

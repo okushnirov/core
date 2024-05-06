@@ -18,7 +18,7 @@ final class Root extends \Exception
   
   public static function handler(
     string     $folder, string $request = '/', ?Auth $loginType = null, SessionType $session = SessionType::WS,
-    CookieType $cookie = CookieType::Yes, bool $redirect = true):void
+    CookieType $cookie = CookieType::No, bool $redirect = true, bool $reloadHome = false):void
   {
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
     self::$query = trim((string)parse_url($request, PHP_URL_QUERY));
@@ -46,7 +46,7 @@ final class Root extends \Exception
       }
     }
     
-    Location::logout($request, self::$query, $session, false);
+    Location::logout($request, self::$query, $session, $reloadHome);
     
     if ($redirect) {
       Location::httpsRedirect($request);

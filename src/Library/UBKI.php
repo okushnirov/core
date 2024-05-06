@@ -32,19 +32,19 @@ final class UBKI
   
   public static bool $testMode = false;
   
-  private static string $_pass = '';
+  private static string $pass = '';
   
-  private static string $_sessionID = '';
+  private static string $sessionID = '';
   
-  private static string $_sessionIDFile = '';
+  private static string $sessionIDFile = '';
   
-  private static string $_url = '';
+  private static string $url = '';
   
-  private static string $_urlAuth = '';
+  private static string $urlAuth = '';
   
-  private static string $_urlTest = '';
+  private static string $urlTest = '';
   
-  private static string $_user = '';
+  private static string $user = '';
   
   public function __construct(bool $testMode = false)
   {
@@ -53,12 +53,12 @@ final class UBKI
     self::$disabled = $settings->disabled ?? self::$disabled;
     self::$testMode = $testMode;
     
-    self::$_pass = $settings->pass ?? '';
-    self::$_sessionIDFile = $settings->sessionFile ?? self::$_sessionIDFile;
-    self::$_url = $settings->url ?? self::$_url;
-    self::$_urlAuth = $settings->urlAuth ?? self::$_urlAuth;
-    self::$_urlTest = $settings->urlTest ?? self::$_urlTest;
-    self::$_user = $settings->user ?? '';
+    self::$pass = $settings->pass ?? '';
+    self::$sessionIDFile = $settings->sessionFile ?? self::$sessionIDFile;
+    self::$url = $settings->url ?? self::$url;
+    self::$urlAuth = $settings->urlAuth ?? self::$urlAuth;
+    self::$urlTest = $settings->urlTest ?? self::$urlTest;
+    self::$user = $settings->user ?? '';
   }
   
   public static function getSessionID():bool
@@ -68,23 +68,23 @@ final class UBKI
       return false;
     }
     
-    $fileData = File::parse([self::$_sessionIDFile], FileType::SERIALIZE);
-    self::$_sessionID = $fileData->{date('Y-m-d')} ?? '';
+    $fileData = File::parse([self::$sessionIDFile], FileType::SERIALIZE);
+    self::$sessionID = $fileData->{date('Y-m-d')} ?? '';
     
     if (self::$debug) {
-      trigger_error(__METHOD__.' '.json_encode($fileData, JSON_PRETTY_PRINT)."\nSessionID = ".self::$_sessionID);
+      trigger_error(__METHOD__.' '.json_encode($fileData, JSON_PRETTY_PRINT)."\nSessionID = ".self::$sessionID);
     }
     
     # Get new sessionID
-    if (empty(self::$_sessionID)) {
-      $response = json_decode(Curl::exec(self::$_urlAuth, [
+    if (empty(self::$sessionID)) {
+      $response = json_decode(Curl::exec(self::$urlAuth, [
         "Content-Type: application/json",
         "Accept: application/json"
       ], json_encode([
         "doc" => [
           "auth" => [
-            "login" => self::$_user,
-            "pass" => self::$_pass
+            "login" => self::$user,
+            "pass" => self::$pass
           ]
         ]
       ])));
@@ -94,16 +94,16 @@ final class UBKI
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
       }
       
-      self::$_sessionID = $response->doc->auth->sessid ?? '';
+      self::$sessionID = $response->doc->auth->sessid ?? '';
       
-      if (self::$_sessionID) {
+      if (self::$sessionID) {
         
-        return FileIO::writeFile($_SERVER['DOCUMENT_ROOT'].self::$_sessionIDFile,
-          serialize([date('Y-m-d') => self::$_sessionID]));
+        return FileIO::writeFile($_SERVER['DOCUMENT_ROOT'].self::$sessionIDFile,
+          serialize([date('Y-m-d') => self::$sessionID]));
       }
     }
     
-    return !empty(self::$_sessionID);
+    return !empty(self::$sessionID);
   }
   
   public static function init(int $type, \stdClass $data):void
@@ -140,8 +140,8 @@ final class UBKI
       trigger_error(__METHOD__." Request\n".$request);
     }
     
-    $response = $request ? (string)Curl::exec(self::$testMode ? self::$_urlTest : self::$_url, [
-      "POST ".(self::$testMode ? self::$_urlTest : self::$_url)." HTTP/1.0",
+    $response = $request ? (string)Curl::exec(self::$testMode ? self::$urlTest : self::$url, [
+      "POST ".(self::$testMode ? self::$urlTest : self::$url)." HTTP/1.0",
       "Content-type: text/xml;charset=\"utf-8\"",
       "Accept: text/xml",
       "Content-length: ".strlen($request)
@@ -161,8 +161,7 @@ final class UBKI
     switch (self::$requestType) {
       # Кредитний звіт фізичної особи, підприємця
       case 10:
-        $xmlRequest = '
-<request reqtype="10" reqreason="1" reqdate="'.date("Y-m-d").'" reqsource="1">
+        $xmlRequest = '<request reqtype="10" reqreason="1" reqdate="'.date("Y-m-d").'" reqsource="1">
   <i reqlng="1">
     <ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'" lname="'.htmlspecialchars(self::$lastName, ENT_XML1)
           .'" fname="'.htmlspecialchars(self::$firstName, ENT_XML1).'" mname="'.htmlspecialchars(self::$middleName,
@@ -191,16 +190,14 @@ final class UBKI
       # 26 - Публічне досьє
       case 15:
       case 26:
-        $xmlRequest = '
-<request reqtype="'.self::$requestType.'" reqreason="2" reqdate="'.date("Y-m-d")
+        $xmlRequest = '<request reqtype="'.self::$requestType.'" reqreason="2" reqdate="'.date("Y-m-d")
           .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
         
         break;
       
       # 22 - Досьє підприємця
       case 22:
-        $xmlRequest = '
-<request reqtype="'.self::$requestType.'" reqreason="6" reqdate="'.date("Y-m-d")
+        $xmlRequest = '<request reqtype="'.self::$requestType.'" reqreason="6" reqdate="'.date("Y-m-d")
           .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
     }
     
@@ -208,12 +205,12 @@ final class UBKI
       trigger_error(__METHOD__.' Request by type '.$xmlRequest);
     }
     
-    if (!self::$_sessionID && !self::getSessionID()) {
+    if (!self::$sessionID && !self::getSessionID()) {
       
       return '';
     }
     
-    return $xmlRequest ? HeaderXML::UTF->value.'<doc><ubki sessid="'.self::$_sessionID
+    return $xmlRequest ? HeaderXML::UTF->value.'<doc><ubki sessid="'.self::$sessionID
       .'"><req_envelope descr="Моніторинг контрагента"><req_xml>'.base64_encode($xmlRequest)
       .'</req_xml></req_envelope></ubki></doc>' : '';
   }

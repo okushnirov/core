@@ -112,7 +112,6 @@ final class Date
       4 => date('Y-10-01'),
       default => ''
     };
-    
   }
   
   public static function getMonthName(int $month, string $lang):string

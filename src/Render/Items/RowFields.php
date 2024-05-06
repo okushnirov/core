@@ -33,18 +33,14 @@ class RowFields extends Render implements HtmlInterface
       return '';
     }
     
-    # Disabled
     self::$disabled = self::isTrue($xmlItem['disabled'] ?? $variables['readonly'] ?? '');
     
-    # Moved
     self::$moved = self::isTrue($xmlItem['moved'] ?? true);
     
     unset($xmlItem['disabled'], $xmlItem['moved']);
     
-    # Attributes
     $attribute = trim(self::getAttribute($xmlItem).(self::$disabled ? ' disabled="" tabindex="-1"' : ''));
     
-    # Value
     $fieldData = [];
     $fieldName = (string)$xmlItem['name'];
     
@@ -82,7 +78,6 @@ class RowFields extends Render implements HtmlInterface
     
     $html = '';
     
-    # Header
     if (isset($xmlItem->header)
       && $xmlItem->header->children()
                          ->count()) {
@@ -106,7 +101,6 @@ class RowFields extends Render implements HtmlInterface
       $html .= $htmlHeader ? "<div $headerAttr>$htmlHeader</div>" : '';
     }
     
-    # Rows
     if (isset($xmlItem->rows)
       && $xmlItem->rows->children()
                        ->count()) {
@@ -117,7 +111,6 @@ class RowFields extends Render implements HtmlInterface
       $html .= empty($fieldData) ? self::_getRow($xmlItem, $rowID) : '';
     }
     
-    # Actions
     $html = "<div $attribute>".$html.(self::$disabled
         ? ''
         : self::_getRow($xmlItem, -1).'<div class="fld-action">
@@ -139,7 +132,6 @@ class RowFields extends Render implements HtmlInterface
     $rowsAttr = trim(self::getAttribute($xmlItem->rows ?? '').(-1 === $rowID ? ' data-empty=""' : '').(self::$disabled
       || !self::$moved ? ' data-not-moved=""' : ''));
     
-    # Checkbox
     $html = self::$disabled ? ''
       : '<div class="fld-check"><input class="checkbox-n no-update" type="checkbox" /></div>';
     
@@ -148,7 +140,6 @@ class RowFields extends Render implements HtmlInterface
         JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
-    # Row
     foreach ($xmlItem->rows->children() as $row) {
       $rowAttr = trim(self::getAttribute($row));
       $html .= "<{$row->getName()} $rowAttr>";
@@ -168,7 +159,6 @@ class RowFields extends Render implements HtmlInterface
             continue;
           }
           
-          # Set item value
           $itemValue = in_array($item->getName(), [
             'select',
             'fieldset'
@@ -182,7 +172,6 @@ class RowFields extends Render implements HtmlInterface
             trigger_error($rowID.' -> '.$itemName.' = '.$item->value);
           }
           
-          # Get HTML element | DOM2HTML
           $htmlEl = Render::xml2HTML(Render::xml2DOM($item), false, false, [
             'readonly' => self::$disabled
           ]);
@@ -196,7 +185,6 @@ class RowFields extends Render implements HtmlInterface
       $html .= "</{$row->getName()}>";
     }
     
-    # Moved
     $html .= self::$disabled || !self::$moved ? ''
       : '<div class="fld-moved"><div class="cmd-move" data-ref="row-up"></div><div class="cmd-move" data-ref="row-down"></div></div>';
     

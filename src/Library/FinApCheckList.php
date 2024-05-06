@@ -4,34 +4,12 @@ namespace okushnirov\core\Library;
 
 final class FinApCheckList
 {
-  /**
-   * Індивідуальний податковий номер фізичної особи
-   * або ЄДРПОУ юридичної особи
-   * (необов'язкове поле, більшість списків не містять даних про РНОКПП або ЄДРПОУ)
-   *
-   * @var string
-   */
   public static string $code = '';
   
-  /**
-   * Дата народження клієнта/контрагента — фізичної особи
-   * Дата реєстрації юридичної особи
-   * Формат "YYYY-MM-DD"
-   *
-   * @var string
-   */
   public static string $date = '';
   
-  /**
-   * Режим налагодження
-   *
-   * @var bool
-   */
   public static bool $debug = false;
   
-  /**
-   * Сервіс вимкнено
-   */
   public static bool $disabled = true;
   
   /**
@@ -87,19 +65,8 @@ final class FinApCheckList
    */
   public static int $listData = 0;
   
-  /**
-   * Прізвище, ім'я, по батькові або назва клієнта/контрагента
-   *
-   * @var string
-   */
   public static string $name = '';
   
-  /**
-   * Внутрішній унікальний ID запиту
-   * (генерується засобами внутрішнього програмного забезпечення суб'єкта ФМ)
-   *
-   * @var string
-   */
   public static string $refID = '';
   
   /**
@@ -122,11 +89,6 @@ final class FinApCheckList
    */
   public static int $search = 1;
   
-  /**
-   * Тип клієнта
-   *
-   * @var string
-   */
   public static string $type = '';
   
   /**
@@ -137,11 +99,11 @@ final class FinApCheckList
    */
   public static int $userPCID = 2;
   
-  private static string $_pass = '';
+  private static string $pass = '';
   
-  private static string $_url = '';
+  private static string $url = '';
   
-  private static string $_user = '';
+  private static string $user = '';
   
   public function __construct()
   {
@@ -150,19 +112,18 @@ final class FinApCheckList
     self::$disabled = $settings->disabled ?? self::$disabled;
     
     self::$listData = $settings->listData ?? self::$listData;
-    self::$_pass = $settings->pass ?? self::$_pass;
-    self::$_url = $settings->url ?? self::$_url;
-    self::$_user = $settings->user ?? self::$_user;
+    self::$pass = $settings->pass ?? self::$pass;
+    self::$url = $settings->url ?? self::$url;
+    self::$user = $settings->user ?? self::$user;
   }
   
   private static function _getRequest():array
   {
-    # Запрос
     $request = [
       "IDinternal" => self::$refID,
       "DateRequest" => date('Y-m-d'),
-      "IDsubjectFM" => self::$_user,
-      "tokken" => self::$_pass,
+      "IDsubjectFM" => self::$user,
+      "tokken" => self::$pass,
       "IDuserPC" => self::$userPCID,
       "name" => self::$name,
       "ipn" => self::$code,
@@ -172,7 +133,6 @@ final class FinApCheckList
       "responsetype" => self::$responseType
     ];
     
-    # Дата народження/реєстрації за наявності
     if (self::$date) {
       $request["date"] = self::$date;
     }
@@ -207,7 +167,7 @@ final class FinApCheckList
       trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
-    $response = $request ? (string)Curl::exec(self::$_url, [], $request, '', '', 0) : '';
+    $response = $request ? (string)Curl::exec(self::$url, [], $request, '', '', 0) : '';
     
     if (self::$debug) {
       trigger_error(__METHOD__." Response\n".$response);
