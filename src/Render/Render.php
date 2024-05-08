@@ -8,7 +8,10 @@ use okushnirov\core\Library\{Crypt, DbSQLAnywhere, Enums\Encrypt, Enums\HeaderXM
 
 class Render
 {
-  private static string $_root = __NAMESPACE__.'\\Items\\';
+  private static array $namespaces = [
+    __NAMESPACE__.'\\Items\\',
+    'core\\Render\\Items\\'
+  ];
   
   public static function getMethodData(
     string $methodName, \SimpleXMLElement | bool | array $methodData = false):\stdClass
@@ -123,20 +126,23 @@ class Render
         continue;
       }
       
-      $classname = static::$_root.$render;
-      $html = '';
-      
-      try {
-        if (!class_exists($classname) || !method_exists($classname, 'html')) {
-          throw new \Exception("Class $classname or public static method 'html' not found");
+      foreach (self::$namespaces as $namespace) {
+        $classname = $namespace.$render;
+        $html = '';
+        
+        try {
+          if (!class_exists($classname) || !method_exists($classname, 'html')) {
+            throw new \Exception("Class $classname or public static method 'html' not found");
+          }
+          
+          $xmlItem = simplexml_import_dom($node);
+          unset($xmlItem['render']);
+          
+          $html = (new $classname())::html($xmlItem, $objID, $xmlData, $variables);
+          
+          break;
+        } catch (\Exception) {
         }
-        
-        $xmlItem = simplexml_import_dom($node);
-        unset($xmlItem['render']);
-        
-        $html = (new $classname())::html($xmlItem, $objID, $xmlData, $variables);
-      } catch (\Exception $e) {
-        trigger_error($e->getMessage());
       }
       
       $fragment = $dom->createDocumentFragment();

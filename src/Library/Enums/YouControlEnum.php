@@ -53,14 +53,14 @@ enum YouControlEnum: string
   /**
    * НПД скринінг (PEP Screening)
    *
-   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)%20%E2%80%94%20beta-testing/get_v1_peps
+   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)/get_v1_peps
    */
   case peps = "НПД скринінг";
   
   /**
    * Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
    *
-   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)%20%E2%80%94%20beta-testing/get_v1_peps_related
+   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)/get_v1_peps_related
    */
   case relatedPersons = "Пов'язані з шуканим НПД особи та компанії";
   

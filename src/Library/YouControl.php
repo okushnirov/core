@@ -214,7 +214,7 @@ final class YouControl
     
     # Санкції (Sanctions)
     $result[YouControlEnum::sanctions->name] = self::_getPreviousResult(YouControlEnum::sanctions->name)
-      ? : self::_wsSanctions();
+      ? : self::_wsSanctionsPersonal();
     
     # ФO - Податковий борг (Private individual - Tax debtors)
     $result[YouControlEnum::taxDebtor->name] = self::_getPreviousResult(YouControlEnum::taxDebtor->name)
@@ -350,7 +350,7 @@ final class YouControl
     $json = json_decode($response);
     
     /**
-     * Обробка відповіді типу
+     * Обробка відповіді типу<br>
      * {
      * "status": "Update in progress",
      * "resultUrl": "https://api.youscore.com.ua/v1/enforcementIndividual/64fa5965ef562e32f87ede52?skip=0&top=100"
@@ -385,15 +385,15 @@ final class YouControl
     }
     
     /**
-     * Перелік можливих помилок
+     * Перелік можливих помилок<br>
      * {
      * "status":"Update in progress",
      * "currentDataUrl":"https://api.youscore.com.ua/v1/enforcement/31119647?Code=31119647&showCurrentData=True&Top=500&Skip=0"
-     * }
+     * }<br>
      * {
      * "code": "NotFound",
      * "message": "Contractor '3325819217' not found"
-     * }
+     * }<br>
      * {
      * "code": "InvalidParameters",
      * "error": "FirstName, LastName and MiddleName are required"
@@ -563,14 +563,14 @@ final class YouControl
     $query .= '' === $this->documentSeries ? '' : '&series='.urlencode($this->documentSeries);
     
     /**
-     * HTTP 404 - заборгованість відсутня
+     * HTTP 404 - заборгованість відсутня<br>
      * {
      * "code":"NotFound",
      * "message":"No passports were found amongst neither invalid nor stolen or lost passports for passport with series МН and number 648331"
-     * }
-     * HTTP 200 - Можливій збіг
-     * invalidPassports - блок відповіді реєстра ДМС
-     * stolenOrLostPassports - блок відповіді реєстра МВС
+     * }<br>
+     * HTTP 200 - Можливій збіг<br>
+     * invalidPassports - блок відповіді реєстра ДМС<br>
+     * stolenOrLostPassports - блок відповіді реєстра МВС<br>
      * {
      *  "invalidPassports": [
      *    {
@@ -603,16 +603,25 @@ final class YouControl
    * Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
    *
    * @return object|string
-   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)%20%E2%80%94%20beta-testing/get_v1_peps
-   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)%20%E2%80%94%20beta-testing/get_v1_peps_related
+   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)/get_v1_peps
+   * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9D%D0%9F%D0%94%20%D1%81%D0%BA%D1%80%D0%B8%D0%BD%D1%96%D0%BD%D0%B3%20(PEP%20Screening)/get_v1_peps_related
    */
   private function _wsPeps():object | string
   {
+    if ('' === $this->middleName) {
+      
+      return (object)[
+        "isPep" => false,
+        "isRelatedToPep" => false,
+        "comment" => "Відсутнє по-батькові, перевірка не проводилась"
+      ];
+    }
+    
     # Строка з даними контрагента
     $query = self::_getQuery();
     
     /**
-     * НПД скринінг (PEP Screening)
+     * НПД скринінг (PEP Screening)<br>
      * {
      * "searchedName": "Шевчук Олександр Іванович",
      * "isPep": false,
@@ -630,7 +639,7 @@ final class YouControl
     }
     
     /**
-     * Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
+     * Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)<br>
      * {
      * "searchedName": "Василишина Таїса Василівна",
      * "relatedPersons": [],
@@ -643,7 +652,7 @@ final class YouControl
   }
   
   /**
-   * Санкції (Sanctions)<br>
+   * Санкції (Sanctions)
    *
    * @return object|array|string
    * @link https://api.youscore.com.ua/swagger/index.html#/%D0%A1%D0%B0%D0%BD%D0%BA%D1%86%D1%96%D1%97%20(Sanctions)/get_v1_sanctions
@@ -651,7 +660,7 @@ final class YouControl
   private function _wsSanctions():object | array | string
   {
     /**
-     * Санкції відсутні
+     * Санкції відсутні<br>
      * []
      */
     return self::_ws(YouControlEnum::sanctions, "v1/sanctions?contractorCode=$this->code", null);
@@ -670,7 +679,7 @@ final class YouControl
     $query = self::_getQuery();
     
     /**
-     * Перевірка Міжнародних санкцій / Global Sanctions Lists Screening
+     * Перевірка Міжнародних санкцій / Global Sanctions Lists Screening<br>
      * {
      * "issls": false,
      * "searchedName": "Шевчук Олександр Миколайович",
@@ -687,7 +696,7 @@ final class YouControl
     }
     
     /**
-     * Санкції РНБО (RNBO Sanctions)
+     * Санкції РНБО (RNBO Sanctions)<br>
      * {
      *  "registryUpdateTime": "2023-09-08T13:18:52.385Z",
      *  "result": []
@@ -718,7 +727,7 @@ final class YouControl
   }
   
   /**
-   * Наявність у компанії податкового боргу (Company's tax dept)<br>
+   * Наявність у компанії податкового боргу (Company's tax dept)
    *
    * @return object|string
    * @link https://api.youscore.com.ua/swagger/index.html#/%D0%9F%D0%BE%D0%B4%D0%B0%D1%82%D0%BA%D0%BE%D0%B2%D1%96%20%D0%B4%D0%B0%D0%BD%D1%96%20(Tax%20data)/get_v1_taxDebt__contractorCode_
@@ -726,12 +735,12 @@ final class YouControl
   private function _wsTaxDebtorCompany():object | string
   {
     /**
-     * HTTP 404 - заборгованість відсутня
+     * HTTP 404 - заборгованість відсутня<br>
      * {
      * "code": "NotFound",
      * "message": "No tax debt info for contractor '43745739' found"
-     * }
-     * HTTP 200 - наявна заборгованість
+     * }<br>
+     * HTTP 200 - наявна заборгованість<br>
      * {
      * "debt": 40972.08,
      * "actualDate": "2021-05-01T00:00:00+03:00"
@@ -781,7 +790,7 @@ final class YouControl
      */
     return self::_ws(YouControlEnum::wanted, "v1/wantedOrDisappearedPersons?$query");
     
-    // TODO: Перевірка вимкнена
+    # Перевірка вимкнена
     /*
     if ('string' === gettype($result) || 200 !== Curl::$curlHttpCode
       || empty($result->disappearedPersons)
