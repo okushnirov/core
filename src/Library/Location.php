@@ -24,16 +24,16 @@ final class Location
       : self::serverName().self::$folder.$endSlash;
   }
   
-  public static function httpsRedirect(string $location = ''):void
+  public static function httpsRedirect(string $request = ''):void
   {
     $redirect = TEST_SERVER ? TEST_SERVER_REDIRECT : SERVER_REDIRECT;
     
     if (80 === (int)$_SERVER['SERVER_PORT'] && $redirect) {
-      $folder = trim($location, '/');
+      $folder = trim($request, '/');
       
       header('Location: '.('' === $folder || self::$folder === $folder
-          ? self::getLocation() : (false === mb_stripos($location, 'https')
-            ? self::getLocation(str_starts_with($location, '/') ? '' : '/').$location : $location)));
+          ? self::getLocation() : (false === mb_stripos($request, 'https') ? self::getLocation(str_starts_with($request,
+              '/') ? '' : '/').$request : $request)));
       
       exit;
     }
@@ -44,7 +44,7 @@ final class Location
   {
     parse_str(mb_strtolower($query), $result);
     
-    if ('' === $location || !isset($result['logout']) || SessionType::NONE === $session && !session_id()) {
+    if (!isset($result['logout']) || SessionType::NONE === $session && !session_id()) {
       
       return;
     }
@@ -53,7 +53,7 @@ final class Location
       Session::sessionDestroy();
     }
     
-    if ($reloadHome) {
+    if ($reloadHome || '' === $location) {
       header('Location:'.self::serverName());
     } else {
       header('Location:'.self::serverName(false).parse_url($location, PHP_URL_PATH));

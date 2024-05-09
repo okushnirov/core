@@ -61,8 +61,7 @@ class Options extends Render
     }
     
     if (self::isTrue($xml['lang-postfix'] ?? '')) {
-      Lang::set(cookie: CookieType::No);
-      $name .= Lang::$settings->language->lang->{Lang::$lang}->short;
+      $name .= Lang::getShort(Lang::$lang);
     }
     
     foreach ($result as $options) {

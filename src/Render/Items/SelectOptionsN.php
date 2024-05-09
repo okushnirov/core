@@ -22,29 +22,24 @@ class SelectOptionsN extends Render implements HtmlInterface
     $sourcePrepare = false;
     $source = [];
     
-    # Dictionary
     if (isset($xmlItem->source->dict)) {
       $sourcePrepare = static::isTrue($xmlItem->source->dict['prepare'] ?? '');
       $source = OptionsDict::get($xmlItem->source->dict, $objID);
-    } # SQL
-    elseif (isset($xmlItem->source->sql)) {
+    } elseif (isset($xmlItem->source->sql)) {
       $sourcePrepare = static::isTrue($xmlItem->source->sql['prepare'] ?? '');
       $source = OptionsSQL::get($xmlItem->source->sql);
-    } # WS
-    elseif (isset($xmlItem->source->ws)) {
+    } elseif (isset($xmlItem->source->ws)) {
       $sourcePrepare = static::isTrue($xmlItem->source->ws['prepare'] ?? '');
       $source = OptionsWS::get($xmlItem->source->ws);
     }
     
-    # Filter
     $filter = trim($xmlItem->source->filter ?? '');
     
     # Destination
     $attributeDestination = self::getAttribute($xmlItem->destination);
     $attributeDestination = isset($xmlItem->destination->value)
-    && (isset($xmlItem->destination->value['xpath'])
-      || isset($xmlItem->destination->value['f-xpath'])) ? self::getXPathAttribute($xmlItem->destination->value,
-      $xmlData, $attributeDestination) : $attributeDestination;
+    && (isset($xmlItem->destination->value['xpath']) || isset($xmlItem->destination->value['f-xpath']))
+      ? self::getXPathAttribute($xmlItem->destination->value, $xmlData, $attributeDestination) : $attributeDestination;
     $destinationPrepare = static::isTrue($xmlItem->destination['prepare'] ?? '');
     $destination = [];
     
@@ -75,7 +70,7 @@ class SelectOptionsN extends Render implements HtmlInterface
       case 1:
         // Значения из строк таблицы
     }
-    trigger_error(json_encode($destination, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
     # Options Source & Destination
     $optionSource = Options::first($xmlItem->source->option ?? '', !empty($source));
     $optionSource .= Options::list($source, 'string', '', $sourcePrepare, 1, $filter);

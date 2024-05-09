@@ -40,7 +40,7 @@ final class Ajax
       '/json/dbase.json',
       '/json/error.json',
       '/json/message.json'
-    ], $JSONRoot, is_array($JSON) ? $JSON : []));
+    ], $JSONRoot, $JSON));
   }
   
   public static function init(bool $onlyLocal = true):bool
@@ -53,7 +53,7 @@ final class Ajax
         'DEBUG' => debug_backtrace(),
         'COOKIE' => $_COOKIE ?? [],
         'REQUEST' => $_REQUEST ?? [],
-        'SESSION' => Session::decryptCRC($_SESSION ?? [])
+        'SESSION' => $_SESSION ?? []
       ]))::run();
       
       exit;

@@ -68,7 +68,14 @@ final class SessionHandlerWs implements \SessionHandlerInterface
   
   private function ws(string $method, array $data = []):?\SimpleXMLElement
   {
-    $request = new \DOMDocument();
+    $session = File::parse(['/json/session.json']);
+    
+    if (empty($session->ws)) {
+      
+      throw new \Exception('Empty session settings');
+    }
+    
+    $request = new \DOMDocument('1.0', Charset::UTF8->value);
     $root = $request->appendChild($request->createElement('request'));
     $root->setAttribute('method', $method);
     $root->setAttribute('ip', trim($_SERVER['REMOTE_ADDR'] ?? ''));
@@ -78,16 +85,11 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     }
     
     $request->formatOutput = true;
-    $session = File::parse(['/json/session.json']);
-    
-    if (empty($session)) {
-      throw new \Exception('Empty session settings');
-    }
     
     try {
-      $response = (new WebService($session))->xml('session', $request->saveXML(), timeout: 2, charset: Charset::WINDOWS1251);
-      unset($request);
+      $response = (new WebService($session))->xml('session', $request->saveXML(), charset: Charset::WINDOWS1251);
     } catch (\Exception $e) {
+      
       throw new \Exception($e->getMessage(), $e->getCode());
     }
     

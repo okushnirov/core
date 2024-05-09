@@ -26,7 +26,7 @@ final class WebService
     
     if (empty($data)) {
       if (self::$debug) {
-        trigger_error(__METHOD__." Empty webservice settings");
+        trigger_error(__METHOD__." Empty webservice settings", E_USER_ERROR);
       }
       
       throw new \Exception("Empty webservice settings", -1);
@@ -51,7 +51,8 @@ final class WebService
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." [$wsName]\n".json_encode($ws, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." [$wsName]\n".json_encode($ws, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        E_USER_ERROR);
     }
     
     return $ws;
@@ -69,29 +70,6 @@ final class WebService
       if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
         
         throw new \Exception(json_last_error_msg() ? : 'Empty or wrong response', -2);
-      }
-    } catch (\Exception $e) {
-      
-      throw new \Exception($e->getMessage(), -3);
-    }
-    
-    return $json;
-  }
-  
-  /**
-   * @deprecated
-   */
-  public function jsonWindows1251(
-    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5):mixed
-  {
-    try {
-      $response = Encoding::decode($this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout));
-      $json = $response ? json_decode($response) : null;
-      
-      if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
-        
-        throw new \Exception(json_last_error_msg() ? : 'Empty response', -2);
       }
     } catch (\Exception $e) {
       
@@ -122,8 +100,9 @@ final class WebService
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." [$wsName] Request $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n"
-        .self::$response);
+      trigger_error(__METHOD__." [$wsName]".($header ? " Header\n".json_encode($header,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '')."\nRequest $ws->url\n$data\nResponse [HTTP "
+        .Curl::$curlHttpCode."]\n".self::$response, E_USER_ERROR);
     }
     
     if (200 !== Curl::$curlHttpCode) {
@@ -145,53 +124,6 @@ final class WebService
       
       $response = Charset::WINDOWS1251 === $charset ? Str::replaceHeader($response) : $response;
       
-      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
-      
-      if (empty($xml) || empty($xml->getName())) {
-        
-        throw new \Exception('Empty or wrong response', -2);
-      }
-    } catch (\Exception $e) {
-      
-      throw new \Exception($e->getMessage(), -3);
-    }
-    
-    return $xml;
-  }
-  
-  /**
-   * @deprecated
-   */
-  public function xmlUtf8(
-    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5):\SimpleXMLElement
-  {
-    try {
-      $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
-      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
-      
-      if (empty($xml) || empty($xml->getName())) {
-        
-        throw new \Exception('Empty response', -2);
-      }
-    } catch (\Exception $e) {
-      
-      throw new \Exception($e->getMessage(), -3);
-    }
-    
-    return $xml;
-  }
-  
-  /**
-   * @deprecated
-   */
-  public function xmlWindows1251(
-    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5):\SimpleXMLElement
-  {
-    try {
-      $response = $this->request($wsName, Encoding::encode($data), $ws, $header, $post, $ssl, $timeout);
-      $response = Str::replaceHeader($response);
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
       if (empty($xml) || empty($xml->getName())) {
