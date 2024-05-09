@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{File, WebService};
+use okushnirov\core\Library\{Enums\Charset, File, WebService};
 
 final class SessionHandlerWs implements \SessionHandlerInterface
 {
@@ -85,7 +85,7 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     }
     
     try {
-      $response = (new WebService($session))->xml('session', $request->saveXML(), timeout: 2);
+      $response = (new WebService($session))->xml('session', $request->saveXML(), timeout: 2, charset: Charset::WINDOWS1251);
       unset($request);
     } catch (\Exception $e) {
       throw new \Exception($e->getMessage(), $e->getCode());
