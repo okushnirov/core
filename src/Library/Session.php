@@ -41,11 +41,11 @@ final class Session
         } elseif (SessionType::WS === $session) {
           new SessionHandlerWs();
         }
+        
+        session_start();
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' '.$e->getMessage());
       }
-      
-      session_start();
     }
     
     return !empty(session_id());
