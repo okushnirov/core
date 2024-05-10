@@ -2,9 +2,10 @@
 
 namespace okushnirov\core\Handlers;
 
+use core\Root\Folders\Error;
 use okushnirov\core\Library\{Enums\Auth, Enums\CookieType, Enums\SessionType, Lang, Location, Session};
 
-final class Root //extends \Exception
+final class Root extends \Exception
 {
   const ROOT_PATH = 'core\Root\\';
   
@@ -33,7 +34,6 @@ final class Root //extends \Exception
           'Path' => self::$path,
           'Query' => $request,
           'Redirect' => $redirect,
-          'REQUEST' => $_REQUEST ?? [],
           "SESSION type [$session->name]" => Session::decryptCRC($_SESSION ?? [])
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
@@ -98,20 +98,19 @@ final class Root //extends \Exception
     if ($className) {
       try {
         (new $className)::index();
-      } catch (\Exception $e) {
-        trigger_error($e->getMessage());
         
-        (new ErrorRequest('/error/', 404, [
-          'REQUEST' => $_REQUEST ?? []
-        ]))::run(session: $session, cookie: $cookie);
-      }
-    } else {
-      try {
-        (new \core\Root\Folders\Error())::index(404, 0, '', $request);
+        exit;
       } catch (\Exception $e) {
-        
-        throw new \Exception($e->getMessage(), $e->getCode());
+        trigger_error(__METHOD__.' '.$e->getMessage());
       }
+    }
+    
+    try {
+      (new Error())::index(404, 0, '', $request);
+    } catch (\Exception $e) {
+      trigger_error(__METHOD__.' '.$e->getMessage());
+      
+      throw new \Exception($e->getMessage(), $e->getCode());
     }
   }
 }

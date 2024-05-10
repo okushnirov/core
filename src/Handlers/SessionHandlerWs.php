@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{Enums\Charset, File, WebService};
+use okushnirov\core\Library\{Curl, Encoding, Enums\Charset, File};
 
 final class SessionHandlerWs implements \SessionHandlerInterface
 {
@@ -68,14 +68,14 @@ final class SessionHandlerWs implements \SessionHandlerInterface
   
   private function ws(string $method, array $data = []):?\SimpleXMLElement
   {
-    $session = File::parse(['/json/session.json']);
+    $session = File::parse(['/json/session.json'])->session ?? [];
     
-    if (empty($session->ws)) {
+    if (empty($session)) {
       
       throw new \Exception('Empty session settings');
     }
     
-    $request = new \DOMDocument('1.0', Charset::UTF8->value);
+    $request = new \DOMDocument('1.0', Charset::WINDOWS1251->value);
     $root = $request->appendChild($request->createElement('request'));
     $root->setAttribute('method', $method);
     $root->setAttribute('ip', trim($_SERVER['REMOTE_ADDR'] ?? ''));
@@ -86,13 +86,17 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     
     $request->formatOutput = true;
     
+    $response = Curl::exec($session->{'url'.(TEST_SERVER ? 'Test' : '')} ?? $session->url ?? '', [
+      'Content-Type: application/xml;charset=utf-8'
+    ], $request->saveXML(), timeout: 5);
+    
     try {
-      $response = (new WebService($session))->xml('session', $request->saveXML(), charset: Charset::WINDOWS1251);
+      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement(Encoding::decode($response)) : null;
     } catch (\Exception $e) {
-      
-      throw new \Exception($e->getMessage(), $e->getCode());
+      trigger_error(__METHOD__.' '.$e->getMessage());
+      $xml = null;
     }
     
-    return $response;
+    return $xml;
   }
 }
