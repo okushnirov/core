@@ -22,7 +22,7 @@ class RadioboxOptionsN extends Render implements HtmlInterface
     $type = 'string';
     
     if (isset($xmlItem->dict)) {
-      $source = OptionsDict::get($xmlItem->dict, $objID);
+      $source = OptionsDict::get($xmlItem->dict, $objID, $xmlData);
       $type = (string)($xmlItem->dict['type'] ?? $type);
     } elseif (isset($xmlItem->sql)) {
       $source = OptionsSQL::get($xmlItem->sql);

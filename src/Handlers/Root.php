@@ -18,7 +18,7 @@ final class Root extends \Exception
   public static ?string $query;
   
   public static function handler(
-    string     $folder, string $request = '/', ?Auth $loginType = null, SessionType $session = SessionType::WS,
+    string     $folder, string $request = '/', ?Auth $authType = null, SessionType $session = SessionType::WS,
     CookieType $cookie = CookieType::No, bool $redirect = true, bool $reloadHome = false):void
   {
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
@@ -28,7 +28,7 @@ final class Root extends \Exception
     
     if (self::$debug) {
       trigger_error(__METHOD__." Start\n".json_encode([
-          "Auth " => $loginType->name ?? '',
+          "Auth " => $authType->name ?? '',
           "COOKIE type [$cookie->name]" => $_COOKIE ?? [],
           "Folder" => $folder,
           'Path' => self::$path,
@@ -57,11 +57,9 @@ final class Root extends \Exception
     
     Lang::set($session, $cookie);
     
-    if (!is_null($loginType)) {
-      RootLogin::handler($loginType);
+    if (!is_null($authType)) {
+      RootLogin::handler($authType);
     }
-    
-    $className = '';
     
     if ('' === (self::$path[0] ?? '')) {
       $className = self::ROOT_PATH.('/' === $folder ? 'Index' : self::ROOT_FOLDERS.ucfirst($folder));
@@ -70,10 +68,12 @@ final class Root extends \Exception
         $value = mb_convert_case($value, MB_CASE_TITLE);
       });
       
+      $className = '';
       $classRoot = self::ROOT_PATH.self::ROOT_FOLDERS;
       $fullPath = self::$path;
+      $cnt = count(self::$path);
       
-      for ($i = 0; $i < count(self::$path); $i++) {
+      for ($i = 0; $i < $cnt; $i++) {
         $classPath = implode('\\', $fullPath);
         $className = $classRoot.$classPath;
         

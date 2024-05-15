@@ -17,7 +17,7 @@ use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Option
  *    <ru>Text RU</ru>
  *   </attrName>
  *  </attr>
- *  <option class="" value="">Text</option>
+ *  <option class="" value="">Option text</option>
  *  <source dest="count|dict|sql|none" xpath="путь к значению" type="string|int"/>Default value</source>
  *  1) <count start="start value" end="end value" step="step value">Default value</count>
  *  2) <dict id="2" order="2" parent="1" parentName="Вид" value="ID" name="Название_" lang-postfix="true"
@@ -26,39 +26,39 @@ use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Option
  *  4) Элементы списка определяются из данных /option
  * </select>
  * @discription
- * Обработчик в цикле перебирает все свойства и атрибуты xml ветки
- * /attr - Для разноязычных атрибутов
- * /attr/attrName - Название атрибута
- * /attr/attrName/Lang - Текст языковой версии
- * /option - Первая опция (1-n при dest = none)
- * class - Класс опции
- * value - Значение опции, если NULL, то пустое значение опции
- * Text - Текстовое значение опции
- * /source - Источник
- * dest - источник данных (счётчик, справочник или запрос)
- * xpath - путь к значению в XMLData
- * f-xpath - путь к структуре поля в XMLData
- * type - тип значения строка (string) или число для точного выбора опции selected
- * Default value - Значение по-умолчанию [не обязательный],
- * - если начинается с $ - значение переменной php
- * - если заключено в {} - выражение php
- * 1) Источник "Счётчик"
- * start - начальное значение
- * end - конечное значение
- * step - шаг итерации
- * 2) Источник "Справочник"
- * id - номер справочника
- * order - порядок сортировки 0 - по-умолчанию, 1 - по ID, 2 - сортировка в поле "Порядок"
- * parent - номер справочника родителя
- * parentName - название поля родителя
- * name - поле названия опции
- * lang-postfix - добавить к названию поля язык
- * prepare - экранирование спецсимволов названия опции
- * 3) Источник "Запрос"
- * sql - запрос
- * name - поле названия опции
- * lang-postfix - добавить к названию поля язык
- * prepare - экранирование спецсимволов названия опции
+ * Обработчик в цикле перебирает все свойства и атрибуты xml ветки select<br>
+ * /attr - Контейнер для атрибутов<br>
+ * /attr/attrName - Название атрибута<br>
+ * /attr/attrName/Lang - Текст языковой версии<br>
+ * /option - Первая опция (1-n при dest = none)<br>
+ * class - Класс опции<br>
+ * value - Значение опции, если NULL, то пустое значение опции<br>
+ * Option text - Текстовое значение опции<br>
+ * /source - Источник<br>
+ * dest - источник данных (счётчик, справочник или запрос)<br>
+ * xpath - путь к значению в XMLData<br>
+ * f-xpath - путь к структуре поля в XMLData<br>
+ * type - тип значения строка (string) или число для точного выбора опции selected<br>
+ * Default value - Значение по-умолчанию [не обязательный],<br>
+ * - если начинается с $ - значение переменной php<br>
+ * - если заключено в {} - выражение php<br>
+ * 1) Источник "Счётчик"<br>
+ * start - начальное значение<br>
+ * end - конечное значение<br>
+ * step - шаг итерации<br>
+ * 2) Источник "Справочник"<br>
+ * id - номер справочника<br>
+ * order - порядок сортировки 0 - по-умолчанию, 1 - по ID, 2 - сортировка в поле "Порядок"<br>
+ * parent - номер справочника родителя<br>
+ * parentName - название поля родителя<br>
+ * name - поле названия опции<br>
+ * lang-postfix - добавить к названию поля язык<br>
+ * prepare - экранирование спецсимволов названия опции<br>
+ * 3) Источник "Запрос"<br>
+ * sql - запрос<br>
+ * name - поле названия опции<br>
+ * lang-postfix - добавить к названию поля язык<br>
+ * prepare - экранирование спецсимволов названия опции<br>
  */
 class SelectN extends Render implements HtmlInterface
 {
@@ -104,7 +104,7 @@ class SelectN extends Render implements HtmlInterface
         break;
       
       case 'dict':
-        $source = OptionsDict::get($xmlItem->dict ?? null, $objID);
+        $source = OptionsDict::get($xmlItem->dict ?? null, $objID, $xmlData);
         $isPrepare = static::isTrue($xmlItem->dict['prepare'] ?? '');
         
         break;

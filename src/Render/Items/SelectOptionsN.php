@@ -24,7 +24,7 @@ class SelectOptionsN extends Render implements HtmlInterface
     
     if (isset($xmlItem->source->dict)) {
       $sourcePrepare = static::isTrue($xmlItem->source->dict['prepare'] ?? '');
-      $source = OptionsDict::get($xmlItem->source->dict, $objID);
+      $source = OptionsDict::get($xmlItem->source->dict, $objID, $xmlData);
     } elseif (isset($xmlItem->source->sql)) {
       $sourcePrepare = static::isTrue($xmlItem->source->sql['prepare'] ?? '');
       $source = OptionsSQL::get($xmlItem->source->sql);

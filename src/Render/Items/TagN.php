@@ -21,19 +21,19 @@ use okushnirov\core\{Library\Crypt, Library\Enums\Encrypt, Render\Items\Interfac
  *  <children></children>
  * </tagName>
  * @discription
- * Название html элемента берётся из названия ветки
- * Обработчик в цикле перебирает все свойства и атрибуты xml ветки
- * /attr - Для разноязычных атрибутов
- * /attr/attrName - Название атрибута
- * /attr/attrName/Lang - Текст языковой версии
+ * Название html элемента берётся из названия ветки<br>
+ * Обработчик в цикле перебирает все свойства и атрибуты xml ветки<br>
+ * crypt - true - шифрует значение поля, иначе выводит значение<br>
+ * position - after - Значение выводится после html, before - по-умолчанию<br>
+ * target - вывод временной метки в формате 'YmdHis', crypt - шифрует метку<br>
+ * xpath - путь к XML данным<br>
+ * Default value - Значение по-умолчанию [не обязательный],<br>
+ * - если начинается с $ - значение переменной php<br>
+ * - если заключено в {} - выражение php<br>
+ * /attr - Для разноязычных атрибутов<br>
+ * /attr/attrName - Название атрибута<br>
+ * /attr/attrName/Lang - Текст языковой версии<br>
  * /children - вложенные HTML
- * @crypt - true - шифрует значение поля, иначе выводит значение
- * @position - after - Значение выводится после html, before - по-умолчанию
- * @target - вывод временной метки в формате 'YmdHis', crypt - шифрует метку
- * @xpath - путь к XML данным
- * Default value - Значение по-умолчанию [не обязательный],
- * - если начинается с $ - значение переменной php
- * - если заключено в {} - выражение php
  */
 class TagN extends Render implements HtmlInterface
 {

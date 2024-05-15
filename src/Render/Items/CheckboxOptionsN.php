@@ -20,7 +20,7 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     $source = [];
     
     if (isset($xmlItem->dict)) {
-      $source = OptionsDict::get($xmlItem->dict, $objID);
+      $source = OptionsDict::get($xmlItem->dict, $objID, $xmlData);
     } elseif (isset($xmlItem->sql)) {
       $source = OptionsSQL::get($xmlItem->sql);
     }

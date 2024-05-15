@@ -40,6 +40,7 @@ class Render
     
     if (1 === $data->access) {
       $data->name = Str::prepare($methods[$methodName]['название'] ??
+        $methods[$methodName]['название_'.Lang::getShort(Lang::$lang)] ??
         $methods[$methodName]['название_'.Lang::$lang] ?? '');
       
       $data->attribute = ' data-method-ref="'.$methodName.'"';
@@ -55,21 +56,35 @@ class Render
   public static function getMethodList(int $objID = 0):array
   {
     $SQL = "CALL \"dbo\".\"_метод_список\"(".(0 < $objID ? $objID : 'null').')';
-    $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, false, User::$login, User::$pass, 'идентификатор');
+    
+    if (User::$login ?? null && !DbSQLAnywhere::$connect) {
+      $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, false, User::$login, User::$pass, 'идентификатор');
+    } else {
+      $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, keyString: 'идентификатор');
+    }
     
     return empty($methods) ? [] : $methods;
   }
   
-  public static function getXMLData(int $objType, int $objID, string $table):\SimpleXMLElement
+  public static function getXMLData(
+    int $objType, int $objID, string $tableName, string $tableKey = 'ID'):\SimpleXMLElement | false
   {
-    DbSQLAnywhere::connect(false, User::$login, User::$pass);
-    $tableEscape = DbSQLAnywhere::escape($table, true);
+    if (User::$login ?? null && !DbSQLAnywhere::$connect) {
+      DbSQLAnywhere::connect(false, User::$login, User::$pass);
+    }
     
-    $SQL = "SELECT \"dbo\".\"_объект_структура_".(0 < $objID ? "значения_xml\"($tableEscape,'ID=$objID')"
+    $tableEscape = DbSQLAnywhere::escape($tableName, true);
+    
+    $SQL = "SELECT \"dbo\".\"_объект_структура_".(0 < $objID ? "значения_xml\"($tableEscape,'$tableKey=$objID')"
         : "xml\"($objType,$tableEscape)");
     $result = DbSQLAnywhere::query($SQL, SQLAnywhere::COLUMN);
     
-    return new \SimpleXMLElement($result);
+    try {
+      $xml = $result ? new \SimpleXMLElement($result) : false;
+    } catch (\Exception) {
+    }
+    
+    return $xml ?? false;
   }
   
   public static function getXMLObject(int $objID, int $withChildren = 0):\SimpleXMLElement | bool
@@ -113,6 +128,8 @@ class Render
       $comment->parentNode->removeChild($comment);
     }
     
+    $replaceCR = true;
+    
     foreach ($xpath->query('//*[@render]') as $node) {
       if ($node->nodeType !== XML_ELEMENT_NODE) {
         
@@ -126,9 +143,14 @@ class Render
         continue;
       }
       
+      if ($node->hasAttribute('replaceCR')) {
+        $replaceCR = false;
+      }
+      
+      $html = '';
+      
       foreach (self::$namespaces as $namespace) {
         $classname = $namespace.$render;
-        $html = '';
         
         try {
           if (!class_exists($classname) || !method_exists($classname, 'html')) {
@@ -150,13 +172,18 @@ class Render
       $node->parentNode->replaceChild($fragment, $node);
     }
     
-    return preg_replace('/>\s+</', '><', str_ireplace([
+    $subjectSearch = [
       '<?xml version="1.0"?>',
       HeaderXML::UTF->value,
       '<items>',
-      '</items>',
-      "\n"
-    ], '', $dom->saveXML(null, LIBXML_NOEMPTYTAG)));
+      '</items>'
+    ];
+    
+    if ($replaceCR) {
+      $subjectSearch[] = "\n";
+    }
+    
+    return preg_replace('/>\s+</', '><', str_ireplace($subjectSearch, '', $dom->saveXML(null, LIBXML_NOEMPTYTAG)));
   }
   
   public static function xmlFile2HTML(
@@ -172,7 +199,8 @@ class Render
     try {
       $dom->load($_SERVER['DOCUMENT_ROOT'].$file);
     } catch (\Exception $e) {
-      trigger_error($e->getMessage());
+      $dom = null;
+      trigger_error(__METHOD__.' '.$e->getMessage());
     }
     
     return empty($dom) ? '' : static::xml2HTML($dom, $objID, $xmlData, $variables);
@@ -227,11 +255,38 @@ class Render
     $isPrepare = static::isTrue($xml['prepare'] ?? '');
     $value = trim($xml->{Lang::$lang} ?? $xml);
     
-    if (str_starts_with($value, '$') || str_starts_with($value, '{') && str_ends_with($value, '}')) {
+    if (str_starts_with($value, '$') || str_starts_with($value, '{{') && str_ends_with($value, '}}')) {
       eval("\$value = ".trim($value, '{}').";");
     }
     
     return $isPrepare ? Str::prepare($value) : $value;
+  }
+  
+  protected static function getXMLValue(string $fieldName, ?\SimpleXMLElement $xmlData):array | bool
+  {
+    if ('' === $fieldName || empty($xmlData) || !$xmlData->field->count()) {
+      
+      return false;
+    }
+    
+    foreach ($xmlData->field as $item) {
+      if ($fieldName === (string)$item['name']) {
+        $result = [
+          'id' => (int)$item['id'],
+          'name' => (string)$item['name'],
+          'required' => 'y' === Str::lowerCase($item['required']),
+          'type' => (string)$item['type'],
+          'scale' => (int)$item['scale'],
+          'value' => (string)$item,
+          'width' => (int)$item['width'],
+          'default' => mb_eregi_replace('\'', '', $item['default'])
+        ];
+        
+        break;
+      }
+    }
+    
+    return $result ?? false;
   }
   
   protected static function getXPathAttribute(
@@ -304,7 +359,8 @@ class Render
     
     $isPrepare = self::isTrue($xml['prepare'] ?? '');
     $isLang = self::isTrue($xml['lang'] ?? '');
-    $array = $xmlData->xpath($isLang ? mb_ereg_replace('\$lang', Lang::$lang, $xml['xpath']) : $xml['xpath']) ?? [];
+    $array = $xmlData->xpath($isLang ? mb_ereg_replace('\$lang', Lang::getShort(Lang::$lang), $xml['xpath'])
+      : $xml['xpath']) ?? [];
     $value = (string)($array[0] ?? '');
     
     # Fix numeric leading zero

@@ -7,10 +7,10 @@ use okushnirov\core\Library\{Authorization, Enums\Auth};
 
 final class RootLogin
 {
-  public static function handler(Auth $loginType):void
+  public static function handler(Auth $authType):void
   {
     try {
-      if ((new Authorization())->check($loginType)) {
+      if ((new Authorization())->check($authType)) {
         
         return;
       }
