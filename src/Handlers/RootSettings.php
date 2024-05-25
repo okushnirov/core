@@ -22,7 +22,7 @@ class RootSettings
   {
     self::$contents = file_get_contents('php://input');
     
-    $requestURI = trim($_SERVER['REQUEST_URI'] ?? '');
+    $requestURI = str_replace('+', '%2B', trim($_SERVER['REQUEST_URI'] ?? ''));
     
     parse_str(trim((string)parse_url($requestURI, PHP_URL_QUERY)), self::$get);
     
