@@ -40,7 +40,7 @@ final class Location
   }
   
   public static function logout(
-    string $location, string $query, SessionType $session = SessionType::WS, bool $reloadHome = true):void
+    string $location, string $query, SessionType $session = SessionType::WS, int $flag = 0):void
   {
     parse_str(mb_strtolower($query), $result);
     
@@ -53,7 +53,7 @@ final class Location
       Session::sessionDestroy();
     }
     
-    if ($reloadHome || '' === $location) {
+    if ($flag || '' === $location) {
       header('Location:'.self::serverName());
     } else {
       header('Location:'.self::serverName(false).parse_url($location, PHP_URL_PATH));

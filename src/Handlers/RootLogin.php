@@ -2,12 +2,12 @@
 
 namespace okushnirov\core\Handlers;
 
-use core\Render\Auth\Authentication;
+use core\{Handlers\LoginHandler, Render\Auth\Authentication};
 use okushnirov\core\Library\{Authorization, Enums\Auth};
 
 final class RootLogin
 {
-  public static function handler(Auth $authType):void
+  public static function handler(Auth $authType, int $flag = 0):void
   {
     try {
       if ((new Authorization())->check($authType)) {
@@ -20,8 +20,12 @@ final class RootLogin
       }
     }
     
-    session_destroy();
-    http_response_code(200);
+    if ($flag) {
+      LoginHandler::run();
+    } else {
+      session_destroy();
+      http_response_code(200);
+    }
     
     exit((new Authentication())::render());
   }

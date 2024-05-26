@@ -116,6 +116,42 @@ final class Str
         }, str_split($string))));
   }
   
+  public static function transformAccount(string $account):string
+  {
+    if (19 !== strlen($account)) {
+      
+      return $account;
+    }
+    
+    $array = str_split($account, 1);
+    
+    array_splice($array, 4, 0, ' ');
+    array_splice($array, 7, 0, ' ');
+    array_splice($array, 11, 0, ' ');
+    array_splice($array, 15, 0, ' ');
+    array_splice($array, 19, 0, ' ');
+    array_splice($array, 23, 0, ' ');
+    
+    return implode('', $array);
+  }
+  
+  public static function transformIBAN(string $iban):string
+  {
+    if (29 !== strlen($iban)) {
+      
+      return $iban;
+    }
+    
+    $chunk = substr($iban, 0, 10);
+    $account = substr($iban, 10);
+    
+    $array = str_split($chunk, 1);
+    array_splice($array, 2, 0, ' ');
+    array_splice($array, 5, 0, ' ');
+    
+    return implode('', $array).' '.self::transformAccount($account);
+  }
+  
   public static function upperCase(string $value):string
   {
     

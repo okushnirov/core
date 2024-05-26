@@ -4,7 +4,7 @@ namespace okushnirov\core\Handlers;
 
 define('DO_REQUEST_HANDLER', 1);
 
-use core\{Handlers\ErrorPath, Root\Folders\Error};
+use core\{Handlers\ErrorRequestHandler, Root\Folders\Error};
 use okushnirov\core\Library\{Enums\CookieType, Enums\SessionType, Location, Session};
 
 final class ErrorRequest
@@ -31,7 +31,7 @@ final class ErrorRequest
   }
   
   public static function run(
-    $flags = 0, SessionType $session = SessionType::NONE, CookieType $cookie = CookieType::No):void
+    int $flags = 0, SessionType $session = SessionType::NONE, CookieType $cookie = CookieType::No):void
   {
     switch (self::$http_code) {
       case 200:
@@ -60,7 +60,7 @@ final class ErrorRequest
     
     if ($flags & DO_REQUEST_HANDLER && 'error' !== Location::$folder) {
       try {
-        ErrorPath::run(self::$request);
+        ErrorRequestHandler::run(self::$request);
       } catch (\Exception $e) {
         trigger_error($e->getMessage());
       }

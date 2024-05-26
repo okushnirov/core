@@ -2,6 +2,10 @@
 
 namespace okushnirov\core\Handlers;
 
+define('DO_LOGIN_HANDLER', 1);
+
+define('DO_RELOAD_HOME', 2);
+
 use core\Root\Folders\Error;
 use okushnirov\core\Library\{Enums\Auth, Enums\CookieType, Enums\SessionType, Lang, Location, Session};
 
@@ -19,7 +23,7 @@ final class Root extends \Exception
   
   public static function handler(
     string     $folder, string $request = '/', ?Auth $authType = null, SessionType $session = SessionType::WS,
-    CookieType $cookie = CookieType::No, bool $redirect = true, bool $reloadHome = false):void
+    CookieType $cookie = CookieType::No, bool $redirect = true, int $flag = 0):void
   {
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
     self::$query = trim((string)parse_url($request, PHP_URL_QUERY));
@@ -48,7 +52,7 @@ final class Root extends \Exception
     }
     
     if (self::$query) {
-      Location::logout($request, self::$query, $session, $reloadHome);
+      Location::logout($request, self::$query, $session, $flag & DO_RELOAD_HOME);
     }
     
     if ($redirect) {
@@ -58,7 +62,7 @@ final class Root extends \Exception
     Lang::set($session, $cookie);
     
     if (!is_null($authType)) {
-      RootLogin::handler($authType);
+      RootLogin::handler($authType, $flag & DO_LOGIN_HANDLER);
     }
     
     if ('' === (self::$path[0] ?? '')) {
