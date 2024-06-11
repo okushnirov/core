@@ -292,7 +292,7 @@ final class Word
         continue;
       }
       
-      $fileImage = '' === trim($image) ? '' : (false === stripos($image, ':') ? $pathImage.$image : $image);
+      $fileImage = '' === trim($image) ? '' : (false === stripos($image, ':') ? $pathImage.$image : trim((string)$image));
       $fileImageDefault = '' === trim($image['def'] ?? '') ? '' : $pathImage.$image['def'];
       $fileImageDefault2 = '' === trim($image['def_2'] ?? '') ? '' : $pathImage.$image['def_2'];
       
@@ -323,11 +323,10 @@ final class Word
           'height' => $image['height'] ?? '',
           'ratio' => (bool)($image['ratio'] ?? true)
         ]);
+      } else {
+        $this->word->setValue($imageName, '');
       }
       
-      $this->word->setValue($imageName, '');
-      
-      # Тимчасові зображення
       if (isset($image['remove']) && $fileImage) {
         $this->fileImages[] = $fileImage;
       }

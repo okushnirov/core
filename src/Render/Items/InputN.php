@@ -4,33 +4,6 @@ namespace okushnirov\core\Render\Items;
 
 use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Render};
 
-/**
- * Class InputN
- *
- * @sample
- * <tagName render="InputN" attributes="" properties="">
- *  <value xpath="путь к значению" f-xpath="путь к структуре поля" lang="true"/>Default value</value>
- *  <attr>
- *   <attrName>
- *    <uk>Text UA</uk>
- *    <ru>Text RU</ru>
- *   </attrName>
- *  </attr>
- * </tagName>
- * @discription
- * Если элемент только для чтения, то будет div, иначе название html элемента берётся из названия ветки (input/textarea)<br>
- * Обработчик в цикле перебирает все свойства и атрибуты xml ветки<br>
- * /value - Значения<br>
- * xpath - путь к значению в XMLData<br>
- * f-xpath - путь к структуре поля в XMLData<br>
- * lang - языковая локализация поля (если true - замена $lang на язык)<br>
- * Default value - Значение по-умолчанию [не обязательный],<br>
- * - если начинается с $ - значение переменной php<br>
- * - если заключено в {} - выражение php<br>
- * /attr - Контейнер для атрибутов<br>
- * /attr/attrName - Название атрибута<br>
- * /attr/attrName/Lang - Текст языковой версии<br>
- */
 class InputN extends Render implements HtmlInterface
 {
   public static function html(
@@ -62,6 +35,7 @@ class InputN extends Render implements HtmlInterface
     $value = isset($xmlItem->value) && isset($xmlItem->value['xpath']) ? self::getXPathValue($xmlItem->value, $xmlData)
       : '';
     $value = '' === $value ? self::getValue($xmlItem->value ?? null) : $value;
+    $value = '' === $value ? '' : self::convertValue($xmlItem->convert ?? null, $value);
     
     return 'input' === $tagName ? "<input $attribute value=\"$value\"/>" : "<$tagName $attribute>$value</$tagName>";
   }

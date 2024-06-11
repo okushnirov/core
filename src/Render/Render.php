@@ -2,8 +2,8 @@
 
 namespace okushnirov\core\Render;
 
-use okushnirov\core\Library\{Crypt, DbSQLAnywhere, Enums\Encrypt, Enums\HeaderXML, Enums\SQLAnywhere, File, Lang, Str,
-  User
+use okushnirov\core\Library\{Crypt, DbSQLAnywhere, Enums\DateRu, Enums\Encrypt, Enums\HeaderXML, Enums\SQLAnywhere,
+  File, Lang, Str, User
 };
 
 class Render
@@ -57,7 +57,7 @@ class Render
   {
     $SQL = "CALL \"dbo\".\"_метод_список\"(".(0 < $objID ? $objID : 'null').')';
     
-    if (User::$login ?? null && !DbSQLAnywhere::$connect) {
+    if ((User::$login ?? null) && !DbSQLAnywhere::$connect) {
       $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, false, User::$login, User::$pass, 'идентификатор');
     } else {
       $methods = DbSQLAnywhere::query($SQL, SQLAnywhere::FETCH_ALL, keyString: 'идентификатор');
@@ -69,7 +69,7 @@ class Render
   public static function getXMLData(
     int $objType, int $objID, string $tableName, string $tableKey = 'ID'):\SimpleXMLElement | false
   {
-    if (User::$login ?? null && !DbSQLAnywhere::$connect) {
+    if ((User::$login ?? null) && !DbSQLAnywhere::$connect) {
       DbSQLAnywhere::connect(false, User::$login, User::$pass);
     }
     
@@ -98,12 +98,38 @@ class Render
     $result = DbSQLAnywhere::query($SQL, SQLAnywhere::COLUMN);
     
     try {
-      $xml = new \SimpleXMLElement($result);
+      $xml = $result ? new \SimpleXMLElement($result) : false;
     } catch (\Exception) {
-      $xml = false;
     }
     
-    return $xml;
+    return $xml ?? false;
+  }
+  
+  public static function getXMLValue(string $fieldName, ?\SimpleXMLElement $xmlData):array | bool
+  {
+    if ('' === $fieldName || empty($xmlData) || !$xmlData->field->count()) {
+      
+      return false;
+    }
+    
+    foreach ($xmlData->field as $item) {
+      if ($fieldName === (string)$item['name']) {
+        $result = [
+          'id' => (int)$item['id'],
+          'name' => (string)$item['name'],
+          'required' => 'y' === Str::lowerCase($item['required']),
+          'type' => (string)$item['type'],
+          'scale' => (int)$item['scale'],
+          'value' => (string)$item,
+          'width' => (int)$item['width'],
+          'default' => mb_eregi_replace('\'', '', $item['default'])
+        ];
+        
+        break;
+      }
+    }
+    
+    return $result ?? false;
   }
   
   public static function xml2DOM(\SimpleXMLElement $xml):\DOMDocument
@@ -113,7 +139,7 @@ class Render
     try {
       $dom->loadXML($xml->saveXML());
     } catch (\Exception $e) {
-      trigger_error($e->getMessage());
+      trigger_error(__METHOD__.' '.$e->getMessage());
     }
     
     return $dom;
@@ -183,7 +209,16 @@ class Render
       $subjectSearch[] = "\n";
     }
     
-    return preg_replace('/>\s+</', '><', str_ireplace($subjectSearch, '', $dom->saveXML(null, LIBXML_NOEMPTYTAG)));
+    $html = str_ireplace([
+      '<br></br>',
+      '<hr></hr>'
+    ], [
+      '<br/>',
+      '<hr/>'
+    ], $dom->saveXML(null, LIBXML_NOEMPTYTAG));
+    $html = str_ireplace($subjectSearch, '', $html);
+    
+    return preg_replace('/>\s+</', '><', $html);
   }
   
   public static function xmlFile2HTML(
@@ -199,11 +234,34 @@ class Render
     try {
       $dom->load($_SERVER['DOCUMENT_ROOT'].$file);
     } catch (\Exception $e) {
-      $dom = null;
       trigger_error(__METHOD__.' '.$e->getMessage());
+      $dom = null;
     }
     
     return empty($dom) ? '' : static::xml2HTML($dom, $objID, $xmlData, $variables);
+  }
+  
+  protected static function convertValue(?\SimpleXMLElement $xml, string $value):string
+  {
+    if (empty($xml)) {
+      
+      return $value;
+    }
+    
+    switch ($xml['handler'] ?? null) {
+      case 'date':
+        $format = DateRu::tryFrom($xml['format'] ?? '');
+        $value = is_null($format) ? $value : Str::getDate($value, $format);
+        
+        break;
+      
+      case 'int':
+      case 'number':
+        $value = Str::getNumber($value, (int)($xml['decimal'] ?? 0), $xml['empty'] ?? '', $xml['point'] ?? '.',
+          $xml['separator'] ?? '');
+    }
+    
+    return $value;
   }
   
   protected static function cryptValue(\SimpleXMLElement $xml, \SimpleXMLElement | bool $xmlData = false):string
@@ -262,33 +320,6 @@ class Render
     return $isPrepare ? Str::prepare($value) : $value;
   }
   
-  protected static function getXMLValue(string $fieldName, ?\SimpleXMLElement $xmlData):array | bool
-  {
-    if ('' === $fieldName || empty($xmlData) || !$xmlData->field->count()) {
-      
-      return false;
-    }
-    
-    foreach ($xmlData->field as $item) {
-      if ($fieldName === (string)$item['name']) {
-        $result = [
-          'id' => (int)$item['id'],
-          'name' => (string)$item['name'],
-          'required' => 'y' === Str::lowerCase($item['required']),
-          'type' => (string)$item['type'],
-          'scale' => (int)$item['scale'],
-          'value' => (string)$item,
-          'width' => (int)$item['width'],
-          'default' => mb_eregi_replace('\'', '', $item['default'])
-        ];
-        
-        break;
-      }
-    }
-    
-    return $result ?? false;
-  }
-  
   protected static function getXPathAttribute(
     ?\SimpleXMLElement $xml, \SimpleXMLElement | bool $xmlData = false, string $attribute = ''):string
   {
@@ -325,7 +356,6 @@ class Render
     $fieldWidth = (int)($f[0]['width'] ?? 0);
     
     switch ($fieldType) {
-      # DOUBLE, NUMERIC
       case mb_stristr($fieldType, 'numeric'):
       case 'double' :
         $attribute .= false === mb_stripos($attribute, 'data-numeric="') ? " data-numeric=\"$fieldWidth\"" : '';
@@ -334,14 +364,12 @@ class Render
         
         break;
       
-      # DATE
       case 'date':
         $attribute .= false === mb_stripos($attribute, 'maxlength="') ? ' maxlength="10"' : '';
         $attribute .= $fieldRequired && false === mb_stripos($attribute, 'minlength="') ? ' minlength="10"' : '';
         
         break;
       
-      # ...CHAR
       case (mb_stristr($fieldType, 'char') ? $fieldType : ''):
         $attribute .= false === mb_stripos($attribute, 'maxlength="') && !empty($fieldWidth)
           ? " maxlength=\"$fieldWidth\"" : '';

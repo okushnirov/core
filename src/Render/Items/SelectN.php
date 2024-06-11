@@ -3,63 +3,9 @@
 namespace okushnirov\core\Render\Items;
 
 use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Options, Items\Options\OptionsCount,
-  Items\Options\OptionsDict, Items\Options\OptionsSQL, Render
+  Items\Options\OptionsDict, Items\Options\OptionsSQL, Items\Options\OptionsWS, Render
 };
 
-/**
- * Class SelectN
- *
- * @sample
- * <select render="SelectN" attributes="" properties="">
- *  <attr>
- *   <attrName>
- *    <uk>Text UK</uk>
- *    <ru>Text RU</ru>
- *   </attrName>
- *  </attr>
- *  <option class="" value="">Option text</option>
- *  <source dest="count|dict|sql|none" xpath="путь к значению" type="string|int"/>Default value</source>
- *  1) <count start="start value" end="end value" step="step value">Default value</count>
- *  2) <dict id="2" order="2" parent="1" parentName="Вид" value="ID" name="Название_" lang-postfix="true"
- *   prepare="">Default value</dict>
- *  3) <sql sql="" value="ID" name="Название_" lang-postfix="true" prepare="">Default value</sql>
- *  4) Элементы списка определяются из данных /option
- * </select>
- * @discription
- * Обработчик в цикле перебирает все свойства и атрибуты xml ветки select<br>
- * /attr - Контейнер для атрибутов<br>
- * /attr/attrName - Название атрибута<br>
- * /attr/attrName/Lang - Текст языковой версии<br>
- * /option - Первая опция (1-n при dest = none)<br>
- * class - Класс опции<br>
- * value - Значение опции, если NULL, то пустое значение опции<br>
- * Option text - Текстовое значение опции<br>
- * /source - Источник<br>
- * dest - источник данных (счётчик, справочник или запрос)<br>
- * xpath - путь к значению в XMLData<br>
- * f-xpath - путь к структуре поля в XMLData<br>
- * type - тип значения строка (string) или число для точного выбора опции selected<br>
- * Default value - Значение по-умолчанию [не обязательный],<br>
- * - если начинается с $ - значение переменной php<br>
- * - если заключено в {} - выражение php<br>
- * 1) Источник "Счётчик"<br>
- * start - начальное значение<br>
- * end - конечное значение<br>
- * step - шаг итерации<br>
- * 2) Источник "Справочник"<br>
- * id - номер справочника<br>
- * order - порядок сортировки 0 - по-умолчанию, 1 - по ID, 2 - сортировка в поле "Порядок"<br>
- * parent - номер справочника родителя<br>
- * parentName - название поля родителя<br>
- * name - поле названия опции<br>
- * lang-postfix - добавить к названию поля язык<br>
- * prepare - экранирование спецсимволов названия опции<br>
- * 3) Источник "Запрос"<br>
- * sql - запрос<br>
- * name - поле названия опции<br>
- * lang-postfix - добавить к названию поля язык<br>
- * prepare - экранирование спецсимволов названия опции<br>
- */
 class SelectN extends Render implements HtmlInterface
 {
   public static function html(
@@ -104,14 +50,20 @@ class SelectN extends Render implements HtmlInterface
         break;
       
       case 'dict':
-        $source = OptionsDict::get($xmlItem->dict ?? null, $objID, $xmlData);
         $isPrepare = static::isTrue($xmlItem->dict['prepare'] ?? '');
+        $source = OptionsDict::get($xmlItem->dict ?? null, $objID, $xmlData);
         
         break;
       
       case 'sql':
-        $source = OptionsSQL::get($xmlItem->sql ?? null);
         $isPrepare = static::isTrue($xmlItem->sql['prepare'] ?? '');
+        $source = OptionsSQL::get($xmlItem->sql ?? null);
+        
+        break;
+      
+      case 'ws':
+        $isPrepare = static::isTrue($xmlItem->ws['prepare'] ?? '');
+        $source = OptionsWS::get($xmlItem->ws ?? null);
     }
     
     $option = isset($xmlItem->option) ? Options::first($xmlItem->option, false, $type, $value) : '';

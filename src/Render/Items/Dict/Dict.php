@@ -41,7 +41,7 @@ class Dict extends Render
     
     $partner = User::$partner->id ?? 0;
     $partner = $partner ? : 'null';
-    $lang = Lang::getShort(Lang::$lang);//DbSQLAnywhere::escape(Lang::$lang, true);
+    $lang = Lang::getShort(Lang::$lang);
     
     return "CALL \"dbo\".\"_справочник_список\"($id,$order,$parent,$partner,'$lang')";
   }

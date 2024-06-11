@@ -104,7 +104,7 @@ final class Authorization
     
     $ws = $settings->login->block;
     
-    $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')}, [
+    $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')} ?? $ws->url ?? '', [
       "charset=\"utf-8\"",
       "Authorization: Basic ".base64_encode("$ws->user:$ws->pass")
     ], http_build_query([
@@ -126,7 +126,7 @@ final class Authorization
     
     $ws = $settings->login->auth;
     
-    $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')}, [
+    $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')} ?? $ws->url ?? '', [
       "charset=\"utf-8\"",
       "Authorization: Basic ".base64_encode("$ws->user:$ws->pass")
     ], http_build_query(0 < $userID ? ['userID' => $userID] : ['userLogin' => $userLogin]), false, false, 1, 2, 5);
