@@ -33,7 +33,11 @@ class TumblerN extends Render implements HtmlInterface
     
     $valueOnType = strtolower($xmlItem->input['data-on-type'] ?? 'integer');
     $valueOn = (string)($xmlItem->input['data-on'] ?? '1');
-    $valueOn = 'integer' === $valueOnType ? (int)$valueOn : $valueOn;
+    
+    if ('integer' === $valueOnType && '' !== $value && '' !== $valueOn) {
+      $value = (int)$value;
+      $valueOn = (int)$valueOn;
+    }
     
     $attribute .= '' === $class ? '' : ' class="'.trim($class).'"';
     $attribute .= $valueOn === $value ? ' checked=""' : '';
