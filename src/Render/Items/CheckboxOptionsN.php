@@ -32,7 +32,9 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     
     $chkClass = trim($xmlItem->source['class'] ?? '');
     
-    $readonly = self::isTrue($xmlItem->input['readonly'] ?? $variables['readonly'] ?? '');
+    $readonly = self::isTrue($xmlItem->input['readonly'] ?? (is_object($variables)
+      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
+        : '')));
     
     $separator = $xmlItem->input['data-separator'] ?? ';';
     

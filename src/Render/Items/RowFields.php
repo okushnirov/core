@@ -33,7 +33,9 @@ class RowFields extends Render implements HtmlInterface
       return '';
     }
     
-    self::$disabled = self::isTrue($xmlItem['disabled'] ?? $variables['readonly'] ?? '');
+    self::$disabled = self::isTrue($xmlItem['disabled'] ?? (is_object($variables)
+      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
+        : '')));
     
     self::$moved = self::isTrue($xmlItem['moved'] ?? true);
     

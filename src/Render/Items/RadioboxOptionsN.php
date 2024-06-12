@@ -36,7 +36,9 @@ class RadioboxOptionsN extends Render implements HtmlInterface
     
     $class = trim($xmlItem->input['class'] ?? '');
     
-    $readonly = self::isTrue($xmlItem->input['readonly'] ?? $variables['readonly'] ?? '');
+    $readonly = self::isTrue($xmlItem->input['readonly'] ?? (is_object($variables)
+      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
+        : '')));
     
     $value = isset($xmlItem->source['xpath']) ? self::getXPathValue($xmlItem->source, $xmlData) : '';
     $value = '' === $value ? self::getValue($xmlItem->source) : $value;

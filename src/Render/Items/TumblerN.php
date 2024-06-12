@@ -11,7 +11,9 @@ class TumblerN extends Render implements HtmlInterface
     mixed             $variables = false):string
   {
     $class = (string)($xmlItem->input['class'] ?? '');
-    $disabled = self::isTrue($xmlItem->input['disabled'] ?? $variables['disabled'] ?? $variables['readonly'] ?? '');
+    $disabled = self::isTrue($xmlItem->input['disabled'] ?? (is_object($variables)
+      ? ($variables->disabled ?? $variables->readonly ?? '') : (is_array($variables)
+        ? ($variables['disabled'] ?? $variables['readonly'] ?? '') : '')));
     
     unset($xmlItem->input['class'], $xmlItem->input['disabled'], $xmlItem->input['checked']);
     
