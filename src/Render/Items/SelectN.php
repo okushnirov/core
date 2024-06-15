@@ -19,8 +19,8 @@ class SelectN extends Render implements HtmlInterface
         : '')));
     
     if ($disabled) {
-      $class .= ' no-update';
       $attribute = 'disabled="" tabindex="-1"';
+      $class .= ' no-update';
     } else {
       unset($xmlItem['class'], $xmlItem['disabled']);
       
@@ -30,6 +30,12 @@ class SelectN extends Render implements HtmlInterface
     }
     
     $attribute = trim('class="'.trim($class).'" '.$attribute);
+    $fieldName = '';
+    
+    if (isset($xmlItem->source['xpath'])) {
+      preg_match_all("/['|\"](.*)['|\"]/", $xmlItem->source['xpath'], $matches, PREG_SET_ORDER);
+      $fieldName = trim($matches[0][1] ?? '');
+    }
     
     $type = (string)($xmlItem->source['type'] ?? 'string');
     
@@ -42,6 +48,10 @@ class SelectN extends Render implements HtmlInterface
     
     $source = [];
     $isPrepare = false;
+    
+    if ('' !== $fieldName) {
+      self::$prevValues[$fieldName] = $value;
+    }
     
     switch ($xmlItem->source['dest'] ?? '') {
       case 'count':
@@ -66,8 +76,9 @@ class SelectN extends Render implements HtmlInterface
         $source = OptionsWS::get($xmlItem->ws ?? null);
     }
     
-    $option = isset($xmlItem->option) ? Options::first($xmlItem->option, false, $type, $value) : '';
+    $option = isset($xmlItem->option) ? Options::first($xmlItem->option, false, $type, $value, $fieldName) : '';
     
-    return "<select $attribute>$option".Options::list($source, $type, $value, $isPrepare, 0, $filter)."</select>";
+    return "<select $attribute>$option".Options::list($source, $type, $value, $isPrepare, 0, $filter, $fieldName)
+      ."</select>";
   }
 }

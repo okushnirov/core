@@ -16,6 +16,7 @@ class TagN extends Render implements HtmlInterface
     
     if (isset($xmlItem['crypt'])) {
       $attribute .= self::cryptValue($xmlItem, $xmlData);
+      $value = '';
       
       unset($xmlItem['crypt']);
     }

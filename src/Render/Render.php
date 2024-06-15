@@ -8,6 +8,8 @@ use okushnirov\core\Library\{Crypt, DbSQLAnywhere, Enums\DateRu, Enums\Encrypt, 
 
 class Render
 {
+  public static array $prevValues = [];
+  
   private static array $namespaces = [
     __NAMESPACE__.'\\Items\\',
     'core\\Render\\Items\\'
@@ -258,7 +260,7 @@ class Render
       case 'int':
       case 'number':
         $value = Str::getNumber($value, (int)($xml['decimal'] ?? 0), $xml['empty'] ?? '', $xml['point'] ?? '.',
-          $xml['separator'] ?? '');
+          $xml['thousand'] ?? '');
     }
     
     return $value;

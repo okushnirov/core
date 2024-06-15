@@ -2,9 +2,7 @@
 
 namespace okushnirov\core\Render\Items\Options;
 
-use okushnirov\core\{Library\DbSQLAnywhere, Library\Enums\CookieType, Library\Enums\SQLAnywhere, Library\Lang,
-  Library\Str, Render\Render
-};
+use okushnirov\core\{Library\DbSQLAnywhere, Library\Enums\SQLAnywhere, Library\Lang, Library\Str, Render\Render};
 
 class Options extends Render
 {
@@ -80,8 +78,15 @@ class Options extends Render
   }
   
   public static function first(
-    \SimpleXMLElement $xml, bool $disabled = false, string $type = 'string', string $default = ''):string
+    \SimpleXMLElement $xml, bool $disabled = false, string $type = 'string', int | string $default = '',
+    string            $fieldName = ''):string
   {
+    if ('' === $default && '' !== $fieldName) {
+      self::$prevValues[$fieldName] = '' === (self::$prevValues[$fieldName] ?? '') ? ('string' === $type
+        ? (string)($xml->option[0]['value'] ?? '') : (int)($xml->option[0]['value'] ?? ''))
+        : self::$prevValues[$fieldName];
+    }
+    
     $html = '';
     
     foreach ($xml as $option) {
@@ -90,7 +95,14 @@ class Options extends Render
       $value = 'NULL' === $value ? '' : ('string' === $type ? $value : (int)$value);
       $attribute = self::getAttribute($option);
       $attribute .= $disabled ? ' style="display:none;"' : '';
-      $attribute .= '' !== $default && $value === $default ? ' selected=""' : '';
+      
+      if ('' !== $default && $value === $default) {
+        $attribute .= ' selected=""';
+        
+        if ('' !== $fieldName) {
+          self::$prevValues[$fieldName] = 'string' === $type ? (string)$value : (int)$value;
+        }
+      }
       
       if (self::$debug) {
         trigger_error(__METHOD__."\noptions value(".gettype($value)
@@ -106,11 +118,16 @@ class Options extends Render
   
   public static function list(
     array  $source, string $type = 'string', int | string $default = '', bool $isPrepare = false, int $order = 0,
-    string $filter = ''):string
+    string $filter = '', string $fieldName = ''):string
   {
     if (empty($source)) {
       
       return '';
+    }
+    
+    if ('' === $default && '' !== $fieldName) {
+      self::$prevValues[$fieldName] = '' === (self::$prevValues[$fieldName] ?? '') ? ('string' === $type
+        ? (string)key($source) : (int)key($source)) : self::$prevValues[$fieldName];
     }
     
     $html = '';
@@ -127,8 +144,12 @@ class Options extends Render
       $attr = $order ? "data-order=\"$order\"" : '';
       $html .= "<option value=\"$value\" $attr $selected>".($isPrepare ? Str::prepare($name) : $name)."</option>";
       
+      if ('' !== $selected && '' !== $fieldName) {
+        self::$prevValues[$fieldName] = $value;
+      }
+      
       if (self::$debug) {
-        trigger_error(__METHOD__." Value[$value] = Default[$default] Selected[$selected]");
+        trigger_error(__METHOD__." Value[$value] = Default[$default] Selected[$selected]", E_USER_ERROR);
       }
       
       if ($order) {

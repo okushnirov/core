@@ -25,7 +25,11 @@ class Dict extends Render
     $parent = (string)($xml['parent'] ?? '');
     $parentName = (string)($xml['parentName'] ?? '');
     
-    if ($parentName) {
+    if ('prev' === $parent && $parentName) {
+      $parent = self::$prevValues[$parentName] ?? '';
+    }
+    
+    if ('' === $parent && $parentName) {
       if ($objID) {
         $parentNameEscape = DbSQLAnywhere::escape($parentName, true);
         

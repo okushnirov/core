@@ -265,27 +265,7 @@ final class Excel
           $this->posX++;
         }
         
-        $this->highestColumn = $this->sheet->getHighestColumn();
-        
-        $this->sheet->getStyle('A'.$this->rowFirst.':'.$this->highestColumn.$this->rowFirst)
-                    ->applyFromArray([
-                      'alignment' => [
-                        'horizontal' => Alignment::HORIZONTAL_LEFT,
-                        'vertical' => Alignment::VERTICAL_CENTER
-                      ],
-                      'fill' => [
-                        'fillType' => Fill::FILL_SOLID,
-                        'color' => [
-                          'rgb' => '000059'
-                        ]
-                      ],
-                      'font' => [
-                        'bold' => true,
-                        'color' => [
-                          'rgb' => 'ffffff'
-                        ]
-                      ]
-                    ]);
+        self::_fillShape();
         
         $this->posY++;
       }
@@ -318,11 +298,36 @@ final class Excel
       }
       
       if ($this->posY === $this->rowFirst) {
-        $this->highestColumn = $this->sheet->getHighestColumn();
+        self::_fillShape();
       }
       
       $this->posY++;
     }
+  }
+  
+  private function _fillShape():void
+  {
+    $this->highestColumn = $this->sheet->getHighestColumn();
+    
+    $this->sheet->getStyle('A'.$this->rowFirst.':'.$this->highestColumn.$this->rowFirst)
+                ->applyFromArray([
+                  'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_LEFT,
+                    'vertical' => Alignment::VERTICAL_CENTER
+                  ],
+                  'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'color' => [
+                      'rgb' => '000059'
+                    ]
+                  ],
+                  'font' => [
+                    'bold' => true,
+                    'color' => [
+                      'rgb' => 'ffffff'
+                    ]
+                  ]
+                ]);
   }
   
   private function _fillValue(array $coordinate, string $value):void
@@ -334,14 +339,12 @@ final class Excel
                   ->getStyle($coordinate)
                   ->getNumberFormat()
                   ->setFormatCode('dd.mm.yyyy');
-    }
-    elseif (is_numeric($value) && is_float($value * 1)) {
+    } elseif (is_numeric($value) && is_float($value * 1)) {
       $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_NUMERIC)
                   ->getStyle($coordinate)
                   ->getNumberFormat()
                   ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-    }
-    else {
+    } else {
       $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_STRING);
     }
   }
