@@ -3,6 +3,7 @@
 namespace okushnirov\core\Library;
 
 use okushnirov\core\Library\Enums\{CookieType, SessionType};
+use core\Handlers\LangHandler;
 
 final class Lang
 {
@@ -10,20 +11,32 @@ final class Lang
   
   public static string $lang = '';
   
+  public static ?LangHandler $language;
+  
+  /**
+   * @deprecated
+   * @var mixed
+   */
   public static mixed $settings;
   
+  /**
+   * @throws \Exception
+   * @return void
+   * @deprecated
+   */
   public static function getSettings():void
   {
-    self::$settings = File::parse(['/json/language.json']);
+    //self::$settings = File::parse(['/json/language.json']);
   }
   
   public static function getShort(string $lang = ''):string
   {
-    if (empty(self::$settings)) {
+    /*if (empty(self::$settings)) {
       self::getSettings();
-    }
+    }*/
     
-    return self::$settings->language->lang->{$lang ? : self::$lang}->short ?? '';
+    return LangHandler::tryFrom($lang)
+                      ?->short() ?? '';// self::$settings->language->lang->{$lang ? : self::$lang}->short ?? '';
   }
   
   public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
@@ -40,12 +53,12 @@ final class Lang
           'SESSION' => $_SESSION['lang'] ?? ''
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
-    
+    /*
     if (empty(self::$settings)) {
       self::getSettings();
     }
-    
-    if (!isset(self::$settings->language->default)) {
+    */
+    if (!enum_exists(LangHandler::class)/*!isset(self::$settings->language->default)*/) {
       if (self::$debug) {
         trigger_error(__METHOD__.' no language settings found');
       }
@@ -74,7 +87,8 @@ final class Lang
       }
     }
     
-    self::$lang = self::existsLang(self::$lang) ? self::$lang : self::$settings->language->default;
+    self::$lang = self::$lang ? : (LangHandler::cases()[0]?->value ?? '');//self::$settings->language->default;
+    self::$language = LangHandler::tryFrom(self::$lang);
     
     if (CookieType::Yes === $cookie && ($_COOKIE['lang'] ?? '') !== self::$lang) {
       if (!session_id()) {
@@ -122,6 +136,7 @@ final class Lang
   private static function existsLang(?string $lang):bool
   {
     
-    return property_exists(self::$settings->language->lang, $lang);
+    return !is_null(LangHandler::tryFrom($lang));
+    //return property_exists(self::$settings->language->lang, $lang);
   }
 }

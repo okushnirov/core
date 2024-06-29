@@ -246,7 +246,7 @@ final class Word
     }
     
     foreach ($this->fileImages as $fileImage) {
-      if (File::isFile($fileImage)) {
+      if (File::isFile($fileImage, false)) {
         unlink($fileImage);
       }
     }
