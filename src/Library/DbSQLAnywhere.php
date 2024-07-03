@@ -145,14 +145,11 @@ final class DbSQLAnywhere implements DbSQL
       return false;
     }
     
-    $SQL = Encoding::encode($queryString);
-    $keyString = $flags & SQL_KEY_CASE_ORIGIN ? $keyString : mb_convert_case($keyString, MB_CASE_LOWER);
-    
     if (self::$debug) {
-      trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:$pass] SQL:\n".Encoding::decode($SQL));
+      trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:$pass] SQL:\n$queryString");
     }
     
-    $realResult = sasql_real_query(self::$connect, $SQL);
+    $realResult = sasql_real_query(self::$connect, Encoding::encode($queryString));
     
     self::$queryErrorState = trim(sasql_sqlstate(self::$connect) ?? '');
     self::$queryErrorCode = (int)(sasql_errorcode(self::$connect) ?? 0);
@@ -187,6 +184,12 @@ final class DbSQLAnywhere implements DbSQL
     
     $queryResult = sasql_use_result(self::$connect);
     
+    if (false === $queryResult) {
+      trigger_error(__METHOD__." Query [$queryString] return empty result");
+      
+      return SQLAnywhere::OBJECT == $type || SQLAnywhere::OBJECT_ALL == $type ? (object)[] : [];
+    }
+    
     self::$queryNumRows = (int)(sasql_num_rows($queryResult) ?? 0);
     self::$queryNumFields = (int)(sasql_num_fields($queryResult) ?? 0);
     
@@ -196,6 +199,7 @@ final class DbSQLAnywhere implements DbSQL
         .self::$queryNumFields.']');
     }
     
+    $keyString = $flags & SQL_KEY_CASE_ORIGIN ? $keyString : mb_convert_case($keyString, MB_CASE_LOWER);
     $result = [];
     
     switch ($type) {
@@ -239,7 +243,7 @@ final class DbSQLAnywhere implements DbSQL
     
     sasql_free_result($queryResult);
     
-    unset($array, $realResult);
+    unset($array, $realResult, $trace);
     
     return $result;
   }
