@@ -23,8 +23,8 @@ final class ErrorRequest
         $trace['SESSION'] = Session::decryptCRC($trace['SESSION']);
       }
       
-      trigger_error(__METHOD__."\nHTTP ".self::$http_code."\n".json_encode($trace,
-          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), E_USER_ERROR);
+      trigger_error(__METHOD__." HTTP ".self::$http_code."\n".json_encode($trace,
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     
     Location::$folder = 'error';
