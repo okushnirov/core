@@ -16,7 +16,7 @@ final class ErrorRequest
   public function __construct(string $request, int $http_code, array $trace = [])
   {
     self::$request = $request;
-    self::$http_code = empty($http_code) ? 404 : $http_code;
+    self::$http_code = $http_code ? : 404;
     
     if (!empty($trace)) {
       if (isset($trace['SESSION'])) {

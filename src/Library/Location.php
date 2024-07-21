@@ -2,15 +2,24 @@
 
 namespace okushnirov\core\Library;
 
+use core\Render\Auth\Authentication;
 use okushnirov\core\Library\Enums\SessionType;
 
 final class Location
 {
   public static string $folder = '';
   
-  public static function errorRedirect(bool $accessDenied = false):void
+  public static function authRedirect(bool $isAuth = false):void
   {
-    if ($accessDenied) {
+    if ($isAuth) {
+      
+      exit((new Authentication())::render());
+    }
+  }
+  
+  public static function errorRedirect(bool $isError = false):void
+  {
+    if ($isError) {
       header('Location: /error/');
       
       exit;

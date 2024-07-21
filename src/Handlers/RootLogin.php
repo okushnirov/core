@@ -2,8 +2,8 @@
 
 namespace okushnirov\core\Handlers;
 
-use core\{Handlers\LoginHandler, Render\Auth\Authentication};
-use okushnirov\core\Library\{Authorization, Enums\Auth};
+use core\Handlers\LoginHandler;
+use okushnirov\core\Library\{Authorization, Enums\Auth, Location};
 
 final class RootLogin
 {
@@ -27,6 +27,6 @@ final class RootLogin
       http_response_code(200);
     }
     
-    exit((new Authentication())::render());
+    Location::authRedirect(true);
   }
 }
