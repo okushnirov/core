@@ -4,13 +4,13 @@ namespace okushnirov\core\Library;
 
 final class FinApCheckList
 {
-  public static string $code = '';
+  public string $code = '';
   
-  public static string $date = '';
+  public string $date = '';
   
-  public static bool $debug = false;
+  public bool $debug = false;
   
-  public static bool $disabled = true;
+  public bool $disabled = true;
   
   /**
    * Ознака підтвердження результатів запиту підрозділом фінансового моніторингу суб'єкта ФМ:
@@ -19,7 +19,7 @@ final class FinApCheckList
    *
    * @var bool
    */
-  public static bool $finMon = false;
+  public bool $finMon = false;
   
   /**
    * Число, кожен біт якого при переведенні у двійковий формат визначає перелік баз (списків)
@@ -63,11 +63,11 @@ final class FinApCheckList
    *
    * @var int
    */
-  public static int $listData = 0;
+  public int $listData = 0;
   
-  public static string $name = '';
+  public string $name = '';
   
-  public static string $refID = '';
+  public string $refID = '';
   
   /**
    * Тип відповіді (результату запиту):
@@ -78,7 +78,7 @@ final class FinApCheckList
    *
    * @var int
    */
-  public static int $responseType = 5;
+  public int $responseType = 5;
   
   /**
    * Метод пошуку:
@@ -87,9 +87,9 @@ final class FinApCheckList
    *
    * @var int
    */
-  public static int $search = 1;
+  public int $search = 1;
   
-  public static string $type = '';
+  public string $type = '';
   
   /**
    * ID робочого місця суб'єкта ФМ
@@ -97,82 +97,82 @@ final class FinApCheckList
    *
    * @var int
    */
-  public static int $userPCID = 2;
+  public int $userPCID = 1;
   
-  private static string $pass = '';
+  private string $pass = '';
   
-  private static string $url = '';
+  private string $url = '';
   
-  private static string $user = '';
+  private string $user = '';
   
   public function __construct()
   {
     $settings = File::parse(['/json/fin-ap-checklist.json']);
     
-    self::$disabled = $settings->disabled ?? self::$disabled;
-    
-    self::$listData = $settings->listData ?? self::$listData;
-    self::$pass = $settings->pass ?? self::$pass;
-    self::$url = $settings->url ?? self::$url;
-    self::$user = $settings->user ?? self::$user;
+    $this->disabled = $settings->disabled ?? $this->disabled;
+    $this->listData = $settings->listData ?? $this->listData;
+    $this->pass = $settings->pass ?? $this->pass;
+    $this->url = $settings->url ?? $this->url;
+    $this->user = $settings->user ?? $this->user;
+    $this->userPCID = $settings->userPCID ?? $this->userPCID;
   }
   
-  private static function _getRequest():array
+  public function init(\stdClass $request):void
   {
-    $request = [
-      "IDinternal" => self::$refID,
-      "DateRequest" => date('Y-m-d'),
-      "IDsubjectFM" => self::$user,
-      "tokken" => self::$pass,
-      "IDuserPC" => self::$userPCID,
-      "name" => self::$name,
-      "ipn" => self::$code,
-      "listdata" => self::$listData,
-      "search" => self::$search,
-      "finmon" => self::$finMon,
-      "responsetype" => self::$responseType
-    ];
-    
-    if (self::$date) {
-      $request["date"] = self::$date;
+    if ($this->debug) {
+      trigger_error(__METHOD__."\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
-    return $request;
+    $this->refID = $request->refID ?? (new \DateTime())->format('ymdHisu');
+    $this->code = trim($request->code ?? '');
+    $this->date = trim($request->date ?? '');
+    $this->name = trim($request->name ?? '');
+    $this->type = trim($request->type ?? '');
+    $this->userPCID = (int)($request->userPCID ?? $this->userPCID);
   }
   
-  public static function init(\stdClass $data):void
+  public function sendRequest():string
   {
-    if (self::$debug) {
-      trigger_error(__METHOD__."\n".json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-    
-    self::$refID = $data->refID ?? (new \DateTime())->format('ymdHisu');
-    self::$code = trim($data->code ?? '');
-    self::$date = trim($data->date ?? '');
-    self::$name = trim($data->name ?? '');
-    self::$type = trim($data->type ?? '');
-    self::$userPCID = (int)($data->userPCID ?? self::$userPCID);
-  }
-  
-  public static function sendRequest():string
-  {
-    if (self::$disabled) {
+    if ($this->disabled) {
       
       return '';
     }
     
     $request = self::_getRequest();
     
-    if (self::$debug) {
+    if ($this->debug) {
       trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
-    $response = $request ? (string)Curl::exec(self::$url, [], $request, '', '', 0) : '';
+    $response = $request ? (string)Curl::exec($this->url, [], $request, '', '', 0) : '';
     
-    if (self::$debug) {
+    if ($this->debug) {
       trigger_error(__METHOD__." Response\n".$response);
     }
     
     return $response;
+  }
+  
+  private function _getRequest():array
+  {
+    $request = [
+      "IDinternal" => $this->refID,
+      "DateRequest" => date('Y-m-d'),
+      "IDsubjectFM" => $this->user,
+      "tokken" => $this->pass,
+      "IDuserPC" => $this->userPCID,
+      "name" => $this->name,
+      "ipn" => $this->code,
+      "listdata" => $this->listData,
+      "search" => $this->search,
+      "finmon" => $this->finMon,
+      "responsetype" => $this->responseType
+    ];
+    
+    if ($this->date) {
+      $request["date"] = $this->date;
+    }
+    
+    return $request;
   }
 }

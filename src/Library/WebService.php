@@ -121,9 +121,7 @@ final class WebService
     
     try {
       $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
-      
       $response = Charset::WINDOWS1251 === $charset ? Str::replaceHeader($response) : $response;
-      
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
       if (empty($xml) || empty($xml->getName())) {
