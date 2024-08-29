@@ -31,8 +31,8 @@ class CheckboxN extends Render implements HtmlInterface
       : '';
     $value = '' === $value ? self::getValue($xmlItem->value ?? null) : $value;
     
-    $valueOnType = strtolower($xmlItem->input['data-on-type'] ?? 'number');
-    $valueOn = (string)($xmlItem->input['data-on'] ?? '1');
+    $valueOnType = strtolower($xmlItem['data-on-type'] ?? 'number');
+    $valueOn = (string)($xmlItem['data-on'] ?? '1');
     
     if ('number' === $valueOnType && '' !== $value && '' !== $valueOn) {
       $value = (int)$value;
