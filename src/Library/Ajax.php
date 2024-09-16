@@ -43,18 +43,18 @@ final class Ajax
     ], $JSONRoot, $JSON));
   }
   
-  public static function init(bool $onlyLocal = true):bool
+  public static function init(bool $onlyLocal = true, bool $traceError = true):bool
   {
     # If not local requests
     if (!TEST_SERVER && $onlyLocal
       && ('POST' !== $_SERVER['REQUEST_METHOD'] || !isset($_SERVER['HTTP_ORIGIN'])
         || !str_starts_with(Location::serverName(), $_SERVER['HTTP_ORIGIN']))) {
-      (new ErrorRequest('/error/', 403, [
+      (new ErrorRequest('/error/', 403, $traceError ? [
         'DEBUG' => debug_backtrace(),
         'COOKIE' => $_COOKIE ?? [],
         'REQUEST' => $_REQUEST ?? [],
         'SESSION' => $_SESSION ?? []
-      ]))::run();
+      ] : []))::run();
       
       exit;
     }
