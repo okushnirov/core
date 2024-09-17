@@ -7,7 +7,8 @@ use okushnirov\core\Library\{Enums\Charset, Enums\DateEn, Enums\DateRu, Interfac
 final class Str
 {
   public static function getDate(
-    mixed $dateIn, DateFormat $formatOut = DateRu::ISO, string $alternativeText = ''):string
+    mixed  $dateIn, DateFormat $formatOut = DateRu::ISO, string $alternativeText = '', string $startText = '',
+    string $endText = ''):string
   {
     # IN: error date OUT: alternative text
     if ($dateIn == 'NA' || empty($dateIn) || is_bool($dateIn)) {
@@ -19,14 +20,14 @@ final class Str
     if ($formatOut === DateRu::DATETIME || $formatOut === DateEn::DATETIME) {
       $dateOut = strtotime($dateIn);
       
-      return empty($dateOut) ? '' : date($formatOut->value, $dateOut);
+      return empty($dateOut) ? '' : self::wrapText(date($formatOut->value, $dateOut), $startText, $endText);
     }
     
     # IN: YYYY-MM-DD OUT: d.m.Y H:i || Y-m-d H:i
     if ($formatOut === DateRu::TIMESTAMP || $formatOut === DateEn::TIMESTAMP) {
       $dateOut = strtotime($dateIn);
       
-      return empty($dateOut) ? '' : date($formatOut->value, $dateOut);
+      return empty($dateOut) ? '' : self::wrapText(date($formatOut->value, $dateOut), $startText, $endText);
     }
     
     # IN: YYYY-MM-DD OUT: DD.MM.YYYY
@@ -34,21 +35,22 @@ final class Str
     
     if ($formatOut === DateRu::ISO) {
       
-      return empty($dateOut) ? '' : $dateOut->format($formatOut->value);
+      return empty($dateOut) ? '' : self::wrapText($dateOut->format($formatOut->value), $startText, $endText);
     }
     
     # IN: DD.MM.YYYY OUT: YYYY-MM-DD
-    return empty($dateOut) ? '' : $dateOut->format(DateEn::ISO->value);
+    return empty($dateOut) ? '' : self::wrapText($dateOut->format(DateEn::ISO->value), $startText, $endText);
   }
   
   public static function getNumber(
-    mixed $number, int $decimal = 2, string $emptyText = '', string $decimalSeparator = '.',
-    string $thousandSeparator = ''):bool | string
+    mixed  $number, int $decimal = 2, string $emptyText = '', string $decimalSeparator = '.',
+    string $thousandSeparator = ' ', string $startText = '', string $endText = ''):bool | string
   {
     
     return empty($number)
-      ? $emptyText : mb_eregi_replace('_', $thousandSeparator,
-        number_format((float)$number, $decimal, $decimalSeparator, '_'));
+      ? $emptyText
+      : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
+        number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
   }
   
   public static function isINN(string $inn):bool
@@ -123,7 +125,7 @@ final class Str
       return $account;
     }
     
-    $array = str_split($account, 1);
+    $array = str_split($account);
     
     array_splice($array, 4, 0, ' ');
     array_splice($array, 7, 0, ' ');
@@ -145,7 +147,7 @@ final class Str
     $chunk = substr($iban, 0, 10);
     $account = substr($iban, 10);
     
-    $array = str_split($chunk, 1);
+    $array = str_split($chunk);
     array_splice($array, 2, 0, ' ');
     array_splice($array, 5, 0, ' ');
     
@@ -170,5 +172,11 @@ final class Str
     ];
     
     return $word[($num % 100 > 4 && $num % 100 < 20) ? 2 : $cases[min($num % 10, 5)]];
+  }
+  
+  private static function wrapText(string $text, string $startText = '', string $endText = ''):string
+  {
+    
+    return '' === $text ? $text : "$startText$text$endText";
   }
 }
