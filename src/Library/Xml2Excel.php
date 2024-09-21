@@ -21,6 +21,8 @@ final class Xml2Excel
     'bgTfoot' => 'f2f2f2'
   ];
   
+  private string $fileDownload;
+  
   private ?Extensions $fileExt = Extensions::XLS;
   
   private bool $isAutofilter = true;
@@ -74,6 +76,11 @@ final class Xml2Excel
       throw new \Exception("Не визначено тип вихідного файлу", -2);
     }
     
+    # Назва файла
+    $fileDownload = trim($this->xml['filename'] ?? '');
+    $this->fileDownload = '' === $fileDownload ? "Export_Excel_".(new \DateTime())->format('YmdHisu') : $fileDownload;
+    $this->fileDownload .= $this->fileExt->value;
+    
     # Автоматичний фільтр
     $autofilter = trim($this->xml['autofilter'] ?? '');
     $this->isAutofilter = '' === $autofilter ? $this->isAutofilter : (bool)(int)$autofilter;
@@ -91,7 +98,7 @@ final class Xml2Excel
     $this->isFreeze = '' === $freeze ? $this->isFreeze : (bool)(int)$freeze;
     
     # Назва аркуша
-    $title = trim($this->xml->scheet ?? '');
+    $title = trim($this->xml->sheet ?? $this->xml->scheet ?? '');
     $this->title = '' === $title ? $this->title : $title;
     
     # Чи існує заголовок
@@ -115,6 +122,7 @@ final class Xml2Excel
     if (self::$debug) {
       trigger_error(__METHOD__."\n".json_encode([
           'ext' => $this->fileExt->value,
+          'filename' => $this->fileDownload,
           'isAutofilter' => $this->isAutofilter,
           'isAutosize' => $this->isAutosize,
           'isBorder' => $this->isBorder,
@@ -148,6 +156,26 @@ final class Xml2Excel
     }
     
     $this->sheet = $this->spreadsheet->getActiveSheet();
+  }
+  
+  public function download():void
+  {
+    try {
+      $objectWriter = IOFactory::createWriter($this->spreadsheet,
+        mb_convert_case(trim($this->fileExt->value, '.'), MB_CASE_TITLE));
+    } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
+      
+      throw new \Exception($e->getMessage(), -100);
+    }
+    
+    header('Content-type: '.$this->fileExt->getContentType());
+    header('Content-Disposition: attachment; filename='.$this->fileDownload);
+    header('Expires: 0');
+    header("Last-Modified: ".gmdate('D,d M YH:i:s').' GMT');
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    
+    $objectWriter->save('php://output');
   }
   
   public function fill():void
