@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\YouControlEnum;
+use okushnirov\core\Library\Enums\YouControlTypes;
 
 final class YouControl
 {
@@ -34,10 +34,11 @@ final class YouControl
   
   private mixed $prevResult = [];
   
-  public function __construct()
+  public function __construct(bool $debug = false)
   {
     $settings = File::parse(['/json/you-control.json']);
     
+    self::$debug = $debug || ($settings->debug ?? self::$debug);
     self::$disabled = $settings->disabled ?? self::$disabled;
     
     $this->APIKeyAnalytics = $settings->keyAnalytics ?? $this->APIKeyAnalytics;
@@ -190,42 +191,42 @@ final class YouControl
   private function _runBusinessman():array
   {
     # Відомості про справи про банкрутство (Bankruptcy Information)
-    $result[YouControlEnum::bankrupt->name] = self::_getPreviousResult(YouControlEnum::bankrupt->name)
+    $result[YouControlTypes::bankrupt->name] = self::_getPreviousResult(YouControlTypes::bankrupt->name)
       ? : self::_wsBankrupt();
     
     # НПД та суб'єкти декларування пов'язані з компанією (PEPs affiliated to the company)
-    $result[YouControlEnum::companyPersons->name] = self::_getPreviousResult(YouControlEnum::companyPersons->name)
+    $result[YouControlTypes::companyPersons->name] = self::_getPreviousResult(YouControlTypes::companyPersons->name)
       ? : self::_wsCompanyPersons();
     
     # Виконавчі провадження (Enforcement proceedings)
-    $result[YouControlEnum::executive->name] = self::_getPreviousResult(YouControlEnum::executive->name)
+    $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutive();
     
     # ФО - Зв'язок з ФПГ (Private individual - Affiliation with FIG)
-    $result[YouControlEnum::fig->name] = self::_getPreviousResult(YouControlEnum::fig->name) ? : self::_wsFig();
+    $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name) ? : self::_wsFig();
     
     # ФО - Перевірка паспорту (Passports check)
-    $result[YouControlEnum::passports->name] = self::_getPreviousResult(YouControlEnum::passports->name)
+    $result[YouControlTypes::passports->name] = self::_getPreviousResult(YouControlTypes::passports->name)
       ? : self::_wsPassports();
     
     # НПД скринінг (PEP Screening)
     # Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
-    $result[YouControlEnum::peps->name] = self::_getPreviousResult(YouControlEnum::peps->name) ? : self::_wsPeps();
+    $result[YouControlTypes::peps->name] = self::_getPreviousResult(YouControlTypes::peps->name) ? : self::_wsPeps();
     
     # Санкції (Sanctions)
-    $result[YouControlEnum::sanctions->name] = self::_getPreviousResult(YouControlEnum::sanctions->name)
+    $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
       ? : self::_wsSanctionsPersonal();
     
     # ФO - Податковий борг (Private individual - Tax debtors)
-    $result[YouControlEnum::taxDebtor->name] = self::_getPreviousResult(YouControlEnum::taxDebtor->name)
+    $result[YouControlTypes::taxDebtor->name] = self::_getPreviousResult(YouControlTypes::taxDebtor->name)
       ? : self::_wsTaxDebtor();
     
     # ФО - Терористи (Terrorists)
-    $result[YouControlEnum::terrorists->name] = self::_getPreviousResult(YouControlEnum::terrorists->name)
+    $result[YouControlTypes::terrorists->name] = self::_getPreviousResult(YouControlTypes::terrorists->name)
       ? : self::_wsTerrorists();
     
     # Безвісно зниклі та ті, які переховуються від органів влади (Missing or wanted persons)
-    $result[YouControlEnum::wanted->name] = self::_getPreviousResult(YouControlEnum::wanted->name)
+    $result[YouControlTypes::wanted->name] = self::_getPreviousResult(YouControlTypes::wanted->name)
       ? : self::_wsWanted();
     
     return $result;
@@ -239,30 +240,30 @@ final class YouControl
   private function _runCompany():array
   {
     # Відомості про справи про банкрутство (Bankruptcy Information)
-    $result[YouControlEnum::bankrupt->name] = self::_getPreviousResult(YouControlEnum::bankrupt->name)
+    $result[YouControlTypes::bankrupt->name] = self::_getPreviousResult(YouControlTypes::bankrupt->name)
       ? : self::_wsBankrupt();
     
     # НПД та суб'єкти декларування пов'язані з компанією (PEPs affiliated to the company)
-    $result[YouControlEnum::companyPersons->name] = self::_getPreviousResult(YouControlEnum::companyPersons->name)
+    $result[YouControlTypes::companyPersons->name] = self::_getPreviousResult(YouControlTypes::companyPersons->name)
       ? : self::_wsCompanyPersons();
     
     # Судові дані (Court data)
-    $result[YouControlEnum::courts->name] = self::_getPreviousResult(YouControlEnum::courts->name)
+    $result[YouControlTypes::courts->name] = self::_getPreviousResult(YouControlTypes::courts->name)
       ? : self::_wsCourts();
     
     # Виконавчі провадження (Enforcement proceedings)
-    $result[YouControlEnum::executive->name] = self::_getPreviousResult(YouControlEnum::executive->name)
+    $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutive();
     
     # Детальна інформація про ФПГ (Information about FIG)
-    $result[YouControlEnum::fig->name] = self::_getPreviousResult(YouControlEnum::fig->name) ? : self::_wsFigCompany();
+    $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name) ? : self::_wsFigCompany();
     
     # Санкції (Sanctions)
-    $result[YouControlEnum::sanctions->name] = self::_getPreviousResult(YouControlEnum::sanctions->name)
+    $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
       ? : self::_wsSanctions();
     
     # Наявність у компанії податкового боргу (Company's tax dept)
-    $result[YouControlEnum::taxDebtor->name] = self::_getPreviousResult(YouControlEnum::taxDebtor->name)
+    $result[YouControlTypes::taxDebtor->name] = self::_getPreviousResult(YouControlTypes::taxDebtor->name)
       ? : self::_wsTaxDebtorCompany();
     
     return $result;
@@ -276,35 +277,35 @@ final class YouControl
   private function _runPersonal():array
   {
     # ФО - Виконавчі провадження (Private individual - Enforcement proceedings)
-    $result[YouControlEnum::executive->name] = self::_getPreviousResult(YouControlEnum::executive->name)
+    $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutivePersonal();
     
     # ФО - Зв'язок з ФПГ (Private individual - Affiliation with FIG)
-    $result[YouControlEnum::fig->name] = self::_getPreviousResult(YouControlEnum::fig->name) ? : self::_wsFig();
+    $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name) ? : self::_wsFig();
     
     # ФО - Перевірка паспорту (Passports check)
-    $result[YouControlEnum::passports->name] = self::_getPreviousResult(YouControlEnum::passports->name)
+    $result[YouControlTypes::passports->name] = self::_getPreviousResult(YouControlTypes::passports->name)
       ? : self::_wsPassports();
     
     # НПД скринінг (PEP Screening)
     # Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
-    $result[YouControlEnum::peps->name] = self::_getPreviousResult(YouControlEnum::peps->name) ? : self::_wsPeps();
+    $result[YouControlTypes::peps->name] = self::_getPreviousResult(YouControlTypes::peps->name) ? : self::_wsPeps();
     
     # Санкції (Sanctions)
     # Санкції РНБО (RNBO Sanctions)
-    $result[YouControlEnum::sanctions->name] = self::_getPreviousResult(YouControlEnum::sanctions->name)
+    $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
       ? : self::_wsSanctionsPersonal();
     
     # ФO - Податковий борг (Private individual - Tax debtors)
-    $result[YouControlEnum::taxDebtor->name] = self::_getPreviousResult(YouControlEnum::taxDebtor->name)
+    $result[YouControlTypes::taxDebtor->name] = self::_getPreviousResult(YouControlTypes::taxDebtor->name)
       ? : self::_wsTaxDebtor();
     
     # ФО - Терористи (Terrorists)
-    $result[YouControlEnum::terrorists->name] = self::_getPreviousResult(YouControlEnum::terrorists->name)
+    $result[YouControlTypes::terrorists->name] = self::_getPreviousResult(YouControlTypes::terrorists->name)
       ? : self::_wsTerrorists();
     
     # Безвісно зниклі та ті, які переховуються від органів влади (Missing or wanted persons)
-    $result[YouControlEnum::wanted->name] = self::_getPreviousResult(YouControlEnum::wanted->name)
+    $result[YouControlTypes::wanted->name] = self::_getPreviousResult(YouControlTypes::wanted->name)
       ? : self::_wsWanted();
     
     return $result;
@@ -313,18 +314,18 @@ final class YouControl
   /**
    * Надіслати запит
    *
-   * @param YouControlEnum $requestType
+   * @param YouControlTypes $requestType
    * @param string $url
    * @param string|null $textEmpty
    *
    * @return object|array|string
    */
   private function _ws(
-    YouControlEnum $requestType, string $url, ?string $textEmpty = 'Пустий результат запиту'):object | array | string
+    YouControlTypes $requestType, string $url, ?string $textEmpty = 'Пустий результат запиту'):object | array | string
   {
     # Ключ до API
     $apiKay = match ($requestType) {
-      YouControlEnum::fig, YouControlEnum::sanctions => 'СУБЪЕКТ_ЮЛ' === $this->subject ? $this->APIKeyAnalytics
+      YouControlTypes::fig, YouControlTypes::sanctions => 'СУБЪЕКТ_ЮЛ' === $this->subject ? $this->APIKeyAnalytics
         : $this->APIKeyData,
       default => $this->APIKeyData
     };
@@ -418,7 +419,7 @@ final class YouControl
      * Справи відсутні
      * []
      */
-    return self::_ws(YouControlEnum::bankrupt, "v1/secou?contractorCode=$this->code", null);
+    return self::_ws(YouControlTypes::bankrupt, "v1/secou?contractorCode=$this->code", null);
   }
   
   /**
@@ -435,7 +436,7 @@ final class YouControl
      * "declarants":[]
      * }
      */
-    return self::_ws(YouControlEnum::companyPersons, "v1/companyPersons/relations?contractorCode=$this->code");
+    return self::_ws(YouControlTypes::companyPersons, "v1/companyPersons/relations?contractorCode=$this->code");
   }
   
   /**
@@ -453,7 +454,7 @@ final class YouControl
      * "results": []
      * }
      */
-    return self::_ws(YouControlEnum::courts, "v1/courtCaseGroup/$this->code?showCurrentData=true");
+    return self::_ws(YouControlTypes::courts, "v1/courtCaseGroup/$this->code?showCurrentData=true");
   }
   
   /**
@@ -471,7 +472,7 @@ final class YouControl
      * "results":[]
      * }
      */
-    return self::_ws(YouControlEnum::executive, "v1/enforcement/$this->code?showCurrentData=true");
+    return self::_ws(YouControlTypes::executive, "v1/enforcement/$this->code?showCurrentData=true");
   }
   
   /**
@@ -495,7 +496,7 @@ final class YouControl
      * "results": []
      * }
      */
-    return self::_ws(YouControlEnum::executive, "v1/enforcementIndividual?$query");
+    return self::_ws(YouControlTypes::executive, "v1/enforcementIndividual?$query");
   }
   
   /**
@@ -511,7 +512,7 @@ final class YouControl
      * "result": []
      * }
      */
-    return self::_ws(YouControlEnum::fig, "v1/individualsFigCompanies?".self::_getQuery());
+    return self::_ws(YouControlTypes::fig, "v1/individualsFigCompanies?".self::_getQuery());
   }
   
   /**
@@ -526,7 +527,7 @@ final class YouControl
      * Інформація відсутня
      * []
      */
-    return self::_ws(YouControlEnum::fig, "v1/fig?contractorCode=$this->code", null);
+    return self::_ws(YouControlTypes::fig, "v1/fig?contractorCode=$this->code", null);
     
     // TODO: Перевірка вимкнена
     /*
@@ -593,7 +594,7 @@ final class YouControl
      *  ]
      * }
      */
-    $result = self::_ws(YouControlEnum::passports, "v1/passports?$query");
+    $result = self::_ws(YouControlTypes::passports, "v1/passports?$query");
     
     return 404 === Curl::$curlHttpCode && 'string' === gettype($result) ? new \stdClass() : $result;
   }
@@ -631,7 +632,7 @@ final class YouControl
      * "relatedToPepMatches": []
      * }
      */
-    $result = self::_ws(YouControlEnum::peps, "v1/peps?$query");
+    $result = self::_ws(YouControlTypes::peps, "v1/peps?$query");
     
     if ('string' === gettype($result) || !(($result->isPep ?? false) || ($result->isRelatedToPep ?? false))) {
       
@@ -646,7 +647,7 @@ final class YouControl
      * "relatedLegalEntities": []
      * }
      */
-    $result->relatedPersons = self::_ws(YouControlEnum::relatedPersons, "v1/peps/related?$query");
+    $result->relatedPersons = self::_ws(YouControlTypes::relatedPersons, "v1/peps/related?$query");
     
     return $result;
   }
@@ -663,7 +664,7 @@ final class YouControl
      * Санкції відсутні<br>
      * []
      */
-    return self::_ws(YouControlEnum::sanctions, "v1/sanctions?contractorCode=$this->code", null);
+    return self::_ws(YouControlTypes::sanctions, "v1/sanctions?contractorCode=$this->code", null);
   }
   
   /**
@@ -687,7 +688,7 @@ final class YouControl
      * "results": []
      * }
      */
-    $resultSanctions = self::_ws(YouControlEnum::sanctions, "v1/individualsGlobalSanctionsLists?$query");
+    $resultSanctions = self::_ws(YouControlTypes::sanctions, "v1/individualsGlobalSanctionsLists?$query");
     
     # Помилка отримання даних
     if ('string' === gettype($resultSanctions)) {
@@ -702,7 +703,7 @@ final class YouControl
      *  "result": []
      *  }
      */
-    $result = self::_ws(YouControlEnum::sanctions, "v1/individualsRnboSanctions?$query");
+    $result = self::_ws(YouControlTypes::sanctions, "v1/individualsRnboSanctions?$query");
     
     $resultSanctions->rnbo = $result;
     
@@ -723,7 +724,7 @@ final class YouControl
      * "result": []
      * }
      */
-    return self::_ws(YouControlEnum::taxDebtor, "v1/individualsTaxDebtors?".self::_getQuery());
+    return self::_ws(YouControlTypes::taxDebtor, "v1/individualsTaxDebtors?".self::_getQuery());
   }
   
   /**
@@ -746,7 +747,7 @@ final class YouControl
      * "actualDate": "2021-05-01T00:00:00+03:00"
      * }
      */
-    $result = self::_ws(YouControlEnum::taxDebtor, "v1/taxDebt/$this->code?");
+    $result = self::_ws(YouControlTypes::taxDebtor, "v1/taxDebt/$this->code?");
     
     return 404 === Curl::$curlHttpCode && 'string' === gettype($result) ? new \stdClass() : $result;
   }
@@ -765,7 +766,7 @@ final class YouControl
      * "result": []
      * }
      */
-    return self::_ws(YouControlEnum::terrorists, "v1/individualsDsfmuTerrorists?".self::_getQuery());
+    return self::_ws(YouControlTypes::terrorists, "v1/individualsDsfmuTerrorists?".self::_getQuery());
   }
   
   /**
@@ -788,7 +789,7 @@ final class YouControl
      * "wantedPersons": []
      * }
      */
-    return self::_ws(YouControlEnum::wanted, "v1/wantedOrDisappearedPersons?$query");
+    return self::_ws(YouControlTypes::wanted, "v1/wantedOrDisappearedPersons?$query");
     
     # Перевірка вимкнена
     /*

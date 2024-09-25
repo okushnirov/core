@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library\Enums;
 
-enum YouControlEnum: string
+enum YouControlTypes: string
 {
   /**
    * Відомості про справи про банкрутство (Bankruptcy Information)

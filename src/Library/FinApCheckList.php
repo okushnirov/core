@@ -15,7 +15,7 @@ final class FinApCheckList
   /**
    * Ознака підтвердження результатів запиту підрозділом фінансового моніторингу суб'єкта ФМ:
    * true – потребує підтвердження
-   * false – по замовчуванню, без підтвердження
+   * false – за замовчуванням, без підтвердження
    *
    * @var bool
    */
@@ -74,7 +74,7 @@ final class FinApCheckList
    * 1 — відповідь-дозвіл (allow)
    * 2 – узагальнений (resume)
    * 3 — скорочений (short)
-   * 5 — повний (full, по замовчуванню)
+   * 5 — повний (full, за замовчуванням)
    *
    * @var int
    */
@@ -105,10 +105,11 @@ final class FinApCheckList
   
   private string $user = '';
   
-  public function __construct()
+  public function __construct(bool $debug = false)
   {
     $settings = File::parse(['/json/fin-ap-checklist.json']);
     
+    $this->debug = $debug || ($settings->debug ?? $this->debug);
     $this->disabled = $settings->disabled ?? $this->disabled;
     $this->listData = $settings->listData ?? $this->listData;
     $this->pass = $settings->pass ?? $this->pass;

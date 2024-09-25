@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\{FileType, HeaderXML};
+use okushnirov\core\Library\Enums\{FileType, HeaderXML, UBKITypes};
 
 final class UBKI
 {
@@ -28,7 +28,7 @@ final class UBKI
   
   public static string $phone;
   
-  public static int $requestType;
+  public static ?UBKITypes $requestType;
   
   public static bool $testMode = false;
   
@@ -46,10 +46,11 @@ final class UBKI
   
   private static string $user = '';
   
-  public function __construct(bool $testMode = false)
+  public function __construct(bool $testMode = false, bool $debug = false)
   {
     $settings = File::parse(['/json/ubki.json']);
     
+    self::$debug = $debug || ($settings->debug ?? self::$debug);
     self::$disabled = $settings->disabled ?? self::$disabled;
     self::$testMode = $testMode;
     
@@ -59,6 +60,10 @@ final class UBKI
     self::$urlAuth = $settings->urlAuth ?? self::$urlAuth;
     self::$urlTest = $settings->urlTest ?? self::$urlTest;
     self::$user = $settings->user ?? '';
+    
+    if (self::$debug) {
+      trigger_error(__METHOD__." Settings\n".json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
   }
   
   public static function getSessionID():bool
@@ -106,10 +111,11 @@ final class UBKI
     return !empty(self::$sessionID);
   }
   
-  public static function init(int $type, \stdClass $data):void
+  public static function init(?UBKITypes $type, \stdClass $data):void
   {
     if (self::$debug) {
-      trigger_error(__METHOD__." Type = $type\n".json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." Request type = $type?->name\n".json_encode($data,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
     self::$requestType = $type;
@@ -156,50 +162,37 @@ final class UBKI
   
   private static function _getRequest():string
   {
-    $xmlRequest = '';
-    
-    switch (self::$requestType) {
-      # Кредитний звіт фізичної особи, підприємця
-      case 10:
-        $xmlRequest = '<request reqtype="10" reqreason="1" reqdate="'.date("Y-m-d").'" reqsource="1">
+    $xmlRequest = match (self::$requestType) {
+      UBKITypes::Request10 => '<request reqtype="'.UBKITypes::Request10->value.'" reqreason="1" reqdate="'.date("Y-m-d")
+        .'" reqsource="1">
   <i reqlng="1">
     <ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'" lname="'.htmlspecialchars(self::$lastName, ENT_XML1)
-          .'" fname="'.htmlspecialchars(self::$firstName, ENT_XML1).'" mname="'.htmlspecialchars(self::$middleName,
-            ENT_XML1).'" bdate="'.htmlspecialchars(self::$birthday, ENT_XML1).'"/>'.(empty(self::$phone)
-            ? ''
-            : '
+        .'" fname="'.htmlspecialchars(self::$firstName, ENT_XML1).'" mname="'.htmlspecialchars(self::$middleName,
+          ENT_XML1).'" bdate="'.htmlspecialchars(self::$birthday, ENT_XML1).'"/>'.(empty(self::$phone)
+          ? ''
+          : '
     <contacts>
       <cont ctype="3" cval="'.htmlspecialchars(self::$phone, ENT_XML1).'"/>
     </contacts>').('' === self::$docNumber || '' === self::$docSerial
-            ? ''
-            : '
+          ? ''
+          : '
     <docs>
       <doc dtype="'.self::$docType.'" dser="'.htmlspecialchars(self::$docSerial, ENT_XML1).'" dnom="'
-            .htmlspecialchars(self::$docNumber, ENT_XML1).'"/>
+          .htmlspecialchars(self::$docNumber, ENT_XML1).'"/>
     </docs>
     <mvd dtype="'.self::$docType.'" pser="'.htmlspecialchars(self::$docSerial, ENT_XML1).'" pnom="'.self::$docNumber
-            .'" plname="'.self::$lastName.'" pfname="'.htmlspecialchars(self::$firstName, ENT_XML1).'" pmname="'
-            .htmlspecialchars(self::$middleName, ENT_XML1).'" pbdate="'.htmlspecialchars(self::$birthday, ENT_XML1)
-            .'"/>').'
+          .'" plname="'.self::$lastName.'" pfname="'.htmlspecialchars(self::$firstName, ENT_XML1).'" pmname="'
+          .htmlspecialchars(self::$middleName, ENT_XML1).'" pbdate="'.htmlspecialchars(self::$birthday, ENT_XML1).'"/>')
+        .'
   </i>
-</request>';
-        
-        break;
-      
-      # 15 - Кредитний звіт юридичної особи
-      # 26 - Публічне досьє
-      case 15:
-      case 26:
-        $xmlRequest = '<request reqtype="'.self::$requestType.'" reqreason="2" reqdate="'.date("Y-m-d")
-          .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
-        
-        break;
-      
-      # 22 - Досьє підприємця
-      case 22:
-        $xmlRequest = '<request reqtype="'.self::$requestType.'" reqreason="6" reqdate="'.date("Y-m-d")
-          .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>';
-    }
+</request>',
+      UBKITypes::Request15, UBKITypes::Request26 => '<request reqtype="'.self::$requestType->value
+        .'" reqreason="2" reqdate="'.date("Y-m-d").'" reqsource="1"><i reqlng="1"><ident okpo="'
+        .htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>',
+      UBKITypes::Request22 => '<request reqtype="'.self::$requestType->value.'" reqreason="6" reqdate="'.date("Y-m-d")
+        .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>',
+      default => '',
+    };
     
     if (self::$debug) {
       trigger_error(__METHOD__.' Request by type '.$xmlRequest);
