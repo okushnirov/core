@@ -546,7 +546,7 @@ final class YouControl
         continue;
       }
       
-      $fig->details = self::_ws(YouControlEnum::fig, "v1/fig/$id?");
+      $fig->details = self::_ws(YouControlTypes::fig, "v1/fig/$id?");
     }
     
     return $result;*/
