@@ -11,8 +11,8 @@ final class Curl
   public static mixed $curlHttpInfo;
   
   public static function exec(
-    string            $url, array $header = [], mixed $data = '', string $userLogin = '', string $userPassword = '',
-    int | HTTPMethods $httpMethod = HTTPMethods::POST, bool | int $ssl = false, int $timeout = 10):bool | string
+    string       $url, array $header = [], mixed $data = '', string $userLogin = '', string $userPassword = '',
+    ?HTTPMethods $httpMethod = HTTPMethods::POST, bool | int $ssl = false, int $timeout = 10):bool | string
   {
     if (empty($url)) {
       $back = debug_backtrace();
@@ -25,8 +25,7 @@ final class Curl
     curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
     curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST,
-      is_null(HTTPMethods::tryFrom($httpMethod)) ? ($httpMethod ? 'POST' : 'GET') : $httpMethod->value);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, is_null($httpMethod) ? HTTPMethods::POST->value : $httpMethod->value);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data ? : '');
     
     if ($_SERVER['HTTP_USER_AGENT'] ?? '') {

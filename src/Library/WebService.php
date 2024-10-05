@@ -59,9 +59,9 @@ final class WebService
   }
   
   public function json(
-    string            $wsName, string $data, ?object $ws = null, ?array $header = null,
-    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
-    Charset           $charset = Charset::UTF8):mixed
+    string       $wsName, string $data, ?object $ws = null, ?array $header = null,
+    ?HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
+    Charset      $charset = Charset::UTF8):mixed
   {
     try {
       $response = $this->request($wsName, $data, $ws, $header, $httpMethod, $ssl, $timeout);
@@ -81,8 +81,8 @@ final class WebService
   }
   
   public function request(
-    string            $wsName, string $data = '', ?object $ws = null, ?array $header = null,
-    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5):string
+    string       $wsName, string $data = '', ?object $ws = null, ?array $header = null,
+    ?HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5):string
   {
     try {
       $ws = empty($ws) ? $this->get($wsName) : $ws;
@@ -115,9 +115,9 @@ final class WebService
   }
   
   public function xml(
-    string            $wsName, string $data, ?object $ws = null, ?array $header = null,
-    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
-    Charset           $charset = Charset::UTF8):\SimpleXMLElement
+    string       $wsName, string $data, ?object $ws = null, ?array $header = null,
+    ?HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
+    Charset      $charset = Charset::UTF8):\SimpleXMLElement
   {
     $data = Charset::WINDOWS1251 === $charset ? Encoding::encode($data) : $data;
     
