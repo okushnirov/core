@@ -2,6 +2,8 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Library\Enums\HTTPMethods;
+
 final class FinApCheckList
 {
   public string $code = '';
@@ -145,7 +147,7 @@ final class FinApCheckList
       trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
-    $response = $request ? (string)Curl::exec($this->url, [], $request, '', '', 0) : '';
+    $response = trim($request ? Curl::exec($this->url, [], $request, httpMethod: HTTPMethods::GET) : '');
     
     if ($this->debug) {
       trigger_error(__METHOD__." Response\n".$response);

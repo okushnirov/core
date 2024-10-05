@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\Charset;
+use okushnirov\core\Library\Enums\{Charset, HTTPMethods};
 
 final class WebService
 {
@@ -59,11 +59,12 @@ final class WebService
   }
   
   public function json(
-    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5, Charset $charset = Charset::UTF8):mixed
+    string            $wsName, string $data, ?object $ws = null, ?array $header = null,
+    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
+    Charset           $charset = Charset::UTF8):mixed
   {
     try {
-      $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
+      $response = $this->request($wsName, $data, $ws, $header, $httpMethod, $ssl, $timeout);
       $response = Charset::WINDOWS1251 === $charset ? Encoding::decode($response) : $response;
       $json = $response ? json_decode($response) : null;
       
@@ -80,8 +81,8 @@ final class WebService
   }
   
   public function request(
-    string $wsName, string $data = '', ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5):string
+    string            $wsName, string $data = '', ?object $ws = null, ?array $header = null,
+    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5):string
   {
     try {
       $ws = empty($ws) ? $this->get($wsName) : $ws;
@@ -94,7 +95,7 @@ final class WebService
     self::$response = '';
     
     if (isset($ws->url)) {
-      self::$response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? false, $ws->pass ?? false, $post, $ssl,
+      self::$response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? '', $ws->pass ?? '', $httpMethod, $ssl,
         $timeout);
       self::$httpCode = Curl::$curlHttpCode;
     }
@@ -114,13 +115,14 @@ final class WebService
   }
   
   public function xml(
-    string $wsName, string $data, ?object $ws = null, ?array $header = null, int $post = 1, int $ssl = 2,
-    int    $timeout = 5, Charset $charset = Charset::UTF8):\SimpleXMLElement
+    string            $wsName, string $data, ?object $ws = null, ?array $header = null,
+    int | HTTPMethods $httpMethod = HTTPMethods::POST, int $ssl = 2, int $timeout = 5,
+    Charset           $charset = Charset::UTF8):\SimpleXMLElement
   {
     $data = Charset::WINDOWS1251 === $charset ? Encoding::encode($data) : $data;
     
     try {
-      $response = $this->request($wsName, $data, $ws, $header, $post, $ssl, $timeout);
+      $response = $this->request($wsName, $data, $ws, $header, $httpMethod, $ssl, $timeout);
       $response = Charset::WINDOWS1251 === $charset ? Str::replaceHeader($response) : $response;
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       

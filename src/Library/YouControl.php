@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\YouControlTypes;
+use okushnirov\core\Library\Enums\{CustomerDocsRef, HTTPMethods, YouControlTypes};
 
 final class YouControl
 {
@@ -24,7 +24,7 @@ final class YouControl
   
   public string $middleName = '';
   
-  public string $subject;
+  public ?CustomerDocsRef $subject;
   
   private string $APIKeyAnalytics = '';
   
@@ -53,7 +53,7 @@ final class YouControl
     }
     
     # Тип контрагента
-    $this->subject = mb_convert_case(trim($request['subject'] ?? ''), MB_CASE_UPPER);
+    $this->subject = CustomerDocsRef::tryFrom(mb_convert_case(trim($request['subject'] ?? ''), MB_CASE_UPPER));
     
     # Код (ЄДРПОУ/РНОКПП)
     $this->code = $request['code'] ?? $this->code;
@@ -80,9 +80,9 @@ final class YouControl
     return self::$disabled
       ? ''
       : (string)json_encode(match ($this->subject) {
-        'СУБЪЕКТ_ФЛ' => self::_runPersonal(),
-        'СУБЪЕКТ_ФОП' => self::_runBusinessman(),
-        'СУБЪЕКТ_ЮЛ' => self::_runCompany(),
+        CustomerDocsRef::Person => self::_runPersonal(),
+        CustomerDocsRef::Businessman => self::_runBusinessman(),
+        CustomerDocsRef::Company => self::_runCompany(),
         default => ''
       }, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
   }
@@ -256,7 +256,8 @@ final class YouControl
       ? : self::_wsExecutive();
     
     # Детальна інформація про ФПГ (Information about FIG)
-    $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name) ? : self::_wsFigCompany();
+    $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name)
+      ? : self::_wsFigCompany();
     
     # Санкції (Sanctions)
     $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
@@ -325,8 +326,8 @@ final class YouControl
   {
     # Ключ до API
     $apiKay = match ($requestType) {
-      YouControlTypes::fig, YouControlTypes::sanctions => 'СУБЪЕКТ_ЮЛ' === $this->subject ? $this->APIKeyAnalytics
-        : $this->APIKeyData,
+      YouControlTypes::fig, YouControlTypes::sanctions => CustomerDocsRef::Company === $this->subject
+        ? $this->APIKeyAnalytics : $this->APIKeyData,
       default => $this->APIKeyData
     };
     
@@ -340,7 +341,7 @@ final class YouControl
     ];
     
     # Запит
-    $response = Curl::exec($requestURL, $requestHeader, false, '', '', 0, false, 5);
+    $response = Curl::exec($requestURL, $requestHeader, httpMethod: HTTPMethods::GET, timeout: 5);
     
     if (self::$debug) {
       trigger_error(__METHOD__." [$requestType->name]\n$requestURL\nResponse [HTTP ".Curl::$curlHttpCode
@@ -367,7 +368,7 @@ final class YouControl
         sleep(1);
         
         # Повторний запит
-        $response = Curl::exec($requestURL, $requestHeader, false, '', '', 0, false, 5);
+        $response = Curl::exec($requestURL, $requestHeader, httpMethod: HTTPMethods::GET, timeout: 5);
         
         if (self::$debug) {
           trigger_error(__METHOD__." [$requestType->name] Loop[$i of 3]\n$requestURL\nResponse [HTTP "
@@ -529,7 +530,7 @@ final class YouControl
      */
     return self::_ws(YouControlTypes::fig, "v1/fig?contractorCode=$this->code", null);
     
-    // TODO: Перевірка вимкнена
+    # Перевірка вимкнена
     /*
     if ('string' === gettype($result) || empty($result)) {
       

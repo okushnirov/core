@@ -20,9 +20,9 @@
  "require":{
   "php":">=8.2"
  },
- "require-dev": {
-  "phpmailer/phpmailer": "^v6.9.1",
-  "phpoffice/phpspreadsheet":"^2.2.2",
+ "require-dev":{
+  "phpmailer/phpmailer":"^v6.9.1",
+  "phpoffice/phpspreadsheet":"^2.3.0",
   "phpoffice/phpword":"^1.3.0"
  }
 }

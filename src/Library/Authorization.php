@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\{Auth, Decrypt, Encrypt, SessionType};
+use okushnirov\core\Library\Enums\{Auth, Decrypt, Encrypt, HTTPMethods, SessionType};
 
 final class Authorization
 {
@@ -110,7 +110,7 @@ final class Authorization
     ], http_build_query([
       'userLogin' => $userLogin,
       'userID' => $userID
-    ]), false, false, 1, 2, 5);
+    ]), ssl: 2, timeout: 5);
     
     return 200 === Curl::$curlHttpCode && !empty($response);
   }
@@ -129,7 +129,7 @@ final class Authorization
     $response = Curl::exec($ws->{'url'.(TEST_SERVER ? 'Test' : '')} ?? $ws->url ?? '', [
       "charset=\"utf-8\"",
       "Authorization: Basic ".base64_encode("$ws->user:$ws->pass")
-    ], http_build_query(0 < $userID ? ['userID' => $userID] : ['userLogin' => $userLogin]), false, false, 1, 2, 5);
+    ], http_build_query(0 < $userID ? ['userID' => $userID] : ['userLogin' => $userLogin]), ssl: 2, timeout: 5);
     
     try {
       $xml = empty($response) ? null : new \SimpleXMLElement($response);
