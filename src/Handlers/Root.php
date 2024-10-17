@@ -105,14 +105,14 @@ final class Root extends \Exception
         
         exit;
       } catch (\Exception $e) {
-        trigger_error(__METHOD__.' '.$e->getMessage());
+        trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       }
     }
     
     try {
       (new Error())::index(404, 0, '', $request);
     } catch (\Exception $e) {
-      trigger_error(__METHOD__.' '.$e->getMessage());
+      trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       
       throw new \Exception($e->getMessage(), $e->getCode());
     }

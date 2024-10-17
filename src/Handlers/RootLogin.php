@@ -16,7 +16,7 @@ final class RootLogin
       }
     } catch (\Exception $e) {
       if (Root::$debug) {
-        trigger_error(__METHOD__." Error [{$e->getCode()}] {$e->getMessage()}");
+        trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       }
     }
     

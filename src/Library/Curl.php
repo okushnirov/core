@@ -40,9 +40,9 @@ final class Curl
       curl_setopt($ch, CURLOPT_USERPWD, "$userLogin:$userPassword");
     }
     
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $ssl);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYSTATUS, $ssl);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $ssl ? 2 : 0);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, !!$ssl);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYSTATUS, !!$ssl);
     
     $response = curl_exec($ch);
     

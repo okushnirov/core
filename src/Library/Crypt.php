@@ -6,29 +6,33 @@ use okushnirov\core\Library\{Enums\Decrypt, Enums\Encrypt, Interfaces\CryptType}
 
 final class Crypt
 {
-  public static function action(string $string, CryptType $variant):bool | string
+  public static function action(
+    string $string, CryptType $variant, string $startText = '', string $endText = ''):string
   {
+    if ('' === $string) {
+      
+      return '';
+    }
     
-    return '' === $string
-      ? ''
-      : match ($variant) {
-        Encrypt::BASE => self::__encryptString($string),
-        Decrypt::BASE => self::__decryptString($string),
-        Encrypt::CHR => self::__encryptString($string, true),
-        Decrypt::CHR => self::__decryptString($string, true),
-        Encrypt::INT => self::__encryptInteger($string),
-        Decrypt::INT => self::__decryptInteger($string),
-        default => false
-      };
+    $return = match ($variant) {
+      Encrypt::BASE => self::__encryptString($string),
+      Decrypt::BASE => self::__decryptString($string),
+      Encrypt::CHR => self::__encryptString($string, true),
+      Decrypt::CHR => self::__decryptString($string, true),
+      Encrypt::INT => self::__encryptInteger($string),
+      Decrypt::INT => self::__decryptInteger($string)
+    };
+    
+    return '' === $return ? '' : Str::wrapText($return, $startText, $endText);
   }
   
-  protected static function __decryptInteger(int | string $string):string
+  private static function __decryptInteger(int | string $string):string
   {
     
     return substr(base_convert(base_convert(base_convert((int)$string, 8, 10), 8, 10), 8, 10), 2, -2);
   }
   
-  protected static function __decryptString(string $string, bool $random = false):string
+  private static function __decryptString(string $string, bool $random = false):string
   {
     if (!$random) {
       
@@ -47,13 +51,13 @@ final class Crypt
     return $stringString;
   }
   
-  protected static function __encryptInteger(string $string):string
+  private static function __encryptInteger(string $string):string
   {
     
     return base_convert(base_convert(base_convert((int)(rand(10, 99).$string.rand(10, 99)), 10, 8), 10, 8), 10, 8);
   }
   
-  protected static function __encryptString(string $string, bool $random = false):string
+  private static function __encryptString(string $string, bool $random = false):string
   {
     if (!$random) {
       
@@ -69,7 +73,7 @@ final class Crypt
     return rtrim(strtr(base64_encode(self::__safeEncrypt($stringChange.rand(10, 99))), '+/', '-_'), '=');
   }
   
-  protected static function __safeEncrypt(string $string, bool $decrypt = false):string
+  private static function __safeEncrypt(string $string, bool $decrypt = false):string
   {
     $o = $s1 = $s2 = [];
     $based = array_merge([

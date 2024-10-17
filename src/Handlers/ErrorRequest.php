@@ -62,7 +62,7 @@ final class ErrorRequest
       try {
         ErrorRequestHandler::run(self::$request);
       } catch (\Exception $e) {
-        trigger_error($e->getMessage());
+        trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       }
     }
     

@@ -6,8 +6,6 @@ use okushnirov\core\Library\Enums\FileType;
 
 final class File
 {
-  public static mixed $settings;
-  
   public static function isEmptyDir(string $dir):bool
   {
     

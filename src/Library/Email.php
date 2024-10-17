@@ -6,23 +6,23 @@ use PHPMailer\PHPMailer\{Exception, PHPMailer, SMTP};
 
 final class Email
 {
-  protected static bool $auth = false;
+  private static bool $auth = false;
   
-  protected static bool $debug = false;
-  
-  protected static string $pass = '';
-  
-  protected static ?int $port = 25;
-  
-  protected static array $sender = [];
-  
-  protected static string $user = '';
+  private static bool $debug = false;
   
   private static ?string $host;
   
+  private static string $pass = '';
+  
+  private static ?int $port = 25;
+  
   private static string $secure = '';
   
+  private static array $sender = [];
+  
   private static int $timeout = 5;
+  
+  private static string $user = '';
   
   public function __construct(string $eName = '', array $input = [])
   {

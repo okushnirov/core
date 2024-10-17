@@ -141,7 +141,7 @@ class Render
     try {
       $dom->loadXML($xml->saveXML());
     } catch (\Exception $e) {
-      trigger_error(__METHOD__.' '.$e->getMessage());
+      trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
     }
     
     return $dom;
@@ -236,7 +236,7 @@ class Render
     try {
       $dom->load($_SERVER['DOCUMENT_ROOT'].$file);
     } catch (\Exception $e) {
-      trigger_error(__METHOD__.' '.$e->getMessage());
+      trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       $dom = null;
     }
     

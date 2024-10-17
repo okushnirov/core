@@ -468,7 +468,7 @@ final class Xml2Excel
       $this->posY++;
     }
     
-    $highestColumn = $this->sheet->getHighestColumn($this->posY - 1);
+    $highestColumn = $this->highestColumn;
     ++$highestColumn;
     
     $this->posX = 1;
@@ -715,13 +715,16 @@ final class Xml2Excel
     
     if ('date' === $type) {
       $date = '';
+      $format = 'dd.mm.yyyy';
       
-      if (Date::validateDate($value)) {
-        $date = "$value 00:00:00";
-      } elseif (Date::validateDate($value, DateEn::DATETIME)) {
+      if (Date::validateDate($value, DateEn::DATETIME)) {
         $date = $value;
+        $format .= ' h:mm:ss';
       } elseif (Date::validateDate($value, DateEn::TIMESTAMP)) {
         $date = "$value:00";
+        $format .= ' h:mm';
+      } elseif (Date::validateDate($value)) {
+        $date = "$value 00:00:00";
       }
       
       if ('' !== $date) {
@@ -729,7 +732,7 @@ final class Xml2Excel
           \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(\DateTime::createFromFormat('Y-m-d H:i:s', $date)))
                     ->getStyle($coordinate)
                     ->getNumberFormat()
-                    ->setFormatCode('dd.mm.yyyy');
+                    ->setFormatCode($format);
         
         return;
       }

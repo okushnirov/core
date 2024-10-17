@@ -7,8 +7,6 @@ use okushnirov\core\Library\Enums\{CookieType, SessionType};
 
 final class Lang
 {
-  public static bool $debug = false;
-  
   public static string $lang = '';
   
   public static ?LangHandler $language;
@@ -22,19 +20,6 @@ final class Lang
   
   public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
   {
-    if (self::$debug) {
-      trigger_error(__METHOD__.json_encode([
-          'ARGUMENTS' => [
-            'session' => $session->name,
-            'cookie' => $cookie->name
-          ],
-          'REQUEST' => $_REQUEST['lang'] ?? '',
-          'COOKIE' => $_COOKIE['lang'] ?? '',
-          'session_id' => session_id(),
-          'SESSION' => $_SESSION['lang'] ?? ''
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-    
     if (!enum_exists(LangHandler::class)) {
       trigger_error(__METHOD__.' No language enum handler found');
       
@@ -43,23 +28,11 @@ final class Lang
     
     if (isset($_REQUEST['lang']) && self::existsLang($_REQUEST['lang'])) {
       self::$lang = $_REQUEST['lang'];
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__.' Request read ['.self::$lang.']');
-      }
     } elseif (CookieType::Yes === $cookie && self::existsLang($_COOKIE['lang'] ?? '')) {
       self::$lang = $_COOKIE['lang'];
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__.' Cookie read ['.self::$lang.']');
-      }
     } elseif (SessionType::NONE !== $session && Session::sessionStart($session)
       && self::existsLang($_SESSION['lang'] ?? '')) {
       self::$lang = $_SESSION['lang'];
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__.' Session read ['.self::$lang.']');
-      }
     }
     
     self::$lang = self::$lang ? : (LangHandler::cases()[0]?->value ?? '');
@@ -83,28 +56,11 @@ final class Lang
         'samesite' => 'Lax',
       ]);
       $_COOKIE['lang'] = self::$lang;
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__." Cookie set [{$_COOKIE['lang']}]");
-      }
     }
     
     if (SessionType::NONE !== $session && Session::sessionStart($session)
       && ($_SESSION['lang'] ?? '') !== self::$lang) {
       $_SESSION['lang'] = self::$lang;
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__." Session set [{$_SESSION['lang']}]");
-      }
-    }
-    
-    if (self::$debug) {
-      trigger_error(__METHOD__.json_encode([
-          'Lang::$lang' => self::$lang,
-          'Session ID' => session_id(),
-          'Session ' => $_SESSION['lang'] ?? '',
-          'Cookie' => $_COOKIE['lang'] ?? ''
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
   }
   

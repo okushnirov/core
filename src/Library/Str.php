@@ -47,10 +47,8 @@ final class Str
     string $thousandSeparator = ' ', string $startText = '', string $endText = ''):bool | string
   {
     
-    return empty($number)
-      ? $emptyText
-      : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
-        number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
+    return empty($number) ? $emptyText : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
+      number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
   }
   
   public static function isINN(string $inn):bool
@@ -72,10 +70,12 @@ final class Str
     return mb_convert_case($value, MB_CASE_LOWER, Charset::UTF8->value);
   }
   
-  public static function prepare(string $string, int $flags = ENT_QUOTES):string
+  public static function prepare(
+    string $string, int $flags = ENT_QUOTES, string $startText = '', string $endText = ''):string
   {
     
-    return '' === $string ? '' : htmlspecialchars($string, $flags, Charset::UTF8->value);
+    return '' === $string ? ''
+      : self::wrapText(htmlspecialchars($string, $flags, Charset::UTF8->value), $startText, $endText);
   }
   
   public static function removeSpecChar(string $string):array | string
@@ -118,7 +118,7 @@ final class Str
         }, str_split($string))));
   }
   
-  public static function transformAccount(string $account):string
+  public static function transformAccount(string $account, string $startText = '', string $endText = ''):string
   {
     if (19 !== strlen($account)) {
       
@@ -134,10 +134,10 @@ final class Str
     array_splice($array, 19, 0, ' ');
     array_splice($array, 23, 0, ' ');
     
-    return implode('', $array);
+    return self::wrapText(implode('', $array), $startText, $endText);
   }
   
-  public static function transformIBAN(string $iban):string
+  public static function transformIBAN(string $iban, string $startText = '', string $endText = ''):string
   {
     if (29 !== strlen($iban)) {
       
@@ -151,7 +151,7 @@ final class Str
     array_splice($array, 2, 0, ' ');
     array_splice($array, 5, 0, ' ');
     
-    return implode('', $array).' '.self::transformAccount($account);
+    return self::wrapText(implode('', $array).' '.self::transformAccount($account), $startText, $endText);
   }
   
   public static function upperCase(string $value):string
@@ -174,7 +174,7 @@ final class Str
     return $word[($num % 100 > 4 && $num % 100 < 20) ? 2 : $cases[min($num % 10, 5)]];
   }
   
-  private static function wrapText(string $text, string $startText = '', string $endText = ''):string
+  public static function wrapText(string $text, string $startText = '', string $endText = ''):string
   {
     
     return '' === $text ? $text : "$startText$text$endText";

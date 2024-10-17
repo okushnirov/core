@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\{Auth, Decrypt, Encrypt, HTTPMethods, SessionType};
+use okushnirov\core\Library\Enums\{Auth, Decrypt, Encrypt, SessionType};
 
 final class Authorization
 {

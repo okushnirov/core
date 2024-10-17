@@ -52,13 +52,8 @@ class Dict extends Render
   
   public static function list(string $query):array
   {
-    if ('' === trim($query)) {
-      
-      return [];
-    }
+    $result = '' === $query ? [] : DbSQLAnywhere::query($query, SQLAnywhere::FETCH_ALL);
     
-    $result = DbSQLAnywhere::query($query, SQLAnywhere::FETCH_ALL);
-    
-    return empty($result) ? [] : $result;
+    return $result ? : [];
   }
 }

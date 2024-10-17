@@ -93,7 +93,7 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     try {
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement(Encoding::decode($response)) : null;
     } catch (\Exception $e) {
-      trigger_error(__METHOD__.' '.$e->getMessage());
+      trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       $xml = null;
     }
     
