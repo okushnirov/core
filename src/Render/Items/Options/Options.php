@@ -13,26 +13,17 @@ class Options extends Render
     $values = explode($separator, trim($string, $separator));
     $destination = [];
     
-    if (self::$debug) {
-      trigger_error(__METHOD__." Values:\n".json_encode($values, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-    }
-    
-    foreach ($source as $value => $name) {
-      $exist = in_array((string)$value, $values, true);
-      
-      if (self::$debug) {
-        trigger_error(__METHOD__." Value[$value] = Name[$name] Isset[$exist]");
-      }
-      
-      if ($exist) {
-        $destination[$value] = $name;
+    foreach ($values as $value) {
+      if (isset($source[$value])) {
+        $destination[$value] = $source[$value];
         unset($source[$value]);
       }
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__."\nSource:\n".json_encode($source, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-        ."\nDestination:\n".json_encode($destination, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+      trigger_error(__METHOD__."\nValues:\n".json_encode($values, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+        ."\nSource:\n".json_encode($source, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\nDestination:\n"
+        .json_encode($destination, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     
     return [
