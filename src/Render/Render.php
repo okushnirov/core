@@ -107,7 +107,7 @@ class Render
     return $xml ?? false;
   }
   
-  public static function getXMLValue(string $fieldName, ?\SimpleXMLElement $xmlData):array | bool
+  public static function getXMLValue(string $fieldName, \SimpleXMLElement | bool $xmlData):array | bool
   {
     if ('' === $fieldName || empty($xmlData) || !$xmlData->field->count()) {
       
