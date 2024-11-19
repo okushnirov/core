@@ -101,9 +101,9 @@ final class WebService
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." [$wsName]".($header ? " Header\n".json_encode($header,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '')."\nRequest $ws->url\n$data\nResponse [HTTP "
-        .Curl::$curlHttpCode."]\n".self::$response, E_USER_ERROR);
+      trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name.($header ? " Header\n".json_encode($header,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '').($ws->user ? "\nAuth [$ws->user:$ws->pass]" : '')
+        ."\nRequest $ws->url\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response, E_USER_ERROR);
     }
     
     if (200 !== Curl::$curlHttpCode) {

@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\{CustomerDocsRef, HTTPMethods, YouControlTypes};
+use okushnirov\core\Library\Enums\{CustomerType, HTTPMethods, YouControlTypes};
 
 final class YouControl
 {
@@ -24,7 +24,7 @@ final class YouControl
   
   public string $middleName = '';
   
-  public ?CustomerDocsRef $subject;
+  public ?CustomerType $subject;
   
   private string $APIKeyAnalytics = '';
   
@@ -53,7 +53,7 @@ final class YouControl
     }
     
     # Тип контрагента
-    $this->subject = CustomerDocsRef::tryFrom(mb_convert_case(trim($request['subject'] ?? ''), MB_CASE_UPPER));
+    $this->subject = CustomerType::getType(trim($request['subject'] ?? ''));
     
     # Код (ЄДРПОУ/РНОКПП)
     $this->code = $request['code'] ?? $this->code;
@@ -80,9 +80,9 @@ final class YouControl
     return self::$disabled
       ? ''
       : (string)json_encode(match ($this->subject) {
-        CustomerDocsRef::Person => self::_runPersonal(),
-        CustomerDocsRef::Businessman => self::_runBusinessman(),
-        CustomerDocsRef::Company => self::_runCompany(),
+        CustomerType::PERSON => self::_runPersonal(),
+        CustomerType::BUSINESSMAN => self::_runBusinessman(),
+        CustomerType::COMPANY => self::_runCompany(),
         default => ''
       }, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
   }
@@ -190,6 +190,10 @@ final class YouControl
    */
   private function _runBusinessman():array
   {
+    if (self::$debug) {
+      trigger_error(__METHOD__." start");
+    }
+    
     # Відомості про справи про банкрутство (Bankruptcy Information)
     $result[YouControlTypes::bankrupt->name] = self::_getPreviousResult(YouControlTypes::bankrupt->name)
       ? : self::_wsBankrupt();
@@ -239,6 +243,10 @@ final class YouControl
    */
   private function _runCompany():array
   {
+    if (self::$debug) {
+      trigger_error(__METHOD__." start");
+    }
+    
     # Відомості про справи про банкрутство (Bankruptcy Information)
     $result[YouControlTypes::bankrupt->name] = self::_getPreviousResult(YouControlTypes::bankrupt->name)
       ? : self::_wsBankrupt();
@@ -254,7 +262,7 @@ final class YouControl
     # Виконавчі провадження (Enforcement proceedings)
     $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutive();
-    
+    /*
     # Детальна інформація про ФПГ (Information about FIG)
     $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name)
       ? : self::_wsFigCompany();
@@ -262,7 +270,7 @@ final class YouControl
     # Санкції (Sanctions)
     $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
       ? : self::_wsSanctions();
-    
+    */
     # Наявність у компанії податкового боргу (Company's tax dept)
     $result[YouControlTypes::taxDebtor->name] = self::_getPreviousResult(YouControlTypes::taxDebtor->name)
       ? : self::_wsTaxDebtorCompany();
@@ -277,6 +285,10 @@ final class YouControl
    */
   private function _runPersonal():array
   {
+    if (self::$debug) {
+      trigger_error(__METHOD__." start");
+    }
+    
     # ФО - Виконавчі провадження (Private individual - Enforcement proceedings)
     $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutivePersonal();
@@ -326,10 +338,18 @@ final class YouControl
   {
     # Ключ до API
     $apiKay = match ($requestType) {
-      YouControlTypes::fig, YouControlTypes::sanctions => CustomerDocsRef::Company === $this->subject
+      YouControlTypes::fig, YouControlTypes::sanctions => CustomerType::COMPANY === $this->subject
         ? $this->APIKeyAnalytics : $this->APIKeyData,
       default => $this->APIKeyData
     };
+    
+    if ('' === $apiKay) {
+      if (self::$debug) {
+        trigger_error(__METHOD__." Відсутній код доступу до API для даного запиту $requestType->value");
+      }
+      
+      return "Відсутній ключ доступу до API";
+    }
     
     # Адреса запиту
     $requestURL = self::_getURL($url, $apiKay);
@@ -365,7 +385,7 @@ final class YouControl
         # Адреса повторного запиту
         $requestURL = self::_getURL(trim($json->resultUrl ?? $urlResult), $apiKay);
         
-        sleep(1);
+        sleep(2);
         
         # Повторний запит
         $response = Curl::exec($requestURL, $requestHeader, httpMethod: HTTPMethods::GET, timeout: 5);
