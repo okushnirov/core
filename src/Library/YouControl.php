@@ -262,7 +262,7 @@ final class YouControl
     # Виконавчі провадження (Enforcement proceedings)
     $result[YouControlTypes::executive->name] = self::_getPreviousResult(YouControlTypes::executive->name)
       ? : self::_wsExecutive();
-    /*
+    
     # Детальна інформація про ФПГ (Information about FIG)
     $result[YouControlTypes::fig->name] = self::_getPreviousResult(YouControlTypes::fig->name)
       ? : self::_wsFigCompany();
@@ -270,7 +270,7 @@ final class YouControl
     # Санкції (Sanctions)
     $result[YouControlTypes::sanctions->name] = self::_getPreviousResult(YouControlTypes::sanctions->name)
       ? : self::_wsSanctions();
-    */
+    
     # Наявність у компанії податкового боргу (Company's tax dept)
     $result[YouControlTypes::taxDebtor->name] = self::_getPreviousResult(YouControlTypes::taxDebtor->name)
       ? : self::_wsTaxDebtorCompany();
