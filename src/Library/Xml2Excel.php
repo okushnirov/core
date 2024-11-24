@@ -221,15 +221,13 @@ final class Xml2Excel
     }
     
     # Встановити курсор на першу строку після заголовку
-    if (1 !== $firstRow) {
-      $firstCell = "A".($firstRow + 1);
-      $this->sheet->setSelectedCells($firstCell);
-      
-      # Закріплення області
-      if ($this->isFreeze) {
-        $this->spreadsheet->getActiveSheet()
-                          ->freezePane($firstCell);
-      }
+    $firstCell = "A".($firstRow + 1);
+    $this->sheet->setSelectedCells($firstCell);
+    
+    # Закріплення області
+    if ($this->isFreeze) {
+      $this->spreadsheet->getActiveSheet()
+                        ->freezePane($firstCell);
     }
   }
   
