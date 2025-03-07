@@ -90,7 +90,7 @@ final class Word
     
     $this->isLinks = isset($xml->ссылки) && $xml->ссылки->ссылка->count();
     
-    $this->testMode = $testMode || ($this->$xml['test'] ?? false);
+    $this->testMode = $testMode || ($this->xml['test'] ?? false);
     
     if (self::$debug) {
       trigger_error(__METHOD__." Request\n".$this->xml->saveXML()."\nFile template: ".$this->fileTemplate
