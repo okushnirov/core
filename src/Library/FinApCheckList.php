@@ -14,6 +14,10 @@ final class FinApCheckList
   
   public bool $disabled = true;
   
+  public string $document = '';
+  
+  public int $docType = 0;
+  
   /**
    * Ознака підтвердження результатів запиту підрозділом фінансового моніторингу суб'єкта ФМ:
    * true – потребує підтвердження
@@ -129,6 +133,8 @@ final class FinApCheckList
     $this->refID = $request->refID ?? (new \DateTime())->format('ymdHisu');
     $this->code = trim($request->code ?? '');
     $this->date = trim($request->date ?? '');
+    $this->document = trim($request->document ?? '');
+    $this->docType = (int)($request->docType ?? $this->docType);
     $this->name = trim($request->name ?? '');
     $this->type = trim($request->type ?? '');
     $this->userPCID = (int)($request->userPCID ?? $this->userPCID);
@@ -171,6 +177,11 @@ final class FinApCheckList
       "finmon" => $this->finMon,
       "responsetype" => $this->responseType
     ];
+    
+    if ('' !== $this->document) {
+      $request["document"] = $this->document;
+      $request["docType"] = $this->docType;
+    }
     
     if ($this->date) {
       $request["date"] = $this->date;
