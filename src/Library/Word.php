@@ -194,6 +194,10 @@ final class Word
     if (!$this->testMode) {
       $this->word->removeVar();
     }
+    
+    if (self::$debug) {
+      trigger_error(__METHOD__." Remove variables....");
+    }
   }
   
   public function save():void
