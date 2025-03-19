@@ -58,10 +58,10 @@ final class Str
       return false;
     }
     
-    $check = (-1 * $inn[0] + 5 * $inn[1] + 7 * $inn[2] + 9 * $inn[3] + 4 * $inn[4] + 6 * $inn[5] + 10 * $inn[6] + 5
-        * $inn[7] + 7 * $inn[8]) % 11;
+    $check = (1 * $inn[0] + 2 * $inn[1] + 3 * $inn[2] + 4 * $inn[3] + 5 * $inn[4] + 6 * $inn[5] + 7 * $inn[6] + 8
+        * $inn[7] + 9 * $inn[8]) % 11;
     
-    return (10 == $check ? 0 : $check) == $inn[9] * 1;
+    return (10 > $check ? $check : 0) == ($inn[9] * 1);
   }
   
   public static function lowerCase(string $value):string
