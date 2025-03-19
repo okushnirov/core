@@ -47,8 +47,10 @@ final class Str
     string $thousandSeparator = ' ', string $startText = '', string $endText = ''):bool | string
   {
     
-    return empty($number) ? $emptyText : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
-      number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
+    return empty($number)
+      ? $emptyText
+      : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
+        number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
   }
   
   public static function isINN(string $inn):bool
@@ -58,10 +60,19 @@ final class Str
       return false;
     }
     
+    $control = $inn[9] * 1;
     $check = (1 * $inn[0] + 2 * $inn[1] + 3 * $inn[2] + 4 * $inn[3] + 5 * $inn[4] + 6 * $inn[5] + 7 * $inn[6] + 8
         * $inn[7] + 9 * $inn[8]) % 11;
     
-    return (10 > $check ? $check : 0) == ($inn[9] * 1);
+    if ((10 > $check ? $check : 0) === $control) {
+      
+      return true;
+    }
+    
+    $check = (-1 * $inn[0] + 5 * $inn[1] + 7 * $inn[2] + 9 * $inn[3] + 4 * $inn[4] + 6 * $inn[5] + 10 * $inn[6] + 5
+        * $inn[7] + 7 * $inn[8]) % 11;
+    
+    return (10 > $check ? $check : 0) === $control;
   }
   
   public static function lowerCase(string $value):string
@@ -74,7 +85,8 @@ final class Str
     string $string, int $flags = ENT_QUOTES, string $startText = '', string $endText = ''):string
   {
     
-    return '' === $string ? ''
+    return '' === $string
+      ? ''
       : self::wrapText(htmlspecialchars($string, $flags, Charset::UTF8->value), $startText, $endText);
   }
   
