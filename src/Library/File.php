@@ -31,6 +31,8 @@ final class File
       throw new \Exception('Empty files', -1);
     }
     
+    $cnt = count($files);
+    
     foreach ($files as $file) {
       if (!self::isFile($file, $isRoot)) {
         
@@ -41,7 +43,7 @@ final class File
       
       $fileContent = match ($fileType) {
         FileType::JSON => json_decode(file_get_contents($filePath), true),
-        FileType::XML => (array)simplexml_load_file($filePath),
+        FileType::XML => 1 < $cnt ? (array)simplexml_load_file($filePath) : simplexml_load_file($filePath),
         FileType::INI => parse_ini_file($filePath, true),
         FileType::SERIALIZE => unserialize(file_get_contents($filePath)),
         FileType::ANY => file_get_contents($filePath)
@@ -54,6 +56,12 @@ final class File
       
       if ($fileType === FileType::ANY) {
         $resultString .= $fileContent;
+      } elseif ($fileType === FileType::XML) {
+        if (1 < $cnt) {
+          $resultString .= $fileContent;
+        } else {
+          $resultString = $fileContent;
+        }
       } else {
         $resultArray = array_merge_recursive($resultArray, $fileContent);
       }
@@ -61,7 +69,11 @@ final class File
       unset($fileContent);
     }
     
-    return $fileType === FileType::ANY ? $resultString
-      : ($objectResult ? json_decode(json_encode($resultArray, JSON_FORCE_OBJECT)) : $resultArray);
+    return in_array($fileType, [
+      FileType::ANY,
+      FileType::XML
+    ], true) ? $resultString
+      : ($objectResult ? json_decode(json_encode($resultArray, JSON_FORCE_OBJECT))
+      : $resultArray);
   }
 }

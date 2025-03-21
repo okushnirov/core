@@ -111,4 +111,7 @@ enum UBKITypes: int
   
   # Ідентифікація за номером телефону та ПІБ
   case Request52 = 52;
+  
+  # Пов'язані особи
+  case Request53 = 53;
 }
