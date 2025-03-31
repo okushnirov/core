@@ -25,7 +25,7 @@ enum FinApCheckListTypes: string
   # 7. Реєстр виконавчих проваджень
   case Executive = "Виконавчі впровадження";
   
-  # 8. Реєстр податкових боржників
+  # 8. Єдиний реєстр боржників
   case Debtor = "Боржники";
   
   # 9. Реєстр банкрутів
@@ -43,6 +43,9 @@ enum FinApCheckListTypes: string
   # 13. Реєстр корупціонерів
   case Corrupt = "Корупція";
   
+  # 14. Реєстр податкових боржників
+  case TaxDebtor = "Податкові боржники";
+  
   public function getTags():string
   {
     
@@ -59,12 +62,14 @@ enum FinApCheckListTypes: string
       self::Justice => 'justice',
       self::Wanted => 'wanted',
       self::Corrupt => 'corrupt',
+      self::TaxDebtor => 'taxdebtor',
       default => ''
     };
   }
   
   public function getLabels():string
   {
+    
     return match ($this) {
       self::Sanctions => 'Санкції ДСФМУ, РНБО, ООН, Європейський Союз, Велика Британія, США, Канада та інші іноземні санкційні списки',
       self::PEPs => 'Реєстр політично значущих осіб',
@@ -73,12 +78,13 @@ enum FinApCheckListTypes: string
       self::NonResident => 'Реєстр нерезидентів',
       self::LostDocs => 'Реєстр втрачених/недійсних документів (національні та закордонні паспорти)',
       self::Executive => 'Реєстр виконавчих проваджень',
-      self::Debtor => 'Реєстр податкових боржників',
+      self::Debtor => 'Єдиний реєстр боржників',
       self::Bankrupt => 'Реєстр банкрутів',
       self::CountryOfRisks => 'Показник ризиковості крани громадянства або реєстрації серед бенефіціарних власників або засновників',
       self::Justice => 'Реєстр судових справ',
       self::Wanted => 'Реєстр розшуку',
-      self::Corrupt => 'Реєстр корупціонерів'
+      self::Corrupt => 'Реєстр корупціонерів',
+      self::TaxDebtor => 'Реєстр податкових боржників'
     };
   }
 }
