@@ -68,7 +68,7 @@ final class WebService
       $response = Charset::WINDOWS1251 === $charset ? Encoding::decode($response) : $response;
       $json = $response ? json_decode($response) : null;
       
-      if (empty($json) || JSON_ERROR_NONE !== json_last_error()) {
+      if (is_null($json) || JSON_ERROR_NONE !== json_last_error()) {
         
         throw new \Exception(json_last_error_msg() ? : 'Empty or wrong response', -2);
       }
@@ -105,7 +105,10 @@ final class WebService
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '')."\nAuth [".($ws->user ?? '').":".($ws->pass ?? '')."]"
         ."\nRequest ".($ws->url ?? '')."\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response,
         E_USER_ERROR);
+      
     }
+    
+    self::$debug = false;
     
     if (200 !== Curl::$curlHttpCode) {
       
@@ -127,7 +130,7 @@ final class WebService
       $response = Charset::WINDOWS1251 === $charset ? Str::replaceHeader($response) : $response;
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
-      if (empty($xml) || empty($xml->getName())) {
+      if (is_null($xml) || empty($xml->getName())) {
         
         throw new \Exception('Empty or wrong response', -2);
       }
