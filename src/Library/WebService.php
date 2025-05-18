@@ -105,7 +105,6 @@ final class WebService
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '')."\nAuth [".($ws->user ?? '').":".($ws->pass ?? '')."]"
         ."\nRequest ".($ws->url ?? '')."\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response,
         E_USER_ERROR);
-      
     }
     
     self::$debug = false;

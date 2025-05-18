@@ -21,8 +21,8 @@
   "php":">=8.2"
  },
  "require-dev":{
-  "phpmailer/phpmailer":"^v6.9.3",
-  "phpoffice/phpspreadsheet":"^3.9.1",
+  "phpmailer/phpmailer":"^v6.10.0",
+  "phpoffice/phpspreadsheet":"^4.2.0",
   "phpoffice/phpword":"^1.3.0"
  }
 }
