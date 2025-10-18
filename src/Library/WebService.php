@@ -10,6 +10,8 @@ final class WebService
   
   public static int $httpCode = 0;
   
+  public static mixed $httpInfo = [];
+  
   public static string $response = '';
   
   private static mixed $settings;
@@ -92,19 +94,25 @@ final class WebService
     }
     
     self::$httpCode = 0;
+    self::$httpInfo = [];
+    
     self::$response = '';
     
     if (isset($ws->url)) {
       self::$response = Curl::exec($ws->url, $header ? : [], $data, $ws->user ?? '', $ws->pass ?? '', $httpMethod, $ssl,
         $timeout);
       self::$httpCode = Curl::$curlHttpCode;
+      self::$httpInfo = Curl::$curlHttpInfo;
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name.($header ? " Header\n".json_encode($header,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : '')."\nAuth [".($ws->user ?? '').":".($ws->pass ?? '')."]"
-        ."\nRequest ".($ws->url ?? '')."\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response,
-        E_USER_ERROR);
+      trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name."\nURL ".($ws->url ?? ' url not found')."\nAuth ["
+        .($ws->user ?? '').":".($ws->pass ?? '')."]".($header ? "\nHeader\n".json_encode($header,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '')
+        ."\nRequest\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response.(200 === self::$httpCode
+          ? ''
+          : "\nHTTP Curl info\n".json_encode(self::$httpInfo,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)), E_USER_ERROR);
     }
     
     self::$debug = false;
