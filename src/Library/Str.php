@@ -82,11 +82,12 @@ final class Str
   }
   
   public static function prepare(
-    string $string, int $flags = ENT_QUOTES, string $startText = '', string $endText = ''):string
+    string $string, int $flags = ENT_QUOTES, string $startText = '', string $endText = '',
+    string $emptyText = ''):string
   {
     
     return '' === $string
-      ? ''
+      ? $emptyText
       : self::wrapText(htmlspecialchars($string, $flags, Charset::UTF8->value), $startText, $endText);
   }
   
