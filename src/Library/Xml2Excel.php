@@ -214,8 +214,8 @@ final class Xml2Excel
     
     # Автоматичний розмір
     if ($this->isAutosize && '' !== $this->highestColumn) {
-      foreach (range('A', $this->highestColumn) as $col) {
-        $this->sheet->getColumnDimension($col)
+      foreach ($this->sheet->getColumnIterator() as $column) {
+        $this->sheet->getColumnDimension($column->getColumnIndex())
                     ->setAutoSize(true);
       }
     }
@@ -417,7 +417,8 @@ final class Xml2Excel
     'merge' => "bool",
     'underline' => "bool",
     'valign' => "string"
-  ])] private function style(\SimpleXMLElement $col, array $default = []):array
+  ])]
+  private function style(\SimpleXMLElement $col, array $default = []):array
   {
     $align = $this->alignHorizontal(trim($col['align'] ?? ''), $default['align'] ?? '');
     $border = trim($col['border'] ?? '');

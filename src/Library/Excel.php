@@ -156,8 +156,8 @@ final class Excel
     
     $this->sheet->setAutoFilter('A'.$this->rowFirst.':'.$this->highestColumn.$highestRow);
     
-    foreach (range('A', $this->highestColumn) as $col) {
-      $this->sheet->getColumnDimension($col)
+    foreach ($this->sheet->getColumnIterator() as $column) {
+      $this->sheet->getColumnDimension($column->getColumnIndex())
                   ->setAutoSize(true);
     }
     
