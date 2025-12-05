@@ -2,41 +2,27 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\Extensions;
+use okushnirov\core\Library\Enums\{ConvertPDF, Extensions};
 use PhpOffice\PhpWord\{Exception\Exception, Settings, TemplateProcessor};
 
 final class Word
 {
   public static bool $debug = false;
-  
+  private ConvertPDF $convertPDF;
   private \DateTime $dateTime;
-  
   private string $fileCopy;
-  
   private string $fileDownload;
-  
   private Extensions $fileExtIn = Extensions::DOCX;
-  
   private Extensions $fileExtOut = Extensions::DOCX;
-  
   private array $fileImages = [];
-  
   private string $fileRead;
-  
   private string $fileTemplate;
-  
   private bool $isConvert = false;
-  
   private bool $isLinks = false;
-  
   private string $path = "\\files\\templates\\";
-  
   private string $pathImage = "\\files\\templates\\images\\";
-  
   private bool $testMode = false;
-  
   private ?TemplateProcessor $word;
-  
   private \SimpleXMLElement $xml;
   
   public function __construct(\SimpleXMLElement $xml, bool $testMode = false)
@@ -75,6 +61,9 @@ final class Word
     
     $this->isConvert = !TEST_SERVER
       && 'pdf' === mb_convert_case(trim($this->xml->данные->ext ?? 'docx'), MB_CASE_LOWER);
+    
+    $convertPDF = ConvertPDF::tryFrom(trim($this->xml->данные->convert ?? ''));
+    $this->convertPDF = is_null($convertPDF) ? ConvertPDF::LibreOffice : $convertPDF;
     
     $this->dateTime = new \DateTime();
     $this->fileExtOut = $this->isConvert ? Extensions::PDF : $this->fileExtOut;
@@ -215,11 +204,15 @@ final class Word
     }
     
     if ($this->isConvert) {
-      self::_convert();
+      if (ConvertPDF::MSWord === $this->convertPDF) {
+        self::_convertMSWord();
+      } else {
+        self::_convertLibreOffice();
+      }
     }
   }
   
-  private function _convert():void
+  private function _convertLibreOffice():void
   {
     $tmpPath = sys_get_temp_dir();
     $tempLibreOfficeProfile = $tmpPath."\\LibreOfficeProfile\\".$this->dateTime->format('YmdHisu');
@@ -232,6 +225,19 @@ final class Word
     
     exec($command, $output, $return);
     exec('rmdir /S /Q "'.$tempLibreOfficeProfile.'"');
+    
+    if (!empty($return)) {
+      
+      throw new \Exception('Помилка виконання команди конвертації', -40);
+    }
+  }
+  
+  private function _convertMSWord():void
+  {
+    $command = "powershell.exe -ExecutionPolicy Bypass -File \"C:\\Php-8.2\\convert.ps1\" -inputFile ".str_replace('/',
+        '\\', $this->fileCopy)." -outputFile ".str_replace('/', '\\', $this->fileRead);
+    
+    exec($command, $output, $return);
     
     if (!empty($return)) {
       
@@ -296,7 +302,9 @@ final class Word
         continue;
       }
       
-      $fileImage = '' === trim($image) ? '' : (false === stripos($image, ':') ? $pathImage.$image : trim((string)$image));
+      $fileImage = '' === trim($image) ? ''
+        : (false === stripos($image, ':') ? $pathImage.$image
+        : trim((string)$image));
       $fileImageDefault = '' === trim($image['def'] ?? '') ? '' : $pathImage.$image['def'];
       $fileImageDefault2 = '' === trim($image['def_2'] ?? '') ? '' : $pathImage.$image['def_2'];
       
