@@ -53,7 +53,7 @@ final class Xml2Excel
   
   private \SimpleXMLElement $xml;
   
-  public function init(\SimpleXMLElement $xml):void
+  public function init(\SimpleXMLElement $xml, bool $debug = false):void
   {
     if ('table' !== $xml->getName()) {
       
@@ -75,6 +75,8 @@ final class Xml2Excel
       
       throw new \Exception("Не визначено тип вихідного файлу", -2);
     }
+    
+    self::$debug = $debug;
     
     # Назва файла
     $fileDownload = trim($this->xml['filename'] ?? '');

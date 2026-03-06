@@ -91,20 +91,21 @@ final class Str
       : self::wrapText(htmlspecialchars($string, $flags, Charset::UTF8->value), $startText, $endText);
   }
   
-  public static function removeSpecChar(string $string):array | string
+  public static function removeSpecChar(string $string, array $search = []):array | string
   {
     
     return '' === $string
       ? $string
-      : str_replace([
-        "\r\n",
-        "\r",
-        "\n",
-        "\t",
-        "№",
-        '‎',
-        ''
-      ], '', $string);
+      : str_replace($search
+        ? : [
+          "\r\n",
+          "\r",
+          "\n",
+          "\t",
+          "№",
+          '‎',
+          ''
+        ], '', $string);
   }
   
   public static function replaceHeader(

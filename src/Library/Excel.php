@@ -37,7 +37,7 @@ final class Excel
   
   private int $posY = 1;
   
-  public function __construct(array $request = [])
+  public function __construct(array $request = [], bool $debug = false)
   {
     if (empty($request)) {
       
@@ -72,6 +72,8 @@ final class Excel
       
       throw new \Exception("Не передано обов'язковий параметр", -2);
     }
+    
+    self::$debug = $debug;
     
     if (self::$debug) {
       trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));

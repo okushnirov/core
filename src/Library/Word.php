@@ -2,13 +2,12 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\{ConvertPDF, Extensions};
+use okushnirov\core\Library\Enums\Extensions;
 use PhpOffice\PhpWord\{Exception\Exception, Settings, TemplateProcessor};
 
 final class Word
 {
   public static bool $debug = false;
-  private ConvertPDF $convertPDF;
   private \DateTime $dateTime;
   private string $fileCopy;
   private string $fileDownload;
@@ -25,7 +24,7 @@ final class Word
   private ?TemplateProcessor $word;
   private \SimpleXMLElement $xml;
   
-  public function __construct(\SimpleXMLElement $xml, bool $testMode = false)
+  public function __construct(\SimpleXMLElement $xml, bool $testMode = false, bool $debug = false)
   {
     $this->xml = $xml;
     
@@ -44,6 +43,8 @@ final class Word
       throw new \Exception("Відсутній шаблон документа", -3);
     }
     
+    self::$debug = $debug;
+    
     $directory = trim($this->xml->шаблон['каталог'] ?? '');
     $directory = '' === $directory ? '' : $directory.DIRECTORY_SEPARATOR;
     
@@ -61,9 +62,6 @@ final class Word
     
     $this->isConvert = !TEST_SERVER
       && 'pdf' === mb_convert_case(trim($this->xml->данные->ext ?? 'docx'), MB_CASE_LOWER);
-    
-    $convertPDF = ConvertPDF::tryFrom(trim($this->xml->данные->convert ?? ''));
-    $this->convertPDF = is_null($convertPDF) ? ConvertPDF::LibreOffice : $convertPDF;
     
     $this->dateTime = new \DateTime();
     $this->fileExtOut = $this->isConvert ? Extensions::PDF : $this->fileExtOut;
@@ -84,7 +82,8 @@ final class Word
     if (self::$debug) {
       trigger_error(__METHOD__." Request\n".$this->xml->saveXML()."\nFile template: ".$this->fileTemplate
         ."\nFile copy: ".$this->fileCopy."\nFile download: ".$this->fileDownload."\nFile read: ".$this->fileRead
-        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->testMode ? 'yes' : 'no'));
+        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->testMode ? 'yes' : 'no')."\n",
+        E_USER_ERROR);
     }
   }
   
@@ -109,7 +108,7 @@ final class Word
     header("Pragma: public");
     
     if (self::$debug) {
-      trigger_error(__METHOD__." Read file $this->fileRead");
+      trigger_error(__METHOD__." Read file $this->fileRead", E_USER_ERROR);
     }
     
     readfile($this->fileRead);
@@ -185,7 +184,7 @@ final class Word
     }
     
     if (self::$debug) {
-      trigger_error(__METHOD__." Remove variables....");
+      trigger_error(__METHOD__." Remove variables....", E_USER_ERROR);
     }
   }
   
@@ -204,11 +203,7 @@ final class Word
     }
     
     if ($this->isConvert) {
-      if (ConvertPDF::MSWord === $this->convertPDF) {
-        self::_convertMSWord();
-      } else {
-        self::_convertLibreOffice();
-      }
+      self::_convertLibreOffice();
     }
   }
   
@@ -220,24 +215,11 @@ final class Word
         "/", $tempLibreOfficeProfile)." --headless --convert-to pdf --outdir $tmpPath \"$this->fileCopy\"";
     
     if (self::$debug) {
-      trigger_error(__METHOD__." run command:\n$command", E_USER_DEPRECATED);
+      trigger_error(__METHOD__." run command:\n\n$command\n", E_USER_ERROR);
     }
     
     exec($command, $output, $return);
     exec('rmdir /S /Q "'.$tempLibreOfficeProfile.'"');
-    
-    if (!empty($return)) {
-      
-      throw new \Exception('Помилка виконання команди конвертації', -40);
-    }
-  }
-  
-  private function _convertMSWord():void
-  {
-    $command = "powershell.exe -ExecutionPolicy Bypass -File \"C:\\Php-8.2\\convert.ps1\" -inputFile ".str_replace('/',
-        '\\', $this->fileCopy)." -outputFile ".str_replace('/', '\\', $this->fileRead);
-    
-    exec($command, $output, $return);
     
     if (!empty($return)) {
       
@@ -309,9 +291,9 @@ final class Word
       $fileImageDefault2 = '' === trim($image['def_2'] ?? '') ? '' : $pathImage.$image['def_2'];
       
       if (self::$debug) {
-        trigger_error(__METHOD__
-          ."\nImage: $fileImage\nImage Default: $fileImageDefault\nImage Default2: $fileImageDefault2",
-          E_USER_DEPRECATED);
+        trigger_error("\n".__METHOD__
+          ."\nReplace $imageName\nImage: $fileImage\nImage Default: $fileImageDefault\nImage Default2: $fileImageDefault2",
+          E_USER_ERROR);
       }
       
       if (File::isFile($fileImage, false)) {
@@ -357,7 +339,7 @@ final class Word
       foreach ($item as $key => $value) {
         
         if (self::$debug) {
-          trigger_error("Replace $alias.$key$postfix = ".trim($value), E_USER_DEPRECATED);
+          trigger_error("Replace $alias.$key$postfix = ".trim($value), E_USER_ERROR);
         }
         
         $isEscape = false === mb_stripos($value, '<w:br/>');
