@@ -62,7 +62,8 @@ final class UBKI
     self::$user = $settings->user ?? '';
     
     if (self::$debug) {
-      trigger_error(__METHOD__." Settings\n".json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." Settings\n".json_encode($settings,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
   }
   
@@ -82,21 +83,26 @@ final class UBKI
     
     # Get new sessionID
     if (empty(self::$sessionID)) {
-      $response = json_decode(Curl::exec(self::$urlAuth, [
+      $header = [
         "Content-Type: application/json",
         "Accept: application/json"
-      ], json_encode([
+      ];
+      
+      $request = json_encode([
         "doc" => [
           "auth" => [
             "login" => self::$user,
             "pass" => self::$pass
           ]
         ]
-      ])));
+      ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+      
+      $response = json_decode(Curl::exec(self::$urlAuth, $header, $request));
       
       if (self::$debug) {
-        trigger_error(__METHOD__." Authorization response:\n".json_encode($response,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        trigger_error(__METHOD__." URL ".self::$urlAuth."\nHeader:\n".json_encode($header,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\nRequest:\n$request\nResponse:\n"
+          .json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
       }
       
       self::$sessionID = $response->doc->auth->sessid ?? '';
@@ -115,7 +121,7 @@ final class UBKI
   {
     if (self::$debug) {
       trigger_error(__METHOD__." Request type = $type?->name\n".json_encode($data,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     self::$requestType = $type;
@@ -141,20 +147,25 @@ final class UBKI
     }
     
     $request = '' === $request ? self::_getRequest() : $request;
+    $header = [
+      "Content-type: application/xml;charset=utf-8",
+      "Accept: application/xml",
+      "Content-length: ".strlen($request)
+    ];
+    $url = trim(self::$testMode ? self::$urlTest : self::$url);
     
     if (self::$debug) {
-      trigger_error(__METHOD__." Request\n".$request);
+      trigger_error(__METHOD__." URL $url\nHeader:\n".json_encode($header,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\nRequest:\n".$request);
     }
     
-    $response = $request ? (string)Curl::exec(self::$testMode ? self::$urlTest : self::$url, [
-      "POST ".(self::$testMode ? self::$urlTest : self::$url)." HTTP/1.0",
-      "Content-type: text/xml;charset=\"utf-8\"",
-      "Accept: text/xml",
-      "Content-length: ".strlen($request)
-    ], $request) : '';
+    $response = $request ? (string)Curl::exec($url, $header, $request) : '';
     
     if (self::$debug) {
-      trigger_error(__METHOD__."HTTP ".Curl::$curlHttpCode." Response\n".$response);
+      trigger_error(__METHOD__." Response HTTP ".Curl::$curlHttpCode."\n$response".(200 === Curl::$curlHttpCode
+          ? ''
+          : "\nCurl Info\n".json_encode(Curl::$curlHttpInfo,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
     }
     
     return 200 === Curl::$curlHttpCode ? $response : '';
@@ -187,7 +198,7 @@ final class UBKI
   </i>
 </request>',
       UBKITypes::Request15, UBKITypes::Request26 => '<request reqtype="'.self::$requestType->value
-        .'" reqreason="2" reqdate="'.date("Y-m-d").'" reqsource="1"><i reqlng="1"><ident okpo="'
+        .'" reqreason="12" reqdate="'.date("Y-m-d").'" reqsource="1"><i reqlng="1"><ident okpo="'
         .htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>',
       UBKITypes::Request22 => '<request reqtype="'.self::$requestType->value.'" reqreason="6" reqdate="'.date("Y-m-d")
         .'" reqsource="1"><i reqlng="1"><ident okpo="'.htmlspecialchars(self::$code, ENT_XML1).'"/></i></request>',
