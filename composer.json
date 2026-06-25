@@ -15,13 +15,7 @@
   "psr-4":{
    "okushnirov\\core\\":"src/",
    "core\\":"php/classes"
-  },
-  "files":[
-   "php/classes/Constant.php"
-  ]
- },
- "config":{
-  "optimize-autoloader":true
+  }
  },
  "require":{
   "php":">=8.2"
