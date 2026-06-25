@@ -24,9 +24,13 @@ final class ErrorHandler
   
   private string $logPath = "C:\\Log\\";
   
-  public function __construct(string $logPath = '')
+  public function __construct(string $logPath = '', string $constantsFile = '')
   {
     $this->logPath = '' === $logPath ? $this->logPath : $logPath;
+    
+    if ('' !== $constantsFile && file_exists($constantsFile)) {
+      require_once $constantsFile;
+    }
   }
   
   public function errorHandler(
