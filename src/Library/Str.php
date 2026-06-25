@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\{Enums\Charset, Enums\DateEn, Enums\DateRu, Interfaces\DateFormat};
+use okushnirov\core\Library\Enums\{Charset, DateEn, DateRu};
+use okushnirov\core\Library\Interfaces\DateFormat;
 
 final class Str
 {
@@ -17,14 +18,11 @@ final class Str
     }
     
     # IN: YYYY-MM-DD OUT: d.m.Y H:i:s || Y-m-d H:i:s
-    if ($formatOut === DateRu::DATETIME || $formatOut === DateEn::DATETIME) {
-      $dateOut = strtotime($dateIn);
-      
-      return empty($dateOut) ? '' : self::wrapText(date($formatOut->value, $dateOut), $startText, $endText);
-    }
-    
     # IN: YYYY-MM-DD OUT: d.m.Y H:i || Y-m-d H:i
-    if ($formatOut === DateRu::TIMESTAMP || $formatOut === DateEn::TIMESTAMP) {
+    if ($formatOut === DateRu::DATETIME
+      || $formatOut === DateEn::DATETIME
+      || $formatOut === DateRu::TIMESTAMP
+      || $formatOut === DateEn::TIMESTAMP) {
       $dateOut = strtotime($dateIn);
       
       return empty($dateOut) ? '' : self::wrapText(date($formatOut->value, $dateOut), $startText, $endText);
@@ -46,21 +44,24 @@ final class Str
     mixed  $number, int $decimal = 2, string $emptyText = '', string $decimalSeparator = '.',
     string $thousandSeparator = ' ', string $startText = '', string $endText = ''):bool | string
   {
+    if (empty($number)) {
+      
+      return $emptyText;
+    }
     
-    return empty($number)
-      ? $emptyText
-      : self::wrapText(mb_eregi_replace('_', $thousandSeparator,
-        number_format((float)$number, $decimal, $decimalSeparator, '_')), $startText, $endText);
+    $formatted = number_format((float)$number, $decimal, $decimalSeparator, '_');
+    
+    return self::wrapText(str_replace('_', $thousandSeparator, $formatted), $startText, $endText);
   }
   
   public static function isINN(string $inn):bool
   {
-    if (!preg_match('/\d{10}/i', $inn)) {
+    if (!preg_match('/^\d{10}$/', $inn)) {
       
       return false;
     }
     
-    $control = $inn[9] * 1;
+    $control = (int)$inn[9];
     $check = (1 * $inn[0] + 2 * $inn[1] + 3 * $inn[2] + 4 * $inn[3] + 5 * $inn[4] + 6 * $inn[5] + 7 * $inn[6] + 8
         * $inn[7] + 9 * $inn[8]) % 11;
     
@@ -115,57 +116,51 @@ final class Str
       : Encoding::decode($string)) : $string;
     $string = $string && $removeSpecChar ? self::removeSpecChar($string) : $string;
     
-    return mb_eregi_replace((Charset::UTF8 === $needle ? Charset::WINDOWS1251 : Charset::UTF8)->value, $needle->value,
-      $string);
+    $pattern = (Charset::UTF8 === $needle ? Charset::WINDOWS1251 : Charset::UTF8)->value;
+    
+    return preg_replace('/'.preg_quote($pattern, '/').'/ui', $needle->value, $string);
   }
   
   public static function separateEntity(string $string, string $tagName):string
   {
+    if ('' === $string) {
+      
+      return '';
+    }
     
-    return '' === $string
-      ? ''
-      : ('' === $tagName
-        ? $string
-        : implode('', array_map(function($value) use ($tagName) {
-          
-          return "<$tagName>$value</$tagName>";
-        }, str_split($string))));
+    if ('' === $tagName) {
+      
+      return $string;
+    }
+    
+    $chars = mb_str_split($string, 1, Charset::UTF8->value);
+    
+    return implode('', array_map(fn($value) => "<$tagName>$value</$tagName>", $chars));
   }
   
   public static function transformAccount(string $account, string $startText = '', string $endText = ''):string
   {
-    if (19 !== strlen($account)) {
+    if (19 !== mb_strlen($account)) {
       
       return $account;
     }
     
-    $array = str_split($account);
+    $formatted = preg_replace('/(\d{4})(\d{2})(\d{3})(\d{3})(\d{3})(\d{3})(\d)/', '$1 $2 $3 $4 $5 $6 $7', $account);
     
-    array_splice($array, 4, 0, ' ');
-    array_splice($array, 7, 0, ' ');
-    array_splice($array, 11, 0, ' ');
-    array_splice($array, 15, 0, ' ');
-    array_splice($array, 19, 0, ' ');
-    array_splice($array, 23, 0, ' ');
-    
-    return self::wrapText(implode('', $array), $startText, $endText);
+    return self::wrapText($formatted, $startText, $endText);
   }
   
   public static function transformIBAN(string $iban, string $startText = '', string $endText = ''):string
   {
-    if (29 !== strlen($iban)) {
+    if (29 !== mb_strlen($iban)) {
       
       return $iban;
     }
     
-    $chunk = substr($iban, 0, 10);
-    $account = substr($iban, 10);
+    $formatted = preg_replace('/([A-Z]{2})(\d{2})(\d{6})(\d{4})(\d{2})(\d{3})(\d{3})(\d{3})(\d{3})(\d)/',
+      '$1 $2 $3 $4 $5 $6 $7 $8 $9 $10', $iban);
     
-    $array = str_split($chunk);
-    array_splice($array, 2, 0, ' ');
-    array_splice($array, 5, 0, ' ');
-    
-    return self::wrapText(implode('', $array).' '.self::transformAccount($account), $startText, $endText);
+    return self::wrapText($formatted, $startText, $endText);
   }
   
   public static function transliterateUk2En(string $text):string
@@ -282,6 +277,8 @@ final class Str
   
   public static function wordDeclension(int $num, array $word):string
   {
+    $num = abs($num);
+    
     $cases = [
       2,
       0,

@@ -2,9 +2,8 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\{Handlers\SessionHandler, Handlers\SessionHandlerWs, Library\Enums\Decrypt,
-  Library\Enums\SessionType
-};
+use okushnirov\core\Handlers\{SessionHandler, SessionHandlerWs};
+use okushnirov\core\Library\Enums\{Decrypt, SessionType};
 
 final class Session
 {
@@ -26,14 +25,28 @@ final class Session
   public static function sessionDestroy():void
   {
     if (session_id()) {
+      $_SESSION = [];
+      
+      if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        
+        setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"],
+          $params["httponly"]);
+      }
+      
       session_destroy();
       session_start();
-      session_regenerate_id();
+      session_regenerate_id(true);
     }
   }
   
   public static function sessionStart(SessionType $session):bool
   {
+    if (SessionType::NONE === $session) {
+      
+      return false;
+    }
+    
     if (!session_id()) {
       try {
         if (SessionType::DB === $session) {
@@ -42,9 +55,14 @@ final class Session
           new SessionHandlerWs();
         }
         
-        session_start();
+        if (!@session_start()) {
+          throw new \Exception('SessionType::'.$session->name.' connection failure or session storage is unavailable');
+        }
       } catch (\Exception $e) {
-        trigger_error(__METHOD__.' '.$e->getMessage());
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+        
+        trigger_error(__METHOD__.' '.$e->getMessage()."\n".json_encode($backtrace,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
       }
     }
     

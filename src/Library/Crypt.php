@@ -6,6 +6,8 @@ use okushnirov\core\Library\{Enums\Decrypt, Enums\Encrypt, Interfaces\CryptType}
 
 final class Crypt
 {
+  private const MATRIX_DIMENSION = 9;
+  
   public static function action(
     string $string, CryptType $variant, string $startText = '', string $endText = ''):string
   {
@@ -15,76 +17,100 @@ final class Crypt
     }
     
     $return = match ($variant) {
-      Encrypt::BASE => self::__encryptString($string),
-      Decrypt::BASE => self::__decryptString($string),
-      Encrypt::CHR => self::__encryptString($string, true),
-      Decrypt::CHR => self::__decryptString($string, true),
-      Encrypt::INT => self::__encryptInteger($string),
-      Decrypt::INT => self::__decryptInteger($string)
+      Encrypt::BASE => self::encryptString($string),
+      Decrypt::BASE => self::decryptString($string),
+      Encrypt::CHR => self::encryptString($string, true),
+      Decrypt::CHR => self::decryptString($string, true),
+      Encrypt::INT => self::encryptInteger($string),
+      Decrypt::INT => self::decryptInteger($string)
     };
     
     return '' === $return ? '' : Str::wrapText($return, $startText, $endText);
   }
   
-  private static function __decryptInteger(int | string $string):string
+  private static function decryptInteger(int | string $string):string
   {
+    $base8to10 = base_convert(base_convert(base_convert((string)$string, 8, 10), 8, 10), 8, 10);
     
-    return substr(base_convert(base_convert(base_convert((int)$string, 8, 10), 8, 10), 8, 10), 2, -2);
+    return substr($base8to10, 2, -2);
   }
   
-  private static function __decryptString(string $string, bool $random = false):string
+  private static function decryptString(string $string, bool $random = false):string
   {
     if (!$random) {
       
       return base64_decode(base64_decode($string));
     }
     
-    $stringChange = self::__safeEncrypt(base64_decode(str_pad(strtr($string, '-_', '+/'), strlen($string) % 4, '=')),
-      1);
+    $padLength = (4 - (strlen($string) % 4)) % 4;
+    $base64 = str_pad(strtr($string, '-_', '+/'), strlen($string) + $padLength, '=');
     
-    $stringString = '';
+    $decoded = base64_decode($base64);
+    $decryptedMatrix = self::safeCrypt($decoded, true);
     
-    for ($i = 2; $i < strlen($stringChange); $i += 3) {
-      $stringString .= $stringChange[$i];
+    $result = '';
+    $length = strlen($decryptedMatrix);
+    
+    for ($i = 2; $i < $length; $i += 3) {
+      $result .= $decryptedMatrix[$i];
     }
     
-    return $stringString;
+    return $result;
   }
   
-  private static function __encryptInteger(string $string):string
+  private static function encryptInteger(string $string):string
   {
+    $salted = rand(10, 99).$string.rand(10, 99);
     
-    return base_convert(base_convert(base_convert((int)(rand(10, 99).$string.rand(10, 99)), 10, 8), 10, 8), 10, 8);
+    return base_convert(base_convert(base_convert($salted, 10, 8), 10, 8), 10, 8);
   }
   
-  private static function __encryptString(string $string, bool $random = false):string
+  private static function encryptString(string $string, bool $random = false):string
   {
     if (!$random) {
       
       return base64_encode(base64_encode($string));
     }
     
-    $stringChange = '';
+    $salted = '';
+    $length = strlen($string);
     
-    for ($i = 0; $i < strlen($string); $i++) {
-      $stringChange .= rand(10, 99).$string[$i];
+    for ($i = 0; $i < $length; $i++) {
+      $salted .= rand(10, 99).$string[$i];
     }
     
-    return rtrim(strtr(base64_encode(self::__safeEncrypt($stringChange.rand(10, 99))), '+/', '-_'), '=');
+    $encryptedMatrix = self::safeCrypt($salted.rand(10, 99));
+    
+    return rtrim(strtr(base64_encode($encryptedMatrix), '+/', '-_'), '=');
   }
   
-  private static function __safeEncrypt(string $string, bool $decrypt = false):string
+  private static function findCoordinates(array $matrix, string $symbol):?array
   {
-    $o = $s1 = $s2 = [];
-    $based = array_merge([
+    for ($i = 0; $i < self::MATRIX_DIMENSION; $i++) {
+      for ($j = 0; $j < self::MATRIX_DIMENSION; $j++) {
+        if ($matrix[$i][$j] === $symbol) {
+          return [
+            $i,
+            $j
+          ];
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  private static function generateMatrices():array
+  {
+    $alphabet = array_merge([
       '?',
       '(',
       '@',
       ';',
       '$',
       '#',
-      "]",
-      "&",
+      ']',
+      '&',
       '*'
     ], range('a', 'z'), range('A', 'Z'), range(0, 9), [
       '!',
@@ -98,63 +124,68 @@ final class Crypt
       '.',
       ' '
     ]);
-    $dimension = 9;
     
-    for ($i = 0; $i < $dimension; $i++) {
-      for ($j = 0; $j < $dimension; $j++) {
-        $s1[$i][$j] = $based[$i * $dimension + $j];
-        $s2[$i][$j] = str_rot13($based[($dimension * $dimension - 1) - ($i * $dimension + $j)]);
+    $s1 = [];
+    $s2 = [];
+    $dim = self::MATRIX_DIMENSION;
+    $maxIndex = ($dim * $dim) - 1;
+    
+    for ($i = 0; $i < $dim; $i++) {
+      for ($j = 0; $j < $dim; $j++) {
+        $currentIndex = ($i * $dim) + $j;
+        $s1[$i][$j] = (string)$alphabet[$currentIndex];
+        $s2[$i][$j] = str_rot13((string)$alphabet[$maxIndex - $currentIndex]);
       }
     }
     
-    unset($based);
+    return [
+      $s1,
+      $s2
+    ];
+  }
+  
+  private static function safeCrypt(string $string, bool $isDecrypt = false):string
+  {
+    [
+      $s1,
+      $s2
+    ] = self::generateMatrices();
     
-    $m = floor(strlen($string) / 2) * 2;
-    $symbol = $m == strlen($string) ? '' : $string[strlen($string) - 1];
-    $al = [];
+    $stringLength = strlen($string);
+    $m = (int)floor($stringLength / 2) * 2;
+    $hasOddSymbol = ($m !== $stringLength);
+    $oddSymbol = $hasOddSymbol ? $string[$stringLength - 1] : '';
+    
+    $output = [];
+    $oddSymbolCoordinates = [];
+    
+    if ($hasOddSymbol) {
+      $oddSymbolCoordinates = self::findCoordinates($isDecrypt ? $s2 : $s1, $oddSymbol);
+    }
     
     for ($ii = 0; $ii < $m; $ii += 2) {
-      $symbol_1 = $symbol_11 = $string[$ii];
-      $symbol_2 = $symbol_22 = $string[$ii + 1];
-      $a1 = $a2 = [];
+      $symbol1 = $string[$ii];
+      $symbol2 = $string[$ii + 1];
       
-      for ($i = 0; $i < $dimension; $i++) {
-        for ($j = 0; $j < $dimension; $j++) {
-          if ($symbol_1 === strval($decrypt ? $s2[$i][$j] : $s1[$i][$j])) {
-            $a1 = [
-              $i,
-              $j
-            ];
-          }
-          
-          if ($symbol_2 === strval($decrypt ? $s1[$i][$j] : $s2[$i][$j])) {
-            $a2 = [
-              $i,
-              $j
-            ];
-          }
-          
-          if (!empty($symbol) && $symbol === strval($decrypt ? $s2[$i][$j] : $s1[$i][$j])) {
-            $al = [
-              $i,
-              $j
-            ];
-          }
-        }
+      $resSymbol1 = $symbol1;
+      $resSymbol2 = $symbol2;
+      
+      $a1 = self::findCoordinates($isDecrypt ? $s2 : $s1, $symbol1);
+      $a2 = self::findCoordinates($isDecrypt ? $s1 : $s2, $symbol2);
+      
+      if ($a1 !== null && $a2 !== null) {
+        $resSymbol1 = $isDecrypt ? $s1[$a1[0]][$a2[1]] : $s2[$a1[0]][$a2[1]];
+        $resSymbol2 = $isDecrypt ? $s2[$a2[0]][$a1[1]] : $s1[$a2[0]][$a1[1]];
       }
       
-      if (sizeof($a1) && sizeof($a2)) {
-        $symbol_11 = $decrypt ? $s1[$a1[0]][$a2[1]] : $s2[$a1[0]][$a2[1]];
-        $symbol_22 = $decrypt ? $s2[$a2[0]][$a1[1]] : $s1[$a2[0]][$a1[1]];
-      }
-      
-      $o[] = $symbol_11.$symbol_22;
+      $output[] = $resSymbol1.$resSymbol2;
     }
     
-    if (!empty($symbol) && sizeof($al)) {
-      $o[] = $decrypt ? $s1[$al[1]][$al[0]] : $s2[$al[1]][$al[0]];
+    if ($hasOddSymbol && $oddSymbolCoordinates !== null) {
+      $output[] = $isDecrypt ? $s1[$oddSymbolCoordinates[1]][$oddSymbolCoordinates[0]]
+        : $s2[$oddSymbolCoordinates[1]][$oddSymbolCoordinates[0]];
     }
     
-    return implode('', $o);
+    return implode('', $output);
   }
 }

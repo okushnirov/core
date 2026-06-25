@@ -21,40 +21,48 @@ final class Lang
   public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
   {
     if (!enum_exists(LangHandler::class)) {
-      trigger_error(__METHOD__.' No language enum handler found');
+      trigger_error(__METHOD__.' No language enum handler found', E_USER_WARNING);
       
       return;
     }
     
-    if (isset($_REQUEST['lang']) && self::existsLang($_REQUEST['lang'])) {
+    if (isset($_REQUEST['lang']) && is_string($_REQUEST['lang']) && self::existsLang($_REQUEST['lang'])) {
       self::$lang = $_REQUEST['lang'];
-    } elseif (CookieType::Yes === $cookie && self::existsLang($_COOKIE['lang'] ?? '')) {
+    } elseif (CookieType::Yes === $cookie && isset($_COOKIE['lang']) && is_string($_COOKIE['lang'])
+      && self::existsLang($_COOKIE['lang'])) {
       self::$lang = $_COOKIE['lang'];
     } elseif (SessionType::NONE !== $session && Session::sessionStart($session)
-      && self::existsLang($_SESSION['lang'] ?? '')) {
+      && isset($_SESSION['lang'])
+      && is_string($_SESSION['lang'])
+      && self::existsLang($_SESSION['lang'])) {
       self::$lang = $_SESSION['lang'];
     }
     
     self::$lang = self::$lang ? : (LangHandler::cases()[0]?->value ?? '');
     self::$language = LangHandler::tryFrom(self::$lang);
     
-    if (CookieType::Yes === $cookie && ($_COOKIE['lang'] ?? '') !== self::$lang) {
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+      || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    
+    if (CookieType::Yes === $cookie && ($_COOKIE['lang'] ?? '') !== self::$lang && !headers_sent()) {
+      $cookieParams = [
+        'expires' => time() + 2592000,
+        'path' => '/',
+        'secure' => $isSecure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+      ];
+      
       if (!session_id()) {
         session_set_cookie_params([
-          'path' => '/',
-          'secure' => 80 !== (TEST_SERVER ? TEST_SERVER_PORT : SERVER_PORT),
-          'httponly' => true,
-          'samesite' => 'Lax'
+          'path' => $cookieParams['path'],
+          'secure' => $cookieParams['secure'],
+          'httponly' => $cookieParams['httponly'],
+          'samesite' => $cookieParams['samesite'],
         ]);
       }
       
-      setcookie('lang', self::$lang, [
-        'expires' => time() + 2592000,
-        'path' => '/',
-        'secure' => 80 !== (TEST_SERVER ? TEST_SERVER_PORT : SERVER_PORT),
-        'httponly' => true,
-        'samesite' => 'Lax',
-      ]);
+      setcookie('lang', self::$lang, $cookieParams);
       $_COOKIE['lang'] = self::$lang;
     }
     
@@ -64,7 +72,7 @@ final class Lang
     }
   }
   
-  private static function existsLang(?string $lang):bool
+  private static function existsLang(string $lang):bool
   {
     
     return !is_null(LangHandler::tryFrom($lang));

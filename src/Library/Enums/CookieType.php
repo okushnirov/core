@@ -2,9 +2,8 @@
 
 namespace okushnirov\core\Library\Enums;
 
-enum CookieType
+enum CookieType: int
 {
-  case Yes;
-  
-  case No;
+  case Yes = 1;
+  case No = 0;
 }

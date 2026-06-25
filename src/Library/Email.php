@@ -6,53 +6,46 @@ use PHPMailer\PHPMailer\{Exception, PHPMailer, SMTP};
 
 final class Email
 {
-  private static bool $auth = false;
-  
-  private static bool $debug = false;
-  
-  private static ?string $host;
-  
+  private static ?string $host = null;
+  private static bool $isAuth = false;
+  private static bool $isDebug = false;
   private static string $pass = '';
-  
   private static ?int $port = 25;
-  
   private static string $secure = '';
-  
   private static array $sender = [];
-  
   private static int $timeout = 5;
-  
   private static string $user = '';
   
-  public function __construct(string $eName = '', array $input = [])
+  public function __construct(string $eName = '', array $config = [], bool $isDebug = false)
   {
-    $settings = File::parse(['/json/email.json']);
-    
-    if ('' === $eName && empty($input)) {
+    if ('' === $eName && empty($config['host'])) {
       
       throw new \Exception("Empty hostname", -1);
     }
     
-    $email = $settings->{$eName} ?? null;
+    Config::load(['email.php']);
     
-    if (empty($email)) {
+    $emailConfig = '' === $eName ? null : (Config::get($eName) ?? null);
+    
+    if ('' !== $eName && empty($emailConfig)) {
       
       throw new \Exception("Email settings not found", -2);
     }
     
-    self::$host = (bool)($input['host'] ?? $email->host ?? self::$host);
-    self::$sender = (array)($input['sender'] ?? $email->sender ?? self::$sender);
+    self::$host = $config['host'] ?? $emailConfig['host'] ?? self::$host;
+    self::$sender = (array)($config['sender'] ?? $emailConfig['sender'] ?? self::$sender);
     
     if (empty(self::$host) || empty(self::$sender)) {
       
       throw new \Exception("Wrong required parameters", -3);
     }
     
-    self::$auth = (bool)($settings->auth ?? $input['auth'] ?? self::$auth);
-    self::$debug = (bool)($input['debug'] ?? self::$debug);
-    self::$pass = trim($input['pass'] ?? $email->pass ?? self::$pass);
-    self::$port = (int)($input['port'] ?? $email->port ?? self::$port);
-    self::$user = trim($input['user'] ?? $email->user ?? self::$user);
+    self::$isAuth = (bool)($config['auth'] ?? $emailConfig['auth'] ?? self::$isAuth);
+    self::$isDebug = (bool)($config['debug'] ?? $isDebug);
+    self::$pass = trim(($config['pass'] ?? $emailConfig['pass'] ?? self::$pass));
+    self::$port = (int)($config['port'] ?? $emailConfig['port'] ?? self::$port);
+    self::$secure = upper_case(trim(($config['secure'] ?? $emailConfig['secure'] ?? self::$secure)));
+    self::$user = trim(($config['user'] ?? $emailConfig['user'] ?? self::$user));
   }
   
   public static function send(array $addresses, string $subject, string $message, array $attachments = []):bool
@@ -61,12 +54,12 @@ final class Email
     $result = false;
     
     try {
-      $mail->SMTPDebug = self::$debug ? SMTP::DEBUG_SERVER : SMTP::DEBUG_OFF;
+      $mail->SMTPDebug = self::$isDebug ? SMTP::DEBUG_SERVER : SMTP::DEBUG_OFF;
       $mail->isSMTP();
       $mail->CharSet = $mail::CHARSET_UTF8;
       $mail->Host = self::$host;
       
-      if (self::$auth) {
+      if (self::$isAuth) {
         $mail->SMTPAuth = true;
         $mail->Username = self::$user;
         $mail->Password = self::$pass;
@@ -115,7 +108,7 @@ final class Email
       
       $result = $mail->send();
     } catch (Exception $e) {
-      trigger_error(__METHOD__."\n".$e->getMessage());
+      trigger_error(__METHOD__." Error message\n".$e->getMessage());
     }
     
     return $result;

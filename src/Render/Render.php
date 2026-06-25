@@ -36,9 +36,9 @@ class Render
       }
     }
     
-    $data->access = empty($methodName) || empty($methods)
-      ? -1 : (array_key_exists($methodName, $methods)
-        ? (int)$methods[$methodName]['доступен'] : -2);
+    $data->access = empty($methodName) || empty($methods) ? -1
+      : (array_key_exists($methodName, $methods)
+      ? (int)$methods[$methodName]['доступен'] : -2);
     
     if (1 === $data->access) {
       $data->name = Str::prepare($methods[$methodName]['название'] ??
@@ -81,12 +81,14 @@ class Render
         : "xml\"($objType,$tableEscape)");
     $result = DbSQLAnywhere::query($SQL, SQLAnywhere::COLUMN);
     
+    $xml = false;
+    
     try {
       $xml = $result ? new \SimpleXMLElement($result) : false;
     } catch (\Exception) {
     }
     
-    return $xml ?? false;
+    return $xml;
   }
   
   public static function getXMLObject(int $objID, int $withChildren = 0):\SimpleXMLElement | bool
@@ -124,7 +126,7 @@ class Render
           'scale' => (int)$item['scale'],
           'value' => (string)$item,
           'width' => (int)$item['width'],
-          'default' => mb_eregi_replace('\'', '', $item['default'])
+          'default' => preg_replace('/\'/u', '', (string)($item['default'] ?? ''))
         ];
         
         break;
@@ -139,8 +141,12 @@ class Render
     $dom = new \DOMDocument();
     
     try {
-      $dom->loadXML($xml->saveXML());
-    } catch (\Exception $e) {
+      $xmlString = $xml->saveXML();
+      
+      if (!empty($xmlString)) {
+        $dom->loadXML($xmlString);
+      }
+    } catch (\Throwable $e) {
       trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
     }
     
@@ -220,7 +226,9 @@ class Render
     ], $dom->saveXML(null, LIBXML_NOEMPTYTAG));
     $html = str_ireplace($subjectSearch, '', $html);
     
-    return preg_replace('/>\s+</', '><', $html);
+    $minified = preg_replace('/>\s+</', '><', $html);
+    
+    return $minified ?? $html;
   }
   
   public static function xmlFile2HTML(
@@ -316,7 +324,11 @@ class Render
     $value = trim($xml->{Lang::$lang} ?? $xml);
     
     if (str_starts_with($value, '$') || str_starts_with($value, '{{') && str_ends_with($value, '}}')) {
-      eval("\$value = ".trim($value, '{}').";");
+      try {
+        @eval("\$value = ".trim($value, '{}').";");
+      } catch (\Throwable $e) {
+        trigger_error(__METHOD__.' XML eval error '.$e->getMessage());
+      }
     }
     
     return $isPrepare ? Str::prepare($value) : $value;
@@ -333,19 +345,17 @@ class Render
     $f = [];
     
     if (isset($xml['f-xpath'])) {
-      $f = $xmlData->xpath($xml['f-xpath']) ?? $f;
+      $f = $xmlData->xpath($xml['f-xpath']) ?? [];
+    }
+    
+    if (empty($f) && isset($xml['xpath'])) {
+      $f = $xmlData->xpath($xml['xpath']) ?? [];
+    }
+    
+    if (empty($f)) {
       
-      if (!empty($f)) {
-        
-        goto skip;
-      }
+      return $attribute;
     }
-    
-    if (isset($xml['xpath'])) {
-      $f = $xmlData->xpath($xml['xpath']) ?? $f;
-    }
-    
-    skip:
     
     if (false === mb_stripos($attribute, 'name="')) {
       $fieldID = (int)($f[0]['id'] ?? 0);
@@ -357,24 +367,26 @@ class Render
     $fieldType = trim($f[0]['type'] ?? '');
     $fieldWidth = (int)($f[0]['width'] ?? 0);
     
-    switch ($fieldType) {
-      case mb_stristr($fieldType, 'numeric'):
-      case 'double' :
-        $attribute .= false === mb_stripos($attribute, 'data-numeric="') ? " data-numeric=\"$fieldWidth\"" : '';
-        $attribute .= false === mb_stripos($attribute, 'data-decimal="') ? ' data-decimal="'.trim($f[0]['scale'] ?? 0)
-          .'"' : '';
-        
-        break;
+    if (mb_stristr($fieldType, 'numeric') || 'double' === $fieldType) {
+      if (false === mb_stripos($attribute, 'data-numeric="')) {
+        $attribute .= " data-numeric=\"$fieldWidth\"";
+      }
       
-      case 'date':
-        $attribute .= false === mb_stripos($attribute, 'maxlength="') ? ' maxlength="10"' : '';
-        $attribute .= $fieldRequired && false === mb_stripos($attribute, 'minlength="') ? ' minlength="10"' : '';
-        
-        break;
+      if (false === mb_stripos($attribute, 'data-decimal="')) {
+        $attribute .= ' data-decimal="'.trim($f[0]['scale'] ?? 0).'"';
+      }
+    } elseif ('date' === $fieldType) {
+      if (false === mb_stripos($attribute, 'maxlength="')) {
+        $attribute .= ' maxlength="10"';
+      }
       
-      case (mb_stristr($fieldType, 'char') ? $fieldType : ''):
-        $attribute .= false === mb_stripos($attribute, 'maxlength="') && !empty($fieldWidth)
-          ? " maxlength=\"$fieldWidth\"" : '';
+      if ($fieldRequired && false === mb_stripos($attribute, 'minlength="')) {
+        $attribute .= ' minlength="10"';
+      }
+    } elseif (mb_stristr($fieldType, 'char') ? $fieldType : '') {
+      if (false === mb_stripos($attribute, 'maxlength="') && !empty($fieldWidth)) {
+        $attribute .= " maxlength=\"$fieldWidth\"";
+      }
     }
     
     return $attribute;
@@ -394,7 +406,8 @@ class Render
     $value = (string)($array[0] ?? '');
     
     # Fix numeric leading zero
-    $value = false === mb_stripos($array[0]['type'] ?? '', 'numeric') || '' === $value ? $value : (float)$value;
+    $attrType = isset($array[0]) ? (string)($array[0]['type'] ?? '') : '';
+    $value = false === mb_stripos($attrType, 'numeric') || '' === $value ? $value : (float)$value;
     
     return $isPrepare ? Str::prepare($value) : $value;
   }

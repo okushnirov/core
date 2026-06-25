@@ -2,10 +2,12 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{Curl, Encoding, Enums\Charset, File};
+use okushnirov\core\Library\{Config, Curl, Enums\Charset};
 
 final class SessionHandlerWs implements \SessionHandlerInterface
 {
+  private static ?object $config = null;
+  
   public function __construct()
   {
     session_set_save_handler([
@@ -48,7 +50,7 @@ final class SessionHandlerWs implements \SessionHandlerInterface
   
   public function open(string $path, string $name):bool
   {
-    return 0 === (int)(self::ws('open')['error'] ?? -1);
+    return true;
   }
   
   public function read(string $id):string | false
@@ -68,14 +70,16 @@ final class SessionHandlerWs implements \SessionHandlerInterface
   
   private function ws(string $method, array $data = []):?\SimpleXMLElement
   {
-    $session = File::parse(['/json/session.json'])->session ?? [];
+    Config::load(['session.php']);
     
-    if (empty($session)) {
+    self::$config ??= Config::get('session') ?? null;
+    
+    if (empty(self::$config)) {
       
       throw new \Exception('Empty session settings');
     }
     
-    $request = new \DOMDocument('1.0', Charset::WINDOWS1251->value);
+    $request = new \DOMDocument('1.0', Charset::UTF8->value);
     $root = $request->appendChild($request->createElement('request'));
     $root->setAttribute('method', $method);
     $root->setAttribute('ip', trim($_SERVER['REMOTE_ADDR'] ?? ''));
@@ -86,12 +90,12 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     
     $request->formatOutput = true;
     
-    $response = Curl::exec($session->{'url'.(TEST_SERVER ? 'Test' : '')} ?? $session->url ?? '', [
+    $response = Curl::exec(self::$config['url'.(TEST_SERVER ? 'Test' : '')] ?? self::$config['url'] ?? '', [
       'Content-Type: application/xml;charset=utf-8'
-    ], $request->saveXML(), timeout: 5);
+    ], $request->saveXML(), timeout: 2);
     
     try {
-      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement(Encoding::decode($response)) : null;
+      $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
     } catch (\Exception $e) {
       trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       $xml = null;

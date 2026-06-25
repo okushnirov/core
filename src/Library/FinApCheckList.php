@@ -6,26 +6,48 @@ use okushnirov\core\Library\Enums\HTTPMethods;
 
 final class FinApCheckList
 {
-  public string $code = '';
-  
-  public string $date = '';
-  
-  public bool $debug = false;
-  
-  public bool $disabled = true;
-  
-  public string $document = '';
-  
-  public int $docType = 0;
+  public bool $isDisabled = true;
   
   /**
-   * Ознака підтвердження результатів запиту підрозділом фінансового моніторингу суб'єкта ФМ:
-   * true – потребує підтвердження
-   * false – за замовчуванням, без підтвердження
+   * Індивідуальний податковий номер фізичної особи - резидента
+   * (більшість реєстрів не містять даних про РНОКПП),
+   * або ЄДРПОУ юридичної особи резидента
    *
-   * @var bool
+   * @var string
    */
-  public bool $finMon = false;
+  private string $code = '';
+  
+  /**
+   * Дата народження фізичної особи у форматі “YYYY-MM-DD”
+   *
+   * @var string
+   */
+  private string $date = '';
+  
+  /**
+   * Реквізити документа фізичної особи
+   * (національний паспорт, ID картка або паспорт для виїзду за кордон)
+   * у форматі серія і номер, або просто номер (якщо ID карта).
+   * Наявність або відсутність пробілу між серією і номером значення не має
+   *
+   * @var string
+   */
+  private string $doc = '';
+  
+  /**
+   * Тип документа
+   * Може приймати значення
+   * 1 - ПАСПОРТ ГРОМАДЯНИНА УКРАЇНИ в тому числі й ID карти
+   * 2 - ПАСПОРТ ГРОМАДЯНИНА УКРАЇНИ ДЛЯ ВИЇЗДУ ЗА КОРДОН
+   * 0 – обидва варіанти (за замовчуванням)
+   *
+   * @var int
+   */
+  private int $docType = 0;
+  
+  private bool $isDebug = false;
+  
+  private bool $isLoaded = false;
   
   /**
    * Число, кожен біт якого при переведенні у двійковий формат визначає перелік баз (списків)
@@ -69,117 +91,131 @@ final class FinApCheckList
    *
    * @var int
    */
-  public int $listData = 0;
-  
-  public string $name = '';
-  
-  public string $refID = '';
+  private int $listData = 0;
   
   /**
-   * Тип відповіді (результату запиту):
-   * 1 — відповідь-дозвіл (allow)
-   * 2 – узагальнений (resume)
-   * 3 — скорочений (short)
-   * 5 — повний (full, за замовчуванням)
+   * Прізвище, ім’я, по батькові або назва особи
    *
-   * @var int
+   * @var string
    */
-  public int $responseType = 5;
+  private string $name = '';
   
   /**
-   * Метод пошуку:
+   * Внутрішній унікальний ID запиту (генерується на стороні суб’єкта ФМ)
+   *
+   * @var string
+   */
+  private string $refID = '';
+  
+  /**
+   * Метод пошуку збігів по реєстрах
    * 1 — повнотекстний (за замовчуванням)
-   * 2 — контекстной...
+   * 2 — з корекцією помилок
    *
    * @var int
    */
-  public int $search = 1;
-  
-  public string $type = '';
-  
-  /**
-   * ID робочого місця суб'єкта ФМ
-   * (присвоюється при реєстрації робочих місць суб'єкта ФМ в ПК "FinAP CheckLists")
-   *
-   * @var int
-   */
-  public int $userPCID = 1;
-  
-  private string $pass = '';
+  private int $search = 1;
   
   private string $url = '';
   
-  private string $user = '';
+  /**
+   * ID суб’єкта ФМ (присвоюється при реєстрації суб’єкта ФМ в ПК “FinAP CheckLists”)
+   * Приходить на електронну пошту відповідальної особи
+   *
+   * @var string
+   */
+  private string $userName = '';
   
-  public function __construct(bool $debug = false)
+  /**
+   * ID робочого місця суб’єкта ФМ (присвоюється на стороні суб’єкта ФМ)
+   *
+   * @var int
+   */
+  private int $userPCID = 1;
+  
+  /**
+   * Унікальний ключ користувача суб’єкта ФМ (надається при реєстрації суб’єкта ФМ в ПК “FinAP CheckLists”)
+   * Приходить на електронну пошту відповідальної особи
+   *
+   * @var string
+   */
+  private string $userToken = '';
+  
+  public function init(object $request, bool $isDebug = false):void
   {
-    $settings = File::parse(['/json/fin-ap-checklist.json']);
+    $this->loadSettings();
     
-    $this->debug = $debug || ($settings->debug ?? $this->debug);
-    $this->disabled = $settings->disabled ?? $this->disabled;
-    $this->listData = $settings->listData ?? $this->listData;
-    $this->pass = $settings->pass ?? $this->pass;
-    $this->url = $settings->url ?? $this->url;
-    $this->user = $settings->user ?? $this->user;
-    $this->userPCID = $settings->userPCID ?? $this->userPCID;
-  }
-  
-  public function init(\stdClass $request):void
-  {
-    if ($this->debug) {
-      trigger_error(__METHOD__."\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $this->isDebug = $isDebug || $this->isDebug;
+    
+    if ($this->isDebug) {
+      trigger_error(__METHOD__."\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
-    $this->refID = $request->refID ?? (new \DateTime())->format('ymdHisu');
-    $this->code = trim($request->code ?? '');
-    $this->date = trim($request->date ?? '');
-    $this->document = trim($request->document ?? '');
+    $this->refID = isset($request->refID) ? trim((string)$request->refID) : (new \DateTime())->format('ymdHisv');
+    $this->code = trim((string)($request->code ?? ''));
+    $this->date = trim((string)($request->date ?? ''));
+    $this->doc = trim((string)($request->document ?? ''));
     $this->docType = (int)($request->docType ?? $this->docType);
-    $this->name = trim($request->name ?? '');
-    $this->type = trim($request->type ?? '');
+    $this->listData = (int)($request->listData ?? $this->listData);
+    $this->name = trim((string)($request->name ?? ''));
+    $this->search = (int)($request->search ?? $this->search);
     $this->userPCID = (int)($request->userPCID ?? $this->userPCID);
   }
   
   public function sendRequest():string
   {
-    if ($this->disabled) {
+    if (!$this->isLoaded) {
+      
+      throw new \Exception('Initialization not completed or service settings missing', -20);
+    }
+    
+    if ($this->isDisabled) {
       
       return '';
     }
     
-    $request = self::_getRequest();
-    
-    if ($this->debug) {
-      trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    if (empty($this->url)) {
+      
+      throw new \Exception('Wrong URL service', -30);
     }
     
-    $response = trim($request ? Curl::exec($this->url, [], $request, httpMethod: HTTPMethods::GET) : '');
+    if ('' === $this->code) {
+      
+      throw new \Exception('Empty client code', -40);
+    }
     
-    if ($this->debug) {
-      trigger_error(__METHOD__." Response\n".$response);
+    $request = $this->getRequest();
+    
+    $queryString = http_build_query($request);
+    
+    $finalUrl = str_contains($this->url, '?') ? $this->url.'&'.$queryString : $this->url.'?'.$queryString;
+    
+    $response = trim(Curl::exec($finalUrl, httpMethod: HTTPMethods::GET, isDebug: $this->isDebug));
+    
+    if ($this->isDebug) {
+      trigger_error(__METHOD__." Request\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\nResponse\n".$response, E_USER_ERROR);
     }
     
     return $response;
   }
   
-  private function _getRequest():array
+  private function getRequest():array
   {
     $request = [
-      "IDinternal" => $this->refID,
-      "DateRequest" => date('Y-m-d'),
-      "IDsubjectFM" => $this->user,
-      "tokken" => $this->pass,
-      "IDuserPC" => $this->userPCID,
-      "name" => $this->name,
+      "IDsubjectFM" => $this->userName,
+      "tokken" => $this->userToken,
       "ipn" => $this->code,
+      "name" => $this->name,
       "listdata" => $this->listData,
       "search" => $this->search,
-      "finmon" => $this->finMon,
-      "responsetype" => $this->responseType
+      "IDinternal" => $this->refID,
+      "IDuserPC" => $this->userPCID
     ];
     
-    if ('' !== $this->document) {
-      $request["document"] = $this->document;
+    if ('' !== $this->doc) {
+      $request["doc"] = $this->doc;
       $request["docType"] = $this->docType;
     }
     
@@ -188,5 +224,24 @@ final class FinApCheckList
     }
     
     return $request;
+  }
+  
+  private function loadSettings():void
+  {
+    Config::load(['fin-ap-checklist.json']);
+    
+    if (!Config::isLoaded()) {
+      
+      throw new \Exception('Error reading configuration file', -10);
+    }
+    
+    $this->isDebug = (bool)(Config::get('debug') ?? $this->isDebug);
+    $this->isDisabled = (bool)(Config::get('disabled') ?? $this->isDisabled);
+    $this->isLoaded = true;
+    $this->listData = (int)(Config::get('listData') ?? $this->listData);
+    $this->userToken = trim((string)(Config::get('pass') ?? $this->userToken));
+    $this->url = trim((string)(Config::get('url') ?? $this->url));
+    $this->userName = trim((string)(Config::get('user') ?? $this->userName));
+    $this->userPCID = (int)(Config::get('userPCID') ?? $this->userPCID);
   }
 }

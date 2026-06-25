@@ -2,14 +2,14 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\{Enums\DateEn, Interfaces\DateFormat};
 use JetBrains\PhpStorm\ArrayShape;
+use okushnirov\core\Library\{Enums\DateEn, Interfaces\DateFormat};
 
 final class Date
 {
-  public static function getAge(string $birthday):bool | int | string
+  public static function getAge(string $birthday):bool | int
   {
-    if (empty($birthday)) {
+    if ('' === $birthday) {
       
       return false;
     }
@@ -21,7 +21,7 @@ final class Date
       return false;
     }
     
-    $age = date('Y') - date('Y', $birthdayTimestamp);
+    $age = (int)date('Y') - (int)date('Y', $birthdayTimestamp);
     
     return date('md', $birthdayTimestamp) > date('md') ? $age - 1 : $age;
   }
@@ -64,16 +64,16 @@ final class Date
       ],
       'pl' => [
         'stycznia',
-        'luty',
-        'marsz',
+        'lutego',
+        'marca',
         'kwietnia',
-        'może',
+        'maja',
         'czerwca',
-        'lipiec',
-        'sierpień',
-        'wrzesień',
-        'październik',
-        'listopad',
+        'lipca',
+        'sierpnia',
+        'września',
+        'października',
+        'listopada',
         'grudnia'
       ],
       default => [
@@ -99,27 +99,35 @@ final class Date
       default => 'року'
     };
     
-    return date('j').' '.$month[date('n') - 1].' '.date('Y').' '.$ltr_year;
+    $monthIndex = (int)date('n') - 1;
+    
+    return date('j').' '.$month[$monthIndex].' '.date('Y').' '.$ltr_year;
   }
   
-  public static function getFirstQuarterDay(int $monthNumber):string
+  public static function getFirstQuarterDay(int $monthNumber, ?int $year = null):string
   {
+    if (1 > $monthNumber || 12 < $monthNumber) {
+      $monthNumber = (int)date('n');
+    }
+    
+    $targetYear = $year ?? (int)date('Y');
     
     return match (intval(($monthNumber + 2) / 3)) {
-      1 => date('Y-01-01'),
-      2 => date('Y-04-01'),
-      3 => date('Y-07-01'),
-      4 => date('Y-10-01'),
+      1 => $targetYear.'-01-01',
+      2 => $targetYear.'-04-01',
+      3 => $targetYear.'-07-01',
+      4 => $targetYear.'-10-01',
       default => ''
     };
   }
   
   public static function getMonthName(int $month, string $lang):string
   {
-    $name = match ($lang) {
+    $targetMonth = $month < 1 || $month > 12 ? (int)date('m') : $month;
+    
+    $names = match ($lang) {
       'ru' => [
-        false,
-        "Январь",
+        1 => "Январь",
         "Февраль",
         "Март",
         "Апрель",
@@ -133,8 +141,7 @@ final class Date
         "Декабрь"
       ],
       'en' => [
-        false,
-        "January",
+        1 => "January",
         "February",
         "March",
         "April",
@@ -148,8 +155,7 @@ final class Date
         "December"
       ],
       default => [
-        false,
-        "Січень",
+        1 => "Січень",
         "Лютий",
         "Березень",
         "Квітень",
@@ -164,16 +170,19 @@ final class Date
       ],
     };
     
-    return $name[empty($month) ? (int)date('m') : $month];
+    return $names[$targetMonth] ?? '';
   }
   
   public static function getPeriod():array
   {
+    $today = date('Y-m-d');
+    $currentYear = date('Y');
+    $prevYear = (int)$currentYear - 1;
     
     return [
       'периодСегодня' => [
-        'periodFrom' => date('Y-m-d'),
-        'periodTo' => date('Y-m-d'),
+        'periodFrom' => $today,
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За сегодня',
           'ua' => 'За сьогодні',
@@ -182,7 +191,7 @@ final class Date
       ],
       'периодНеделя' => [
         'periodFrom' => date('Y-m-d', strtotime('monday this week')),
-        'periodTo' => date('Y-m-d'),
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За текущую неделю',
           'ua' => 'За поточний тиждень',
@@ -200,7 +209,7 @@ final class Date
       ],
       'период10Дней' => [
         'periodFrom' => date('Y-m-d', strtotime('-10 day')),
-        'periodTo' => date('Y-m-d'),
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За последние 10 дней',
           'ua' => 'За останній 10 днів',
@@ -209,7 +218,7 @@ final class Date
       ],
       'период30Дней' => [
         'periodFrom' => date('Y-m-d', strtotime('-30 day')),
-        'periodTo' => date('Y-m-d'),
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За последние 30 дней',
           'ua' => 'За останні 30 днів',
@@ -218,9 +227,9 @@ final class Date
       ],
       'периодМесяц' => [
         'periodFrom' => date('Y-m-01'),
-        'periodTo' => date('Y-m-d'),
+        'periodTo' => $today,
         'label' => [
-          'ru' => 'За текущий месяц',
+          'ru' => 'За текущий month',
           'ua' => 'За поточний місяць',
           'uk' => 'За поточний місяць'
         ]
@@ -235,8 +244,8 @@ final class Date
         ]
       ],
       'периодКвартал' => [
-        'periodFrom' => self::getFirstQuarterDay(date('n')),
-        'periodTo' => date('Y-m-d'),
+        'periodFrom' => self::getFirstQuarterDay((int)date('n')),
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За текущий квартал',
           'ua' => 'За поточний квартал',
@@ -245,7 +254,7 @@ final class Date
       ],
       'период12Месяцев' => [
         'periodFrom' => date('Y-m-d', strtotime('-1 year')),
-        'periodTo' => date('Y-m-d'),
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За последние 12 месяцев',
           'ua' => 'За останні 12 місяців',
@@ -253,8 +262,8 @@ final class Date
         ]
       ],
       'периодГод' => [
-        'periodFrom' => date('Y-01-01'),
-        'periodTo' => date('Y-m-d'),
+        'periodFrom' => "$currentYear-01-01",
+        'periodTo' => $today,
         'label' => [
           'ru' => 'За текущий год',
           'ua' => 'За поточний рік',
@@ -262,8 +271,8 @@ final class Date
         ]
       ],
       'периодПрошлыйГод' => [
-        'periodFrom' => date('Y-01-01', strtotime('first day of previous year')),
-        'periodTo' => date('Y-12-t', strtotime('last day of previous year')),
+        'periodFrom' => "$prevYear-01-01",
+        'periodTo' => "$prevYear-12-31",
         'label' => [
           'ru' => 'За прошлый год',
           'ua' => 'За минулий рік',
@@ -282,12 +291,13 @@ final class Date
   
   public static function getPeriodObject():array
   {
-    $yesterday = (new \DateTime('yesterday'));
-    $monthPreviousFrom = (new \DateTime('first day of previous month'));
-    $month2AgoFrom = (new \DateTime('first day of 2 months ago'));
-    $month3AgoFrom = (new \DateTime('first day of 3 months ago'));
-    $yearPreviousFrom = (new \DateTime('first day of previous year'));
-    $year2AgoFrom = (new \DateTime('first day of 2 years ago'));
+    $todayStr = date('Y-m-d');
+    $yesterday = (new \DateTime('yesterday'))->format('Y-m-d');
+    $monthPreviousFrom = new \DateTime('first day of previous month');
+    $month2AgoFrom = (new \DateTime('first day of this month'))->modify('-2 month');
+    $month3AgoFrom = (new \DateTime('first day of this month'))->modify('-3 month');
+    $year2AgoFrom = new \DateTime('first day of 2 years ago');
+    
     $labelCurrent = [
       'ua' => 'Поточний',
       'uk' => 'Поточний',
@@ -295,10 +305,37 @@ final class Date
       'en' => 'Current'
     ];
     
+    $currentMonth = (int)date('n');
+    $currentYear = (int)date('Y');
+    $currentQuarter = intval(($currentMonth + 2) / 3);
+    
+    $prevQuarter = $currentQuarter - 1;
+    $prevQuarterYear = $currentYear;
+    if ($prevQuarter === 0) {
+      $prevQuarter = 4;
+      $prevQuarterYear--;
+    }
+    
+    $pqStartMonths = [
+      1 => '01-01',
+      2 => '04-01',
+      3 => '07-01',
+      4 => '10-01'
+    ];
+    $pqEndMonths = [
+      1 => '03-31',
+      2 => '06-30',
+      3 => '09-30',
+      4 => '12-31'
+    ];
+    
+    $pqFrom = $prevQuarterYear.'-'.$pqStartMonths[$prevQuarter];
+    $pqTo = $prevQuarterYear.'-'.$pqEndMonths[$prevQuarter];
+    
     return [
       'Сегодня' => [
-        'from' => date('Y-m-d'),
-        'to' => date('Y-m-d'),
+        'from' => $todayStr,
+        'to' => $todayStr,
         'label' => [
           'ua' => 'Сьогодні',
           'uk' => 'Сьогодні',
@@ -307,8 +344,8 @@ final class Date
         ]
       ],
       'Вчера' => [
-        'from' => $yesterday->format('Y-m-d'),
-        'to' => $yesterday->format('Y-m-d'),
+        'from' => $yesterday,
+        'to' => $yesterday,
         'label' => [
           'ua' => 'Вчора',
           'uk' => 'Вчора',
@@ -318,7 +355,7 @@ final class Date
       ],
       'Неделя' => [
         'from' => (new \DateTime('monday this week'))->format('Y-m-d'),
-        'to' => date('Y-m-d'),
+        'to' => $todayStr,
         'label' => $labelCurrent
       ],
       'ПрошлаяНеделя' => [
@@ -333,7 +370,7 @@ final class Date
       ],
       '30Дней' => [
         'from' => date('Y-m-d', strtotime('-30 day')),
-        'to' => date('Y-m-d'),
+        'to' => $todayStr,
         'label' => [
           'ua' => '30 днів',
           'uk' => '30 днів',
@@ -343,57 +380,57 @@ final class Date
       ],
       'Месяц' => [
         'from' => date('Y-m-01'),
-        'to' => date('Y-m-d'),
+        'to' => $todayStr,
         'label' => $labelCurrent
       ],
       'ПрошлыйМесяц' => [
         'from' => $monthPreviousFrom->format('Y-m-d'),
-        'to' => (new \DateTime('last day of previous month'))->format('Y-m-d'),
-        'label' => self::_getPeriodLabel($monthPreviousFrom)
+        'to' => (clone $monthPreviousFrom)->format('Y-m-t'),
+        'label' => self::getPeriodLabel($monthPreviousFrom)
       ],
       'ПозапрошлыйМесяц' => [
         'from' => $month2AgoFrom->format('Y-m-d'),
-        'to' => (new \DateTime('last day of 2 months ago'))->format('Y-m-d'),
-        'label' => self::_getPeriodLabel($month2AgoFrom)
+        'to' => (clone $month2AgoFrom)->format('Y-m-t'),
+        'label' => self::getPeriodLabel($month2AgoFrom)
       ],
       'ЗаПозапрошлыйМесяц' => [
         'from' => $month3AgoFrom->format('Y-m-d'),
-        'to' => (new \DateTime('last day of 3 months ago'))->format('Y-m-d'),
-        'label' => self::_getPeriodLabel($month3AgoFrom)
+        'to' => (clone $month3AgoFrom)->format('Y-m-t'),
+        'label' => self::getPeriodLabel($month3AgoFrom)
       ],
       'Квартал' => [
-        'from' => self::getFirstQuarterDay(date('n')),
-        'to' => date('Y-m-d'),
+        'from' => self::getFirstQuarterDay($currentMonth, $currentYear),
+        'to' => $todayStr,
         'label' => $labelCurrent
       ],
       'ПрошлыйКвартал' => [
-        'from' => self::getFirstQuarterDay(date('n')),
-        'to' => date('Y-m-d'),
+        'from' => $pqFrom,
+        'to' => $pqTo,
         'label' => [
-          'ua' => 'Q ',
-          'uk' => 'Q ',
-          'ru' => 'Q ',
-          'en' => 'Q '
+          'ua' => "Q$prevQuarter",
+          'uk' => "Q$prevQuarter",
+          'ru' => "Q$prevQuarter",
+          'en' => "Q$prevQuarter"
         ]
       ],
       'Год' => [
-        'from' => date('Y-01-01'),
-        'to' => date('Y-m-d'),
+        'from' => "$currentYear-01-01",
+        'to' => $todayStr,
         'label' => $labelCurrent
       ],
       'ПрошлыйГод' => [
-        'from' => $yearPreviousFrom->format('Y-01-01'),
-        'to' => (new \DateTime('last day of previous year'))->format('Y-12-t'),
+        'from' => ($currentYear - 1).'-01-01',
+        'to' => ($currentYear - 1).'-12-31',
         'label' => [
-          'ua' => $yearPreviousFrom->format('Y').' рік',
-          'uk' => $yearPreviousFrom->format('Y').' рік',
-          'ru' => $yearPreviousFrom->format('Y').' год',
-          'en' => $yearPreviousFrom->format('Y').' year'
+          'ua' => ($currentYear - 1).' рік',
+          'uk' => ($currentYear - 1).' рік',
+          'ru' => ($currentYear - 1).' год',
+          'en' => ($currentYear - 1).' year'
         ]
       ],
       'ПозапрошлыйГод' => [
         'from' => $year2AgoFrom->format('Y-01-01'),
-        'to' => (new \DateTime('last day of 2 years ago'))->format('Y-12-t'),
+        'to' => $year2AgoFrom->format('Y-12-31'),
         'label' => [
           'ua' => $year2AgoFrom->format('Y').' рік',
           'uk' => $year2AgoFrom->format('Y').' рік',
@@ -402,8 +439,8 @@ final class Date
         ]
       ],
       'периодВыбранный' => [
-        'from' => date('Y-m-d'),
-        'to' => date('Y-m-d'),
+        'from' => $todayStr,
+        'to' => $todayStr,
         'label' => [
           'ua' => 'За період',
           'uk' => 'За період',
@@ -461,10 +498,10 @@ final class Date
         'Четвер',
         "П'ятниця",
         'Субота'
-      ],
+      ]
     };
     
-    return $weekday[date('w')];
+    return $weekday[(int)date('w')];
   }
   
   #[ArrayShape([
@@ -473,7 +510,8 @@ final class Date
     'month' => "string[]",
     'quarter' => "string[]",
     'year' => "string[]"
-  ])] public static function setPeriodGroup():array
+  ])]
+  public static function setPeriodGroup():array
   {
     
     return [
@@ -514,9 +552,10 @@ final class Date
     'uk' => "string",
     'ru' => "string",
     'en' => "string"
-  ])] private static function _getPeriodLabel(\DateTime $datetime):array
+  ])]
+  private static function getPeriodLabel(\DateTime $datetime):array
   {
-    $month = $datetime->format('m');
+    $month = (int)$datetime->format('m');
     $year = $datetime->format('Y');
     
     return [

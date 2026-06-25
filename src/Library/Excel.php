@@ -9,35 +9,25 @@ use PhpOffice\PhpSpreadsheet\{Cell\DataType, Exception, IOFactory, Spreadsheet, 
 
 final class Excel
 {
-  public static bool $debug = false;
-  
   public array $request = [];
-  
-  public static mixed $settings;
-  
-  public ?Spreadsheet $spreadsheet;
-  
-  private string $fileDownload;
-  
+  public static ?object $settings;
+  public ?Spreadsheet $spreadsheet = null;
+  private array $dateColumns = [];
   private \DateTime $dateTime;
-  
+  private string $fileDownload;
   private ?Extensions $fileExt = Extensions::XLS;
-  
-  private array | null | \SimpleXMLElement $queryResult;
-  
-  private SQLAnywhere $queryType = SQLAnywhere::FETCH_ALL;
-  
-  public int $rowFirst = 1;
-  
-  private Worksheet $sheet;
-  
-  private string $highestColumn;
-  
+  private string $highestColumn = 'A';
+  private static bool $isDebug = false;
+  private array $numericColumns = [];
   private int $posX = 1;
-  
   private int $posY = 1;
+  private array | null | \SimpleXMLElement $queryResult;
+  private SQLAnywhere $queryType = SQLAnywhere::FETCH_ALL;
+  private int $rowFirst = 1;
+  private Worksheet $sheet;
+  private float $startTime;
   
-  public function __construct(array $request = [], bool $debug = false)
+  public function __construct(array $request = [], bool $isDebug = false)
   {
     if (empty($request)) {
       
@@ -73,31 +63,26 @@ final class Excel
       throw new \Exception("Не передано обов'язковий параметр", -2);
     }
     
-    self::$debug = $debug;
+    self::$isDebug = $isDebug;
     
-    if (self::$debug) {
-      trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-    
-    try {
-      self::$settings = File::parse([
-        '/site.webmanifest',
-        '/json/dbase.json'
-      ]);
-    } catch (\Exception $e) {
-      $errorMessage = 'No error' === $e->getMessage() ? '' : $e->getMessage();
+    if (self::$isDebug) {
+      $this->startTime = microtime(true);
       
-      throw new \Exception("Помилка налаштувань [$errorMessage]", -3);
+      trigger_error(__METHOD__." Request\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
     $this->dateTime = new \DateTime();
     
-    $this->fileDownload = '' === ($this->request['f'] ?? '') ? "Export_Excel_".$this->dateTime->format('YmdHisu')
-      .$this->fileExt->value : $this->request['f'];
-    $this->fileExt = Extensions::tryFrom('.'.Str::lowerCase(pathinfo($this->fileDownload, PATHINFO_EXTENSION)));
+    $defaultFilename = "Export_Excel__".$this->dateTime->format('YmdHisu').$this->fileExt->value;
     
-    if (!$this->fileExt) {
-      
+    $this->fileDownload = '' === ($this->request['f'] ?? '') ? $defaultFilename : $this->request['f'];
+    
+    $detectedExt = Extensions::tryFrom('.'.Str::lowerCase(pathinfo($this->fileDownload, PATHINFO_EXTENSION)));
+    
+    if ($detectedExt) {
+      $this->fileExt = $detectedExt;
+    } else {
       throw new \Exception("Не визначено тип вихідного файлу", -4);
     }
   }
@@ -125,11 +110,18 @@ final class Excel
     header('Cache-Control: no-cache, must-revalidate');
     header('Pragma: no-cache');
     
+    if (self::$isDebug) {
+      $totalTime = round(microtime(true) - $this->startTime, 4);
+      
+      trigger_error(__METHOD__." Preparing download finished. Total execution time: $totalTime sec.", E_USER_ERROR);
+    }
+    
     $objectWriter->save('php://output');
   }
   
   public function fill():void
   {
+    $fillStart = microtime(true);
     $title = trim($this->request['t'] ?? '');
     
     if ('' !== $title) {
@@ -138,14 +130,28 @@ final class Excel
     }
     
     if (SQLAnywhere::COLUMN === $this->queryType) {
-      self::_fillXML();
+      $this->fillXML();
     } else {
-      self::_fillArray();
+      $this->fillArray();
     }
     
     $this->queryResult = null;
     
     $highestRow = $this->sheet->getHighestRow();
+    
+    foreach ($this->numericColumns as $colIdx) {
+      $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+      $this->sheet->getStyle($colLetter.($this->rowFirst + 1).':'.$colLetter.$highestRow)
+                  ->getNumberFormat()
+                  ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+    }
+    
+    foreach ($this->dateColumns as $colIdx) {
+      $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIdx);
+      $this->sheet->getStyle($colLetter.($this->rowFirst + 1).':'.$colLetter.$highestRow)
+                  ->getNumberFormat()
+                  ->setFormatCode('dd.mm.yyyy');
+    }
     
     $this->sheet->getStyle('A'.$this->rowFirst.':'.$this->highestColumn.$highestRow)
                 ->applyFromArray([
@@ -178,17 +184,41 @@ final class Excel
       try {
         $this->sheet->mergeCells('A1:'.$this->highestColumn.'1');
       } catch (Exception $e) {
-        trigger_error($e->getMessage());
+        trigger_error(__METHOD__." mergeCells error\n".$e->getMessage());
       }
+    }
+    
+    if (self::$isDebug) {
+      $fillTime = round(microtime(true) - $fillStart, 4);
+      
+      trigger_error(__METHOD__." Grid filling finished in: $fillTime sec.", E_USER_ERROR);
     }
   }
   
   public function load():void
   {
-    $this->queryType = empty($this->request['p']) ? SQLAnywhere::COLUMN : $this->queryType;
+    $loadStart = microtime(true);
     
-    $connection = self::$settings->dbase->{'dbase'.(TEST_SERVER ? 'Test' : '')};
+    Config::load(['dbase.php']);
+    
+    self::$settings = Config::getAsObject();
+    
+    if (empty(self::$settings)) {
+      
+      throw new \Exception("Помилка налаштувань [dbase]", -3);
+    }
+    
+    $dbaseName = 'dbase'.(defined('TEST_SERVER') && TEST_SERVER ? 'Test' : '');
+    $connection = self::$settings->dbase->{$dbaseName} ?? null;
+    
+    if (is_null($connection)) {
+      
+      throw new \Exception("Не визначено з'єднання із базою даних", -4);
+    }
+    
     $connection = (int)($this->request['c'] ?? $connection);
+    
+    $this->queryType = empty($this->request['p']) ? SQLAnywhere::COLUMN : $this->queryType;
     
     DbSQLAnywhere::disconnect();
     $result = DbSQLAnywhere::query($this->request['q'], $this->queryType, $connection, flags: SQL_KEY_CASE_ORIGIN);
@@ -218,9 +248,9 @@ final class Excel
     
     $success = $success && !empty($this->queryResult);
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." Query [".$this->request['q']."]\nConnection [$connection] Query type ["
-        .$this->queryType->name."] Query has result [$success]");
+        .$this->queryType->name."] Query has result [$success]", E_USER_ERROR);
     }
     
     if (!$success) {
@@ -253,9 +283,15 @@ final class Excel
     }
     
     $this->sheet = $this->spreadsheet->getActiveSheet();
+    
+    if (self::$isDebug) {
+      $loadTime = round(microtime(true) - $loadStart, 4);
+      
+      trigger_error(__METHOD__." Query & Fetch took: $loadTime sec.", E_USER_ERROR);
+    }
   }
   
-  private function _fillArray():void
+  private function fillArray():void
   {
     foreach ($this->queryResult as $row) {
       if ($this->posY === $this->rowFirst) {
@@ -267,47 +303,23 @@ final class Excel
           $this->posX++;
         }
         
-        self::_fillShape();
-        
-        $this->posY++;
+        $this->fillShape();
       }
       
       $this->posX = 1;
+      $this->posY++;
       
       foreach ($row as $value) {
-        self::_fillValue([
+        $this->fillValue([
           $this->posX,
           $this->posY
         ], trim($value));
         $this->posX++;
       }
-      
-      $this->posY++;
     }
   }
   
-  private function _fillXML():void
-  {
-    foreach ($this->queryResult->table->row ?? [] as $row) {
-      $this->posX = 1;
-      
-      foreach ($row->td ?? [] as $td) {
-        self::_fillValue([
-          $this->posX,
-          $this->posY
-        ], trim($td));
-        $this->posX++;
-      }
-      
-      if ($this->posY === $this->rowFirst) {
-        self::_fillShape();
-      }
-      
-      $this->posY++;
-    }
-  }
-  
-  private function _fillShape():void
+  private function fillShape():void
   {
     $this->highestColumn = $this->sheet->getHighestColumn();
     
@@ -332,22 +344,51 @@ final class Excel
                 ]);
   }
   
-  private function _fillValue(array $coordinate, string $value):void
+  private function fillValue(array $coordinate, string $value):void
   {
+    $colIndex = $coordinate[0];
+    
     if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", substr($value, 0, 10))) {
-      $this->sheet->setCellValue($coordinate,
-        \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(\DateTime::createFromFormat('Y-m-d H:i:s',
-          $value.' 00:00:00')))
-                  ->getStyle($coordinate)
-                  ->getNumberFormat()
-                  ->setFormatCode('dd.mm.yyyy');
+      $dateObj = \DateTime::createFromFormat('Y-m-d H:i:s', substr($value, 0, 10).' 00:00:00');
+      
+      if ($dateObj) {
+        $this->sheet->setCellValue($coordinate, \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($dateObj));
+        
+        if (!in_array($colIndex, $this->dateColumns, true)) {
+          $this->dateColumns[] = $colIndex;
+        }
+      } else {
+        $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_STRING);
+      }
     } elseif (is_numeric($value) && is_float($value * 1)) {
-      $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_NUMERIC)
-                  ->getStyle($coordinate)
-                  ->getNumberFormat()
-                  ->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+      $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_NUMERIC);
+      
+      if (!in_array($colIndex, $this->numericColumns, true)) {
+        $this->numericColumns[] = $colIndex;
+      }
     } else {
       $this->sheet->setCellValueExplicit($coordinate, $value, DataType::TYPE_STRING);
+    }
+  }
+  
+  private function fillXML():void
+  {
+    foreach ($this->queryResult->table->row ?? [] as $row) {
+      $this->posX = 1;
+      
+      foreach ($row->td ?? [] as $td) {
+        $this->fillValue([
+          $this->posX,
+          $this->posY
+        ], trim($td));
+        $this->posX++;
+      }
+      
+      if ($this->posY === $this->rowFirst) {
+        $this->fillShape();
+      }
+      
+      $this->posY++;
     }
   }
 }

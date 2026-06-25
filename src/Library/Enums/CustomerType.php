@@ -5,9 +5,7 @@ namespace okushnirov\core\Library\Enums;
 enum CustomerType
 {
   case COMPANY;
-  
   case BUSINESSMAN;
-  
   case PERSON;
   
   public function getLabel(string $lang, string $variant = ''):string

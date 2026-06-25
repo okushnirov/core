@@ -3,28 +3,31 @@
 namespace okushnirov\core\Handlers;
 
 use core\Handlers\LoginHandler;
-use okushnirov\core\Library\{Authorization, Enums\Auth, Location};
+use okushnirov\core\Auth\Authorization;
+use okushnirov\core\Library\{Enums\Auth, Location};
 
 final class RootLogin
 {
-  public static function handler(Auth $authType, int $flag = 0):void
+  public static function handler(
+    Authorization $auth, Auth $authType, int $doLoginHandler = 0, bool $isDebug = false):void
   {
     try {
-      if ((new Authorization())->check($authType)) {
+      if ($auth->check($authType)) {
         
         return;
       }
-    } catch (\Exception $e) {
-      if (Root::$debug) {
+    } catch (\Throwable $e) {
+      if ($isDebug) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       }
     }
     
-    if ($flag) {
+    if ($doLoginHandler) {
       LoginHandler::run();
     } else {
-      session_destroy();
-      http_response_code(200);
+      if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+      }
     }
     
     Location::authRedirect(true);

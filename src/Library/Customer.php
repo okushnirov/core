@@ -10,16 +10,18 @@ final class Customer
   
   public static function checkCode(string $code, CustomerType | int | string $type):bool
   {
-    preg_match_all('/(.)\1{6,}/', $code, $matches, PREG_SET_ORDER);
+    $code = trim($code);
     
-    if (isset($matches[0])) {
+    if (preg_match('/(.)\1{6,}/u', $code)) {
       self::$errorCode = -2;
       
       return false;
     }
     
-    $return = match ($type instanceof CustomerType ? $type : CustomerType::getType($type)) {
-      CustomerType::COMPANY => preg_match('/^\d{8}$/', $code),
+    $customerType = $type instanceof CustomerType ? $type : CustomerType::getType($type);
+    
+    $return = match ($customerType) {
+      CustomerType::COMPANY => (bool)preg_match('/^\d{8}$/', $code),
       CustomerType::BUSINESSMAN => Str::isINN($code),
       CustomerType::PERSON => Str::isINN($code)
         || preg_match('/^[АБВГДЕЖЗИКЛМНОПРСТУФХЧШЮЯ]{2}\d{6}$/u', $code)

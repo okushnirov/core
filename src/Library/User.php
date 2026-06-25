@@ -5,28 +5,22 @@ namespace okushnirov\core\Library;
 final class User extends Person
 {
   public static bool $isAdmin = false;
-  
   public static bool $isAvatar = false;
-  
   public static bool $isDev = false;
-  
   public static bool $isLogin = false;
-  
-  public static Partner $partner;
-  
-  public static mixed $settings;
+  public static ?Partner $partner = null;
+  public static mixed $settings = null;
   
   public function __construct(mixed $settings = null)
   {
     self::$settings = $settings;
     
     self::$isAdmin = !empty($_SESSION['isAdmin']);
-    
     self::$isAvatar = !empty($_SESSION['isAvatar']);
-    
     self::$isDev = !empty($_SESSION['isDev']);
-    
     self::$isLogin = !empty($_SESSION['isLogin']);
+    
+    self::$partner = new Partner();
     
     if (!self::$isLogin) {
       
@@ -41,9 +35,9 @@ final class User extends Person
       return;
     }
     
-    self::$partner = (new Partner)->setValue($user);
+    self::$partner->setValue($user);
     
-    (new Person)::setValue($user);
+    Person::setValue($user);
   }
   
   public static function isAuthority(array | string $authorities):bool

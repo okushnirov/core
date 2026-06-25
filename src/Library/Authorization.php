@@ -4,24 +4,22 @@ namespace okushnirov\core\Library;
 
 use okushnirov\core\Library\Enums\{Auth, Decrypt, Encrypt, SessionType};
 
+/**
+ * @deprecated
+ */
 final class Authorization
 {
-  public static bool $debug = false;
-  
   public static bool $isAdmin = false;
-  
   public static bool $isAvatar = false;
-  
   public static bool $isDev = false;
-  
   public static bool $isLogin = false;
-  
+  private static bool $isDebug;
   private static ?string $userLogin;
-  
   private static string $userPassword;
   
-  public function __construct(?string $userLogin = null, string $userPassword = '')
+  public function __construct(?string $userLogin = null, string $userPassword = '', bool $isDebug = false)
   {
+    self::$isDebug = $isDebug;
     self::$isLogin = !empty($_SESSION['isLogin']);
     
     if (self::$isLogin) {
@@ -39,16 +37,16 @@ final class Authorization
       self::$userPassword = $userPassword;
     }
     
-    if (self::$debug) {
-      trigger_error(__METHOD__." user[".self::$userLogin.':'.self::$userPassword.'] isLogin['.self::$isLogin.'] call['
-        .debug_backtrace()[0]['file'].']');
+    if (self::$isDebug) {
+      trigger_error(__METHOD__." user[".self::$userLogin.':***] isLogin['.self::$isLogin.'] call['
+        .(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0]['file'] ?? 'Unknown file').']');
     }
   }
   
   public function check(
     Auth $type = Auth::DB_USER, bool | int | null $connection = false, SessionType $session = SessionType::WS):bool
   {
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." auth[$type->name] connection[$connection] session[$session->name]");
     }
     
@@ -74,7 +72,7 @@ final class Authorization
       Auth::WS, Auth::WS_DATA => self::testWS($session, Auth::WS_DATA === $type)
     };
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__.' isLogin['.self::$isLogin.']');
     }
     
@@ -191,7 +189,7 @@ final class Authorization
     self::$isAdmin = !empty($_SESSION['isAdmin']);
     self::$isDev = !empty($_SESSION['isDev']);
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__.' user['.self::$userLogin.'] isAdmin['.self::$isAdmin.'] isDev['.self::$isDev.']');
     }
     
@@ -258,7 +256,7 @@ final class Authorization
     
     $ldap = $settings->login->ldap->{0};
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." Settings\n".json_encode($ldap, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
     
@@ -280,7 +278,7 @@ final class Authorization
     $connect = ldap_connect($ldap->host, $ldap->port);
     
     if (!$connect) {
-      if (self::$debug) {
+      if (self::$isDebug) {
         trigger_error(__METHOD__." Connect to $ldap->host:$ldap->port is failed");
       }
       
@@ -290,8 +288,8 @@ final class Authorization
     $bind = ldap_bind($connect, $login, self::$userPassword);
     
     if (!$bind) {
-      if (self::$debug) {
-        trigger_error(__METHOD__." Bind [$login:".self::$userPassword.'] is failed');
+      if (self::$isDebug) {
+        trigger_error(__METHOD__." Bind [$login:***] is failed");
       }
       
       return false;
@@ -300,10 +298,10 @@ final class Authorization
     $cnt = 0;
     
     foreach ($ldap->member as $key => $value) {
-      $filter = "(&(memberOf=$value)(sAMAccountName=".self::$userLogin."))";
+      $filter = "(&(memberOf=$value)(sAMAccountName=".ldap_escape(self::$userLogin)."))";
       $resultSearchLDAP = ldap_search($connect, $ldap->base, $filter);
       
-      if (self::$debug) {
+      if (self::$isDebug) {
         trigger_error(__METHOD__." Base $ldap->base\n Filter $filter");
       }
       
@@ -324,7 +322,7 @@ final class Authorization
     
     self::$isLogin = 1 === $cnt;
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__.' Result ['.self::$isLogin.'] isAdmin ['.self::$isAdmin.']');
     }
     
@@ -341,7 +339,7 @@ final class Authorization
     }
     
     $webService = new WebService($settings->login);
-    $webService::$debug = self::$debug;
+    $webService::$isDebug = self::$isDebug;
     
     $request = [
       'request' => [

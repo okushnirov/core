@@ -7,7 +7,7 @@ use PhpOffice\PhpWord\{Exception\Exception, Settings, TemplateProcessor};
 
 final class Word
 {
-  public static bool $debug = false;
+  public bool $isDebug = false;
   private \DateTime $dateTime;
   private string $fileCopy;
   private string $fileDownload;
@@ -18,13 +18,13 @@ final class Word
   private string $fileTemplate;
   private bool $isConvert = false;
   private bool $isLinks = false;
+  private bool $isTestMode = false;
   private string $path = "\\files\\templates\\";
   private string $pathImage = "\\files\\templates\\images\\";
-  private bool $testMode = false;
   private ?TemplateProcessor $word;
   private \SimpleXMLElement $xml;
   
-  public function __construct(\SimpleXMLElement $xml, bool $testMode = false, bool $debug = false)
+  public function __construct(\SimpleXMLElement $xml, bool $isTestMode = false, bool $isDebug = false)
   {
     $this->xml = $xml;
     
@@ -43,7 +43,7 @@ final class Word
       throw new \Exception("Відсутній шаблон документа", -3);
     }
     
-    self::$debug = $debug;
+    $this->isDebug = $isDebug;
     
     $directory = trim($this->xml->шаблон['каталог'] ?? '');
     $directory = '' === $directory ? '' : $directory.DIRECTORY_SEPARATOR;
@@ -77,12 +77,12 @@ final class Word
     
     $this->isLinks = isset($xml->ссылки) && $xml->ссылки->ссылка->count();
     
-    $this->testMode = $testMode || ($this->xml['test'] ?? false);
+    $this->isTestMode = $isTestMode || ($this->xml['test'] ?? false);
     
-    if (self::$debug) {
+    if ($this->isDebug) {
       trigger_error(__METHOD__." Request\n".$this->xml->saveXML()."\nFile template: ".$this->fileTemplate
         ."\nFile copy: ".$this->fileCopy."\nFile download: ".$this->fileDownload."\nFile read: ".$this->fileRead
-        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->testMode ? 'yes' : 'no')."\n",
+        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->isTestMode ? 'yes' : 'no')."\n",
         E_USER_ERROR);
     }
   }
@@ -107,13 +107,13 @@ final class Word
     header("Cache-Control: must-revalidate");
     header("Pragma: public");
     
-    if (self::$debug) {
+    if ($this->isDebug) {
       trigger_error(__METHOD__." Read file $this->fileRead", E_USER_ERROR);
     }
     
     readfile($this->fileRead);
     
-    self::_deleteTmpFile();
+    self::deleteTmpFile();
   }
   
   public function fill():void
@@ -144,24 +144,24 @@ final class Word
       if ('' !== $col) {
         try {
           $this->word->cloneRow("$col", $cntNode);
-          self::_replaceNodeValue($alias, $node, $col);
+          self::replaceNodeValue($alias, $node, $col);
         } catch (Exception) {
         }
         
         $cloneBlock = $this->word->cloneBlock("b$col", $cntNode, true, true);
         
         if (!empty($cloneBlock)) {
-          self::_replaceNodeValue($alias, $node, $col);
+          self::replaceNodeValue($alias, $node, $col);
         }
         
         continue;
       }
       
-      self::_replaceNodeValue($alias, $node, $col);
+      self::replaceNodeValue($alias, $node, $col);
     }
     
     if (isset($this->xml->данные->images)) {
-      self::_replaceImages();
+      self::replaceImages();
     }
   }
   
@@ -179,11 +179,11 @@ final class Word
   
   public function removeVar():void
   {
-    if (!$this->testMode) {
+    if (!$this->isTestMode) {
       $this->word->removeVar();
     }
     
-    if (self::$debug) {
+    if ($this->isDebug) {
       trigger_error(__METHOD__." Remove variables....", E_USER_ERROR);
     }
   }
@@ -199,22 +199,22 @@ final class Word
     }
     
     if ($this->isLinks) {
-      self::_links();
+      self::links();
     }
     
     if ($this->isConvert) {
-      self::_convertLibreOffice();
+      self::convertLibreOffice();
     }
   }
   
-  private function _convertLibreOffice():void
+  private function convertLibreOffice():void
   {
     $tmpPath = sys_get_temp_dir();
     $tempLibreOfficeProfile = $tmpPath."\\LibreOfficeProfile\\".$this->dateTime->format('YmdHisu');
     $command = "\"C:\Program Files\LibreOffice\program\soffice.exe\" -env:UserInstallation=file:///".str_replace("\\",
         "/", $tempLibreOfficeProfile)." --headless --convert-to pdf --outdir $tmpPath \"$this->fileCopy\"";
     
-    if (self::$debug) {
+    if ($this->isDebug) {
       trigger_error(__METHOD__." run command:\n\n$command\n", E_USER_ERROR);
     }
     
@@ -227,7 +227,7 @@ final class Word
     }
   }
   
-  private function _deleteTmpFile():void
+  private function deleteTmpFile():void
   {
     if (File::isFile($this->fileRead, false)) {
       unlink($this->fileRead);
@@ -244,7 +244,7 @@ final class Word
     }
   }
   
-  private function _links():void
+  private function links():void
   {
     $zip = new \ZipArchive();
     
@@ -272,7 +272,7 @@ final class Word
     $zip->close();
   }
   
-  private function _replaceImages():void
+  private function replaceImages():void
   {
     $pathImage = $_SERVER['DOCUMENT_ROOT'].$this->pathImage;
     
@@ -290,7 +290,7 @@ final class Word
       $fileImageDefault = '' === trim($image['def'] ?? '') ? '' : $pathImage.$image['def'];
       $fileImageDefault2 = '' === trim($image['def_2'] ?? '') ? '' : $pathImage.$image['def_2'];
       
-      if (self::$debug) {
+      if ($this->isDebug) {
         trigger_error("\n".__METHOD__
           ."\nReplace $imageName\nImage: $fileImage\nImage Default: $fileImageDefault\nImage Default2: $fileImageDefault2",
           E_USER_ERROR);
@@ -327,7 +327,7 @@ final class Word
     }
   }
   
-  private function _replaceNodeValue(
+  private function replaceNodeValue(
     string $alias, array $node, string $col = ''):void
   {
     $countable = (int)('' !== $col);
@@ -338,7 +338,7 @@ final class Word
       
       foreach ($item as $key => $value) {
         
-        if (self::$debug) {
+        if ($this->isDebug) {
           trigger_error("Replace $alias.$key$postfix = ".trim($value), E_USER_ERROR);
         }
         

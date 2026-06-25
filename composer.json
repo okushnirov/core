@@ -15,14 +15,21 @@
   "psr-4":{
    "okushnirov\\core\\":"src/",
    "core\\":"php/classes"
-  }
+  },
+  "files":[
+   "php/classes/Constant.php"
+  ]
+ },
+ "config":{
+  "optimize-autoloader":true
  },
  "require":{
   "php":">=8.2"
  },
  "require-dev":{
   "phpmailer/phpmailer":"^v6.12.0",
-  "phpoffice/phpspreadsheet":"^5.7.0",
-  "phpoffice/phpword":"^1.4.0"
+  "phpoffice/phpspreadsheet":"^5.8.0",
+  "phpoffice/phpword":"^1.4.0",
+  "phpunit/phpunit":"11.5.55"
  }
 }

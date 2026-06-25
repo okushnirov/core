@@ -2,22 +2,20 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{Encoding, File};
+use okushnirov\core\Library\{Config, Encoding};
 use ReturnTypeWillChange;
 
 final class SessionHandler extends \Exception implements \SessionHandlerInterface
 {
   private static mixed $_con;
   
-  private static mixed $_set;
-  
   public function __construct()
   {
     parent::__construct();
     
-    self::$_set = File::parse(['/json/dbase.json']);
+    Config::load(['dbase.php']);
     
-    if (empty(self::$_set->dbase)) {
+    if (empty(Config::get('dbase'))) {
       
       exit;
     }
@@ -72,7 +70,8 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
     return (bool)self::_query('удалить('.self::_escape($id));
   }
   
-  #[ReturnTypeWillChange] public function gc(int $max_lifetime):bool
+  #[ReturnTypeWillChange]
+  public function gc(int $max_lifetime):bool
   {
     
     return (bool)self::_query('уборка('.self::_escape($max_lifetime));
@@ -80,7 +79,8 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   
   public function open(string $path, string $name):bool
   {
-    $c = &self::$_set->dbase->{self::$_set->dbase->{'session'.(TEST_SERVER ? 'Test' : '')}};
+    $dbase = Config::get('dbase');
+    $c = &$dbase[$dbase['session'.(TEST_SERVER ? 'Test' : '')]];
     
     self::$_con = sasql_connect("HOST=$c->host;SERVER=$c->server;DBN=$c->base;UID=$c->user;PWD=$c->pass;CharSet=$c->charset;CPOOL=NO;RetryConnTO=5;CON=PHP_Session;ENCRYPTION=simple;");
     
@@ -92,7 +92,8 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
     return true;
   }
   
-  #[ReturnTypeWillChange] public function read(string $id):false | string
+  #[ReturnTypeWillChange]
+  public function read(string $id):false | string
   {
     $r = self::_query('читать('.self::_escape($id));
     

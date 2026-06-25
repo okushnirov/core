@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\File;
+use okushnirov\core\Library\{Config, File};
 
 class RootSettings
 {
@@ -42,9 +42,11 @@ class RootSettings
         mb_strtolower($reflectionClass->getNamespaceName().'-'.$reflectionClass->getShortName())));
     $folder = 'core-root-index' === $folder ? '/' : "$folder";
     
-    $file = '/' === $folder || '' === $folder ? '' : "/json/root-$folder.json";
+    $file = '/' === $folder || '' === $folder ? '' : "root-$folder.php";
     
-    self::$json = File::parse(array_merge(['/json/root.json'], $file && File::isFile($file) ? [$file] : [], $JSON));
+    Config::load(array_merge(['root'], $file && File::isFile("/php/classes/Configs/$file") ? [$file] : [], $JSON));
+    
+    self::$json = Config::getAsObject();
     self::$post = $_POST;
     self::$root = self::$json->root->{$folder} ?? false;
   }

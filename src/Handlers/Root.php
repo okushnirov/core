@@ -7,7 +7,9 @@ define('DO_LOGIN_HANDLER', 1);
 define('DO_RELOAD_HOME', 2);
 
 use core\Root\Folders\Error;
-use okushnirov\core\Library\{Enums\Auth, Enums\CookieType, Enums\SessionType, Lang, Location, Session};
+use okushnirov\core\Auth\{Authorization, UserSession};
+use okushnirov\core\Library\Enums\{Auth, CookieType, SessionType};
+use okushnirov\core\Library\{Lang, Location, Session};
 
 final class Root extends \Exception
 {
@@ -15,7 +17,7 @@ final class Root extends \Exception
   
   const ROOT_FOLDERS = 'Folders\\';
   
-  public static bool $debug = false;
+  public static bool $isDebug;
   
   public static ?array $path;
   
@@ -23,14 +25,15 @@ final class Root extends \Exception
   
   public static function handler(
     string     $folder, string $request = '/', ?Auth $authType = null, SessionType $session = SessionType::WS,
-    CookieType $cookie = CookieType::No, bool $redirect = true, int $flag = 0):void
+    CookieType $cookie = CookieType::No, bool $redirect = true, int $flag = 0, bool $isDebug = false):void
   {
+    self::$isDebug = $isDebug;
     self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
     self::$query = trim((string)parse_url($request, PHP_URL_QUERY));
     
     Location::$folder = $folder;
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." Start\n".json_encode([
           "Auth " => $authType->name ?? '',
           "COOKIE type [$cookie->name]" => $_COOKIE ?? [],
@@ -45,7 +48,7 @@ final class Root extends \Exception
     if (SessionType::NONE !== $session && Session::sessionStart($session)) {
       $_SESSION['folder'] = $folder;
       
-      if (self::$debug) {
+      if (self::$isDebug) {
         trigger_error(__METHOD__."\nSession id = ".session_id()."\nSession folder = {$_SESSION['folder']}",
           E_USER_ERROR);
       }
@@ -62,7 +65,8 @@ final class Root extends \Exception
     Lang::set($session, $cookie);
     
     if (!is_null($authType)) {
-      RootLogin::handler($authType, $flag & DO_LOGIN_HANDLER);
+      RootLogin::handler((new Authorization(new UserSession(), isDebug: self::$isDebug)), $authType,
+        $flag & DO_LOGIN_HANDLER, self::$isDebug);
     }
     
     if ('' === (self::$path[0] ?? '')) {
@@ -81,7 +85,7 @@ final class Root extends \Exception
         $classPath = implode('\\', $fullPath);
         $className = $classRoot.$classPath;
         
-        if (self::$debug) {
+        if (self::$isDebug) {
           trigger_error(__METHOD__." Find className: $className...", E_USER_ERROR);
         }
         
@@ -95,7 +99,7 @@ final class Root extends \Exception
       }
     }
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." Set className: $className", E_USER_ERROR);
     }
     
@@ -104,14 +108,14 @@ final class Root extends \Exception
         (new $className)::index();
         
         exit;
-      } catch (\Exception $e) {
+      } catch (\Throwable $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       }
     }
     
     try {
-      (new Error())::index(404, 0, '', $request);
-    } catch (\Exception $e) {
+      (new Error([], $session, $cookie))::index(404, 0, '', $request);
+    } catch (\Throwable $e) {
       trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       
       throw new \Exception($e->getMessage(), $e->getCode());

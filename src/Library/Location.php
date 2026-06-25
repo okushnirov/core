@@ -12,8 +12,9 @@ final class Location
   public static function authRedirect(bool $isAuth = false):void
   {
     if ($isAuth) {
+      $auth = new Authentication();
       
-      exit((new Authentication())::render());
+      exit($auth::render());
     }
   }
   
@@ -29,20 +30,27 @@ final class Location
   public static function getLocation(string $endSlash = '/'):string
   {
     
-    return '' === self::$folder || '/' === self::$folder ? self::serverName($endSlash)
-      : self::serverName().self::$folder.$endSlash;
+    return '' === self::$folder || '/' === self::$folder
+      ? self::serverName($endSlash)
+      : self::serverName('').'/'.trim(self::$folder, '/').$endSlash;
   }
   
   public static function httpsRedirect(string $request = ''):void
   {
-    $redirect = TEST_SERVER ? TEST_SERVER_REDIRECT : SERVER_REDIRECT;
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+      || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
     
-    if (80 === (int)$_SERVER['SERVER_PORT'] && $redirect) {
-      $folder = trim($request, '/');
+    if (!$isSecure) {
+      $request = trim($request, '/');
       
-      header('Location: '.('' === $folder || self::$folder === $folder
-          ? self::getLocation() : (false === mb_stripos($request, 'https') ? self::getLocation(str_starts_with($request,
-              '/') ? '' : '/').$request : $request)));
+      if ('' === $request || self::$folder === $request) {
+        $targetUrl = self::getLocation();
+      } else {
+        $targetUrl = str_starts_with($request, 'http://') || str_starts_with($request, 'https://')
+          ? preg_replace('/^http:/i', 'https:', $request) : self::getLocation('').'/'.$request;
+      }
+      
+      header('Location: '.$targetUrl);
       
       exit;
     }
@@ -53,12 +61,12 @@ final class Location
   {
     parse_str(mb_strtolower($query), $result);
     
-    if (!isset($result['logout']) || SessionType::NONE === $session && !session_id()) {
+    if (!isset($result['logout'])) {
       
       return;
     }
     
-    if (session_id() && SessionType::NONE !== $session) {
+    if (SessionType::NONE !== $session && (session_id() || Session::sessionStart($session))) {
       Session::sessionDestroy();
     }
     
@@ -71,15 +79,28 @@ final class Location
     exit;
   }
   
-  public static function serverName(string $endSlash = '/'):string
+  public static function serverName(bool | string $endSlash = '/'):string
   {
-    $port = TEST_SERVER ? TEST_SERVER_PORT : SERVER_PORT;
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+      || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
     
-    $name = 'http';
-    $name .= 80 !== $port ? 's' : '';
-    $name .= '://'.$_SERVER['SERVER_NAME'];
-    $name .= 80 === $port || 443 === $port ? '' : ":$port";
-    $name .= $endSlash;
+    $scheme = $isSecure ? 'https' : 'http';
+    $host = $_SERVER['SERVER_NAME'] ?? 'localhost';
+    $port = (int)($_SERVER['SERVER_PORT'] ?? 80);
+    
+    $name = $scheme.'://'.$host;
+    
+    if (($isSecure && $port !== 443) || (!$isSecure && $port !== 80)) {
+      if (!str_contains($host, ':')) {
+        $name .= ':'.$port;
+      }
+    }
+    
+    if (is_bool($endSlash)) {
+      $name .= $endSlash ? '/' : '';
+    } else {
+      $name .= $endSlash;
+    }
     
     return $name;
   }

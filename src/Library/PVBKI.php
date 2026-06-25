@@ -4,99 +4,118 @@ namespace okushnirov\core\Library;
 
 final class PVBKI
 {
-  public static string $code;
+  public bool $isDisabled = true;
   
-  public static bool $debug = false;
+  private array $authKey = [];
+  private string $authName = '';
+  private string $code;
+  private bool $isDebug = false;
+  private bool $isLoaded = false;
+  private string $pass = '';
+  private string $url = '';
+  private string $urlAuth = '';
+  private string $user = '';
   
-  public static bool $disabled = true;
-  
-  private static array $authKey = [];
-  
-  private static string $authName = '';
-  
-  private static string $pass = '';
-  
-  private static string $url = '';
-  
-  private static string $urlAuth = '';
-  
-  private static string $user = '';
-  
-  public function __construct()
+  public function init(object $request, bool $isDebug = false):void
   {
-    $settings = File::parse(['/json/pvbki.json']);
+    self::loadSettings();
     
-    self::$disabled = $settings->disabled ?? self::$disabled;
+    $this->isDebug = $isDebug || $this->isDebug;
     
-    self::$authKey = $settings->key ?? self::$authKey;
-    self::$authName = $settings->name ?? self::$authName;
-    self::$pass = $settings->pass ?? '';
-    self::$url = $settings->url ?? self::$url;
-    self::$urlAuth = $settings->urlAuth ?? self::$urlAuth;
-    self::$user = $settings->user ?? '';
-  }
-  
-  public static function init(\stdClass $data):void
-  {
-    if (self::$debug) {
-      trigger_error(__METHOD__."\n".json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    if ($this->isDebug) {
+      trigger_error(__METHOD__."\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
-    self::$code = $data->code ?? '';
+    $this->code = trim((string)($request->code ?? ''));
   }
   
-  public static function sendRequest():string
+  public function sendRequest():string
   {
-    try {
-      $client = new \SoapClient(self::$url, [
-        'trace' => 1,
-        'exceptions' => 1
-      ]);
-    } catch (\SoapFault $e) {
-      $client = '';
-      if (self::$debug) {
-        trigger_error(__METHOD__.' Soap error: '.$e->getMessage());
-      }
+    if (!$this->isLoaded) {
+      
+      throw new \Exception('Initialization not completed or service settings missing', -20);
     }
     
-    if (empty($client)) {
+    if ($this->isDisabled) {
       
       return '';
     }
     
+    if (empty($this->url)) {
+      
+      throw new \Exception('Wrong URL service', -30);
+    }
+    
+    if ('' === $this->code) {
+      
+      throw new \Exception('Empty client code', -40);
+    }
+    
     try {
+      $client = new \SoapClient($this->url, [
+        'trace' => 1,
+        'exceptions' => 1
+      ]);
+      
+      $binaryKey = empty($this->authKey) ? '' : implode(array_map('chr', $this->authKey));
+      
       $client->__setSoapHeaders([
-        new \SoapHeader(self::$urlAuth, 'AuthenticationCredential', [
-          'UserName' => self::$user,
-          'Password' => self::$pass
+        new \SoapHeader($this->urlAuth, 'AuthenticationCredential', [
+          'UserName' => $this->user,
+          'Password' => $this->pass
         ], 'false'),
-        new \SoapHeader(self::$urlAuth, 'AuthenticationIdentity', [
-          'Name' => self::$authName,
-          'Key' => implode(array_map('chr', self::$authKey))
+        new \SoapHeader($this->urlAuth, 'AuthenticationIdentity', [
+          'Name' => $this->authName,
+          'Key' => $binaryKey
         ], 'false')
       ]);
-    } catch (\Exception $e) {
-      if (self::$debug) {
-        trigger_error(__METHOD__.' Soap auth error: '.$e->getMessage());
+      
+      $result = $client->Statement(['forID' => $this->code]);
+      
+      if (is_soap_fault($result)) {
+        $response = $result->faultstring ?? '';
+      } else {
+        $response = $result->{'Report-StatementResult'} ?? '';
       }
-    }
-    
-    try {
-      $result = $client->Statement(['forID' => self::$code]);
+      
+      if ($this->isDebug) {
+        trigger_error(__METHOD__." Soap response\n".$response);
+      }
+      
+      return $response;
+    } catch (\SoapFault $e) {
+      if ($this->isDebug) {
+        trigger_error(__METHOD__.' Soap error: '.$e->getMessage(), E_USER_ERROR);
+      }
+      
+      return '';
     } catch (\Exception $e) {
-      $result = '';
+      if ($this->isDebug) {
+        trigger_error(__METHOD__.' General error: '.$e->getMessage(), E_USER_ERROR);
+      }
+      
+      return '';
+    }
+  }
+  
+  private function loadSettings():void
+  {
+    Config::load(['pvbki.php']);
+    
+    if (!Config::isLoaded()) {
+      
+      throw new \Exception('Error reading configuration file', -10);
     }
     
-    if (is_soap_fault($result)) {
-      $response = $result->faultstring ?? '';
-    } else {
-      $response = $result->{'Report-StatementResult'} ?? '';
-    }
-    
-    if (self::$debug) {
-      trigger_error(__METHOD__." Response\n".$response);
-    }
-    
-    return $response;
+    $this->authKey = Config::get('key') ?? $this->authKey;
+    $this->authName = Config::get('name') ?? $this->authName;
+    $this->isDebug = Config::get('debug') ?? $this->isDebug;
+    $this->isDisabled = Config::get('disabled') ?? $this->isDisabled;
+    $this->isLoaded = true;
+    $this->pass = Config::get('pass') ?? '';
+    $this->url = Config::get('url') ?? $this->url;
+    $this->urlAuth = Config::get('urlAuth') ?? $this->urlAuth;
+    $this->user = Config::get('user') ?? '';
   }
 }

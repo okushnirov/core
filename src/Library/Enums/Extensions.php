@@ -5,13 +5,9 @@ namespace okushnirov\core\Library\Enums;
 enum Extensions: string
 {
   case DOC = '.doc';
-  
   case DOCX = '.docx';
-  
   case PDF = '.pdf';
-  
   case XLS = '.xls';
-  
   case XLSX = '.xlsx';
   
   public function getContentType():string

@@ -6,20 +6,26 @@ use okushnirov\core\Library\Enums\{Charset, HTTPMethods};
 
 final class WebService
 {
-  public static bool $debug = false;
-  
+  public static bool $isDebug = false;
   public static int $httpCode = 0;
-  
   public static mixed $httpInfo = [];
-  
   public static string $response = '';
+  private static mixed $settings = [];
   
-  private static mixed $settings;
-  
-  public function __construct(mixed $settings = null)
+  public function __construct(mixed $settings = null, bool $isDebug = false)
   {
-    self::$settings = $settings->ws ??
-      File::parse(['/json/ws.json'])->ws ?? File::parse(['/json/settings.json'])->ws ?? [];
+    if (isset($settings->ws)) {
+      self::$settings = $settings->ws;
+    } else {
+      Config::load([
+        'ws.php',
+        'settings.php'
+      ]);
+      
+      self::$settings = Config::getAsObject()->ws ?? [];
+    }
+    
+    self::$isDebug = $isDebug;
   }
   
   public function get(string $wsName, bool $test = TEST_SERVER):object
@@ -27,7 +33,7 @@ final class WebService
     $data = self::$settings->{$wsName} ?? [];
     
     if (empty($data)) {
-      if (self::$debug) {
+      if (self::$isDebug) {
         trigger_error(__METHOD__." Empty webservice settings", E_USER_ERROR);
       }
       
@@ -52,7 +58,7 @@ final class WebService
       }
     }
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." [$wsName]\n".json_encode($ws, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
         E_USER_ERROR);
     }
@@ -95,7 +101,6 @@ final class WebService
     
     self::$httpCode = 0;
     self::$httpInfo = [];
-    
     self::$response = '';
     
     if (isset($ws->url)) {
@@ -105,7 +110,7 @@ final class WebService
       self::$httpInfo = Curl::$curlHttpInfo;
     }
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name."\nURL ".($ws->url ?? ' url not found')."\nAuth ["
         .($ws->user ?? '').":".($ws->pass ?? '')."]".($header ? "\nHeader\n".json_encode($header,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '')
@@ -115,7 +120,7 @@ final class WebService
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)), E_USER_ERROR);
     }
     
-    self::$debug = false;
+    self::$isDebug = false;
     
     if (200 !== Curl::$curlHttpCode) {
       

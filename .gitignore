@@ -1,8 +1,11 @@
 .idea
 .project
+error/
 json/
 php/
 test/
 vendor
 .htaccess
+apple-touch-icon*.*
+favicon*.*
 site.webmanifest

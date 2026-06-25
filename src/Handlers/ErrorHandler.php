@@ -2,11 +2,9 @@
 
 namespace okushnirov\core\Handlers;
 
-require_once $_SERVER['DOCUMENT_ROOT'].'/php/classes/Constant.php';
-
 final class ErrorHandler
 {
-  static array $errorType = [
+  private array $errorType = [
     E_ERROR => 'Помилка',
     E_WARNING => 'Попередження',
     E_PARSE => 'Помилка аналізу вихідного коду',
@@ -24,6 +22,13 @@ final class ErrorHandler
     E_USER_DEPRECATED => 'Використання застарілих конструкцій'
   ];
   
+  private string $logPath = "C:\\Log\\";
+  
+  public function __construct(string $logPath = '')
+  {
+    $this->logPath = '' === $logPath ? $this->logPath : $logPath;
+  }
+  
   public function errorHandler(
     int $errorNumber, string $errorMessage, string $errorFileName, int $errorLineNumber):bool
   {
@@ -32,31 +37,39 @@ final class ErrorHandler
       return false;
     }
     
-    try {
-      $date = new \DateTime();
-      $date = $date->format("Y-m-d H:i:s.u");
-    } catch (\Exception) {
-      $time = microtime(true);
-      $date = date('Y-m-d H:i:s.').sprintf("%06d", ($time - floor($time)) * 1000000);
-    }
-    
     if (E_USER_ERROR === $errorNumber) {
       $errorString = "\n$errorMessage";
     } else {
-      $errorString = "\n$date";
-      $errorString .= " [{$_SERVER['REMOTE_ADDR']}] ";
-      $errorString .= self::$errorType[$errorNumber] ?? "[$errorNumber]";
-      $errorString .= !mb_stripos($errorMessage, ' on line ') ? " -> $errorFileName on line $errorLineNumber" : '';
+      $errorString = "\n".date('Y-m-d H:i:s.').substr(explode(' ', microtime())[0], 2, 6);
+      $errorString .= ' ['.($_SERVER['REMOTE_ADDR'] ?? 'localhost (CLI)').'] ';
+      $errorString .= $this->errorType[$errorNumber] ?? "[$errorNumber]";
+      $errorString .= false === mb_stripos($errorMessage, ' on line ') ? " -> $errorFileName on line $errorLineNumber"
+        : '';
       $errorString .= "\n$errorMessage\n";
     }
     
-    return error_log($errorString, 3, "C:\\Log\\{$_SERVER['SERVER_NAME']}.log");
+    $logFile = ($_SERVER['SERVER_NAME'] ?? 'cli').'.log';
+    
+    $finalPath = is_dir($this->logPath)
+      ? $this->logPath.$logFile
+      : rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$logFile;
+    
+    restore_error_handler();
+    
+    $result = error_log($errorString, 3, $finalPath);
+    
+    set_error_handler([
+      $this,
+      'errorHandler'
+    ]);
+    
+    return $result;
   }
   
   public function exceptionHandler(\Throwable $e):bool
   {
     
-    return self::errorHandler(E_ERROR, get_class($e).' '.$e->getMessage().' '.$e->getCode(), $e->getFile(),
+    return $this->errorHandler(E_ERROR, get_class($e).' '.$e->getMessage().' '.$e->getCode(), $e->getFile(),
       $e->getLine());
   }
   
@@ -83,10 +96,10 @@ final class ErrorHandler
   public function shutdownHandler():void
   {
     if ($error = @error_get_last()) {
-      $errorNumber = (int)($error->type ?? 0);
+      $errorNumber = (int)($error['type'] ?? 0);
       
       if (0 < $errorNumber) {
-        self::errorHandler($errorNumber, $error->message ?? '', $error->file ?? '', (int)($error->line ?? 0));
+        $this->errorHandler($errorNumber, $error['message'] ?? '', $error['file'] ?? '', (int)($error['line'] ?? 0));
       }
     }
   }
