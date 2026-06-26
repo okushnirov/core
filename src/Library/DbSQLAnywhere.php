@@ -56,8 +56,8 @@ final class DbSQLAnywhere implements DbSQL
     && TEST_SERVER ? 'Test' : '')] : (int)$connection;
     $s = &Config::get('dbase')[$c->connection];
     
-    $c->user = false === $user ? $s->user : $user;
-    $c->pass = false === $pass ? $s->pass : $pass;
+    $c->user = false === $user ? $s['user'] : $user;
+    $c->pass = false === $pass ? $s['pass'] : $pass;
     
     # Connect
     $connectString = "HOST={$s['host']};SERVER={$s['server']};DBN={$s['base']};UID=$c->user;PWD=$c->pass;CharSet={$s['charset']};CPOOL=NO;RetryConnTO=5;CON=PHP;";
