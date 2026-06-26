@@ -29,8 +29,7 @@ class AuthStrategyWs implements AuthStrategy
       throw new \Exception('Empty ws auth settings', -10);
     }
     
-    $webService = new WebService($settings->login);
-    $webService::$isDebug = $this->isDebug;
+    $webService = new WebService($settings->login, $this->isDebug);
     
     $request = [
       'request' => [

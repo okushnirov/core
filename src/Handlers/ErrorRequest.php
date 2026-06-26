@@ -67,7 +67,8 @@ final class ErrorRequest
       Root::handler(Location::$folder, $absoluteRequest, session: $session, cookie: $cookie);
     } catch (\Exception $e) {
       try {
-        Error::index($this->http_code, $e->getCode(), $e->getMessage(), $absoluteRequest);
+        (new Error(session: $session, cookie: $cookie))::index($this->http_code, $e->getCode(), $e->getMessage(),
+          $absoluteRequest);
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
         

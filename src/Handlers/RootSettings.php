@@ -44,7 +44,7 @@ class RootSettings
     
     $file = '/' === $folder || '' === $folder ? '' : "root-$folder.php";
     
-    Config::load(array_merge(['root'], $file && File::isFile("/php/classes/Configs/$file") ? [$file] : [], $JSON));
+    Config::load(array_merge(['root.php'], $file && File::isFile("/php/classes/Configs/$file") ? [$file] : [], $JSON));
     
     self::$json = Config::getAsObject();
     self::$post = $_POST;

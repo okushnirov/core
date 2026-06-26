@@ -60,14 +60,13 @@ final class DbSQLAnywhere implements DbSQL
     $c->pass = false === $pass ? $s->pass : $pass;
     
     # Connect
-    self::$connect = sasql_connect("HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP;");
+    $connectString = "HOST={$s['host']};SERVER={$s['server']};DBN={$s['base']};UID=$c->user;PWD=$c->pass;CharSet={$s['charset']};CPOOL=NO;RetryConnTO=5;CON=PHP;";
+    self::$connect = sasql_connect($connectString);
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__
-        ." for[$connection][$user:$pass] -> HOST=$s->host;SERVER=$s->server;DBN=$s->base;UID=$c->user;PWD=$c->pass;CharSet=$s->charset;CPOOL=NO;RetryConnTO=5;CON=PHP; -> "
-        .(self::$connect ? 'ok ['.self::$connect.']' : 'failed')."\n"
-        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-        ."\nsettings[$c->connection][$c->user:$c->pass]");
+      trigger_error(__METHOD__." for[$connection][$user:***] -> $connectString -> ".(self::$connect ? 'ok ['
+          .self::$connect.']' : 'failed')."\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\nsettings[$c->connection][$c->user:$c->pass]");
     }
     
     unset($c, $s);
@@ -102,7 +101,7 @@ final class DbSQLAnywhere implements DbSQL
   {
     if (!self::$connect && !self::connect($connection, $user, $pass)) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." connect [$connection][$user:$pass] not exist\n"
+        trigger_error(__METHOD__." connect [$connection][$user:***] not exist\n"
           .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
       }
       
@@ -146,7 +145,7 @@ final class DbSQLAnywhere implements DbSQL
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:$pass] SQL:\n$queryString");
+      trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:***] SQL:\n$queryString");
     }
     
     $realResult = sasql_real_query(self::$connect, Encoding::encode($queryString));
@@ -167,7 +166,7 @@ final class DbSQLAnywhere implements DbSQL
     }
     
     if (!$realResult) {
-      trigger_error(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:$pass]\n"
+      trigger_error(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:***]\n"
         .json_encode(debug_backtrace(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
       
       return false;

@@ -338,8 +338,7 @@ final class Authorization
       throw new \Exception('Empty ws auth settings', -10);
     }
     
-    $webService = new WebService($settings->login);
-    $webService::$isDebug = self::$isDebug;
+    $webService = new WebService($settings->login, self::$isDebug);
     
     $request = [
       'request' => [

@@ -6,7 +6,7 @@ use okushnirov\core\Library\{Config, Curl, Enums\Charset};
 
 final class SessionHandlerWs implements \SessionHandlerInterface
 {
-  private static ?object $config = null;
+  private static ?array $config = null;
   
   public function __construct()
   {
