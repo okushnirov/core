@@ -2,18 +2,21 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{Config, Encoding};
+use okushnirov\core\Library\{Config, Encoding, Enums\Charset};
 use ReturnTypeWillChange;
 
 final class SessionHandler extends \Exception implements \SessionHandlerInterface
 {
-  private static mixed $_con;
+  private static mixed $connect;
+  private static Charset $charsetDB = Charset::WINDOWS1251;
   
-  public function __construct()
+  public function __construct(Charset $charsetDBase = Charset::WINDOWS1251)
   {
     parent::__construct();
     
     Config::load(['dbase.php']);
+    
+    self::$charsetDB = $charsetDBase;
     
     if (empty(Config::get('dbase'))) {
       
@@ -44,24 +47,24 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   private static function _escape(string $s):string
   {
     
-    return "'".sasql_real_escape_string(self::$_con, $s)."'";
+    return "'".sasql_real_escape_string(self::$connect, $s)."'";
   }
   
   private static function _query(string $q):mixed
   {
-    sasql_real_query(self::$_con, Encoding::encode("SELECT _сессия_$q)"));
+    sasql_real_query(self::$connect, Encoding::encode("SELECT _сессия_$q)", to: self::$charsetDB));
     
-    return empty(Encoding::decode(sasql_error(self::$_con))) ? sasql_fetch_array(sasql_use_result(self::$_con),
-      SASQL_NUM) : false;
+    return empty(Encoding::decode(sasql_error(self::$connect), self::$charsetDB))
+      ? sasql_fetch_array(sasql_use_result(self::$connect), SASQL_NUM) : false;
   }
   
   public function close():bool
   {
-    if (is_resource(self::$_con)) {
-      sasql_disconnect(self::$_con);
+    if (is_resource(self::$connect)) {
+      sasql_disconnect(self::$connect);
     }
     
-    return !self::$_con = false;
+    return !self::$connect = false;
   }
   
   public function destroy(string $id):bool
@@ -82,9 +85,9 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
     $dbase = Config::get('dbase');
     $c = &$dbase[$dbase['session'.(TEST_SERVER ? 'Test' : '')]];
     
-    self::$_con = sasql_connect("HOST=$c->host;SERVER=$c->server;DBN=$c->base;UID=$c->user;PWD=$c->pass;CharSet=$c->charset;CPOOL=NO;RetryConnTO=5;CON=PHP_Session;ENCRYPTION=simple;");
+    self::$connect = sasql_connect("HOST=$c->host;SERVER=$c->server;DBN=$c->base;UID=$c->user;PWD=$c->pass;CharSet=$c->charset;CPOOL=NO;RetryConnTO=5;CON=PHP_Session;ENCRYPTION=simple;");
     
-    if (!is_resource(self::$_con)) {
+    if (!is_resource(self::$connect)) {
       
       throw new \Exception('No session database connection', 0);
     }
@@ -97,7 +100,7 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   {
     $r = self::_query('читать('.self::_escape($id));
     
-    return false === $r ? false : (empty($r) ? '' : Encoding::decode($r[0]));
+    return false === $r ? false : (empty($r) ? '' : Encoding::decode($r[0], self::$charsetDB));
   }
   
   public function write(string $id, string $data):bool

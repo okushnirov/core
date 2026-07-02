@@ -9,7 +9,6 @@ final class AuthStrategyDb implements AuthStrategy
 {
   private int | bool $connection;
   private bool $isDebug;
-  
   private UserSession $session;
   
   public function __construct(int | bool $connection, UserSession $userSession, bool $isDebug)

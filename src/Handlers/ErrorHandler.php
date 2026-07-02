@@ -21,7 +21,6 @@ final class ErrorHandler
     E_DEPRECATED => 'Використання застарілих конструкцій',
     E_USER_DEPRECATED => 'Використання застарілих конструкцій'
   ];
-  
   private string $logPath = "C:\\Log\\";
   
   public function __construct(string $logPath = '', string $constantsFile = '')

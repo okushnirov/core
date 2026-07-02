@@ -12,7 +12,6 @@ use okushnirov\core\Library\Location;
 final class ErrorRequest
 {
   private int $http_code;
-  
   private string $request;
   
   public function __construct(string $request, int $http_code, array $trace = [])

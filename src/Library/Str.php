@@ -110,7 +110,7 @@ final class Str
   }
   
   public static function replaceHeader(
-    string $string = '', Charset $needle = Charset::UTF8, $removeSpecChar = false):string
+    string $string = '', Charset $needle = Charset::UTF8, bool $removeSpecChar = false):string
   {
     $string = Charset::UTF8 === $needle ? (mb_check_encoding($string, Charset::UTF8->value) ? $string
       : Encoding::decode($string)) : $string;

@@ -2,7 +2,6 @@
 
 namespace okushnirov\core\Handlers;
 
-use JetBrains\PhpStorm\NoReturn;
 use okushnirov\core\Library\Session;
 
 final class TraceHandler
@@ -16,7 +15,6 @@ final class TraceHandler
     $this->trace = $trace;
   }
   
-  #[NoReturn]
   public function log():void
   {
     if (isset($this->trace['SESSION'])) {

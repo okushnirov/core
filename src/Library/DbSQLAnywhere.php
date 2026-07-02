@@ -2,6 +2,7 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Library\Enums\Charset;
 use okushnirov\core\Library\Enums\SQLAnywhere;
 use okushnirov\core\Library\Interfaces\DbSQL;
 
@@ -41,6 +42,8 @@ final class DbSQLAnywhere implements DbSQL
   
   public static int $queryNumRows = 0;
   
+  private static Charset $charsetDB = Charset::WINDOWS1251;
+  
   public static function connect(
     bool | int $connection = false, bool | string $user = false, bool | string $pass = false):bool
   {
@@ -56,8 +59,16 @@ final class DbSQLAnywhere implements DbSQL
     && TEST_SERVER ? 'Test' : '')] : (int)$connection;
     $s = &Config::get('dbase')[$c->connection];
     
-    $c->user = false === $user ? $s['user'] : $user;
-    $c->pass = false === $pass ? $s['pass'] : $pass;
+    $c->user = false === $user ? ($s['user'] ?? '') : $user;
+    $c->pass = false === $pass ? ($s['pass'] ?? '') : $pass;
+    
+    $charset = strtolower(trim((string)($s['charset'] ?? '')));
+    
+    self::$charsetDB = match ($charset) {
+      'windows1251', 'windows-1251' => Charset::WINDOWS1251,
+      'utf8', 'utf-8' => Charset::UTF8,
+      default => Charset::tryFrom($charset) ?? Charset::WINDOWS1251
+    };
     
     # Connect
     $connectString = "HOST={$s['host']};SERVER={$s['server']};DBN={$s['base']};UID=$c->user;PWD=$c->pass;CharSet={$s['charset']};CPOOL=NO;RetryConnTO=5;CON=PHP;";
@@ -148,11 +159,11 @@ final class DbSQLAnywhere implements DbSQL
       trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:***] SQL:\n$queryString");
     }
     
-    $realResult = sasql_real_query(self::$connect, Encoding::encode($queryString));
+    $realResult = sasql_real_query(self::$connect, Encoding::encode($queryString, to: self::$charsetDB));
     
     self::$queryErrorState = trim(sasql_sqlstate(self::$connect) ?? '');
     self::$queryErrorCode = (int)(sasql_errorcode(self::$connect) ?? 0);
-    self::$queryError = Encoding::decode(trim(sasql_error(self::$connect) ?? ''));
+    self::$queryError = Encoding::decode(trim(sasql_error(self::$connect) ?? ''), self::$charsetDB);
     self::$queryErrorMessage = '00000' === self::$queryErrorState && !self::$queryErrorCode
     && empty(self::$queryError) ? '' : '['.self::$queryErrorState.']['.self::$queryErrorCode.'] '.self::$queryError;
     
@@ -167,7 +178,8 @@ final class DbSQLAnywhere implements DbSQL
     
     if (!$realResult) {
       trigger_error(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:***]\n"
-        .json_encode(debug_backtrace(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1),
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
       
       return false;
     }
@@ -204,7 +216,11 @@ final class DbSQLAnywhere implements DbSQL
     switch ($type) {
       case SQLAnywhere::COLUMN :
         $array = sasql_fetch_array($queryResult, SASQL_NUM);
-        $result = empty($array) ? false : ($flags & SQL_VALUE_ORIGIN ? $array[0] : Encoding::decode($array[0]));
+        $result = empty($array)
+          ? false
+          : ($flags & SQL_VALUE_ORIGIN
+            ? $array[0]
+            : Encoding::decode($array[0], self::$charsetDB));
         
         break;
       
@@ -303,9 +319,9 @@ final class DbSQLAnywhere implements DbSQL
     $row = [];
     
     foreach ($array as $key => $value) {
-      $key = $flags & SQL_KEY_ORIGIN ? $key : Encoding::decode((string)$key);
+      $key = $flags & SQL_KEY_ORIGIN ? $key : Encoding::decode((string)$key, self::$charsetDB);
       $key = $flags & SQL_KEY_CASE_ORIGIN ? $key : mb_convert_case($key, MB_CASE_LOWER);
-      $value = $flags & SQL_VALUE_ORIGIN ? $value : Encoding::decode((string)$value);
+      $value = $flags & SQL_VALUE_ORIGIN ? $value : Encoding::decode((string)$value, self::$charsetDB);
       
       $row[$key] = $value;
     }

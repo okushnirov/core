@@ -10,7 +10,8 @@ final class Authorization
   private UserSession $session;
   
   public function __construct(
-    UserSession $session, ?string $userLogin = null, string $userPassword = '', bool $isDebug = false)
+    UserSession $session, ?string $userLogin = null, ?int $userID = null, string $userPassword = '',
+    bool        $isDebug = false)
   {
     $this->session = $session;
     $this->isDebug = $isDebug;
@@ -19,10 +20,10 @@ final class Authorization
       $decryptedLogin = $session->getSessionLogin();
       $decryptedPassword = $session->getSessionPassword();
       
-      $this->session->initCredentials($userLogin ?? $decryptedLogin,
+      $this->session->initCredentials($userLogin ?? $decryptedLogin, $userID,
         '' === $userPassword ? $decryptedPassword : $userPassword);
     } else {
-      $this->session->initCredentials($userLogin, $userPassword);
+      $this->session->initCredentials($userLogin, $userID, $userPassword);
     }
     
     if ($this->isDebug) {
@@ -59,7 +60,7 @@ final class Authorization
     }
     
     try {
-      $xmlUserData = (new UserAuthWS($this->session->getUserLogin(), null, $sessionType))->get();
+      $xmlUserData = (new UserAuthWS($this->session->getUserLogin(), $this->session->getUserID(), $sessionType))->get();
     } catch (\Exception $e) {
       $xmlUserData = null;
       

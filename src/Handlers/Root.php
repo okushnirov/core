@@ -14,13 +14,9 @@ use okushnirov\core\Library\{Lang, Location, Session};
 final class Root extends \Exception
 {
   const ROOT_PATH = 'core\Root\\';
-  
   const ROOT_FOLDERS = 'Folders\\';
-  
   public static bool $isDebug;
-  
   public static ?array $path;
-  
   public static ?string $query;
   
   public static function handler(

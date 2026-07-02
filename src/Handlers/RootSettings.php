@@ -7,15 +7,10 @@ use okushnirov\core\Library\{Config, File};
 class RootSettings
 {
   public static false | string $contents = false;
-  
   public static array $get = [];
-  
   public static mixed $json;
-  
   public static array $path;
-  
   public static array $post = [];
-  
   public static mixed $root;
   
   public function __construct(array $JSON = [])

@@ -11,6 +11,7 @@ final class UserSession
   private bool $isAvatar = false;
   private bool $isDev = false;
   private bool $isLogin;
+  private ?int $userID = null;
   private ?string $userLogin = null;
   private string $userPassword = '';
   
@@ -53,6 +54,7 @@ final class UserSession
     $this->isAdmin = false;
     $this->isAvatar = false;
     $this->isDev = false;
+    $this->userID = null;
     $this->userLogin = null;
     $this->userPassword = '';
     $this->crcData = [];
@@ -74,6 +76,12 @@ final class UserSession
     return Crypt::action(Crypt::action($this->crcData['hash'] ?? '', Decrypt::CHR), Decrypt::CHR);
   }
   
+  public function getUserID():?int
+  {
+    
+    return $this->userID;
+  }
+  
   public function getUserLogin():?string
   {
     
@@ -86,8 +94,9 @@ final class UserSession
     return $this->userPassword;
   }
   
-  public function initCredentials(?string $userLogin, string $userPassword):void
+  public function initCredentials(?string $userLogin, ?int $userID, string $userPassword):void
   {
+    $this->userID = is_null($userID) || 0 >= trim($userID) ? null : $userID;
     $this->userLogin = is_null($userLogin) || '' === trim($userLogin) ? null : $userLogin;
     $this->userPassword = $userPassword;
   }
