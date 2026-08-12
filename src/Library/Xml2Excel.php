@@ -33,7 +33,111 @@ final class Xml2Excel
   private int $posY = 1;
   private Worksheet $sheet;
   private string $title = 'Аркуш';
-  private \SimpleXMLElement $xml;
+  private \SimpleXMLElement $xmlRequest;
+  
+  public function __construct(\SimpleXMLElement $xmlRequest, bool $isDebug = false)
+  {
+    if ('table' !== $xmlRequest->getName()) {
+      throw new \Exception("Відсутні вхідні дані", -1);
+    }
+    
+    $this->xmlRequest = $xmlRequest;
+    
+    unset($xmlRequest);
+    
+    # Тип XLS|XLSX
+    $fileExt = Str::lowerCase(trim($this->xmlRequest['ext'] ?? ''));
+    
+    if ('' !== $fileExt && Extensions::tryFrom(".$fileExt")) {
+      $this->fileExt = Extensions::tryFrom(".$fileExt");
+    }
+    
+    if (!$this->fileExt) {
+      throw new \Exception("Не визначено тип вихідного файлу", -2);
+    }
+    
+    $this->isDebug = $isDebug;
+    
+    # Назва файлу
+    $fileDownload = trim($this->xmlRequest['filename'] ?? '');
+    $this->fileDownload = '' === $fileDownload ? "Export_Excel_".(new \DateTime())->format('YmdHisu') : $fileDownload;
+    $this->fileDownload .= $this->fileExt->value;
+    
+    # Автоматичний фільтр
+    $autofilter = trim($this->xmlRequest['autofilter'] ?? '');
+    $this->isAutofilter = '' === $autofilter ? $this->isAutofilter : (bool)(int)$autofilter;
+    
+    # Автоматичний розмір
+    $autosize = trim($this->xmlRequest['autosize'] ?? '');
+    $this->isAutosize = '' === $autosize ? $this->isAutosize : (bool)(int)$autosize;
+    
+    # Рамки таблиці
+    $border = trim($this->xmlRequest['border'] ?? '');
+    $this->isBorder = '' === $border ? $this->isBorder : (bool)(int)$border;
+    
+    # Закріплення області
+    $freeze = trim($this->xmlRequest['freeze'] ?? '');
+    $this->isFreeze = '' === $freeze ? $this->isFreeze : (bool)(int)$freeze;
+    
+    # Назва аркуша
+    $title = trim($this->xmlRequest->sheet ?? $this->xmlRequest->scheet ?? '');
+    $this->title = '' === $title ? $this->title : $title;
+    
+    # Чи існує заголовок
+    $this->isCaption = '' !== trim($this->xmlRequest->caption[0] ?? '');
+    
+    # Чи існують дані таблиці
+    $this->isTbody = isset($this->xmlRequest->tbody->tr) && 0 < ($this->xmlRequest->tbody->tr[0]->td->count() ?? 0);
+    
+    # Чи існує футер таблиці
+    $this->isTfoot = isset($this->xmlRequest->tfoot->tr) && 0 < ($this->xmlRequest->tfoot->tr[0]->td->count() ?? 0);
+    
+    # Чи існує шапка таблиці
+    $this->isThead = isset($this->xmlRequest->thead->tr) && 0 < ($this->xmlRequest->thead->tr[0]->th->count() ?? 0);
+    
+    # Налаштування комірок
+    if (isset($this->xmlRequest->colgroup)) {
+      $this->colGroup();
+      $this->posX = 1;
+    }
+    
+    if ($this->isDebug) {
+      trigger_error(__METHOD__."\n".json_encode([
+          'ext' => $this->fileExt->value,
+          'filename' => $this->fileDownload,
+          'isAutofilter' => $this->isAutofilter,
+          'isAutosize' => $this->isAutosize,
+          'isBorder' => $this->isBorder,
+          'isCaption' => $this->isCaption,
+          'isFreeze' => $this->isFreeze,
+          'isTfoot' => $this->isTfoot,
+          'isThead' => $this->isThead,
+          'title' => $this->title,
+          'colGroup' => $this->colGroup
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+    
+    # Створення аркуша
+    $this->spreadsheet = new Spreadsheet();
+    $this->spreadsheet->getProperties()
+                      ->setCreator('PHPSpreadsheet')
+                      ->setLastModifiedBy('PHPSpreadsheet')
+                      ->setTitle('Excel Document')
+                      ->setSubject('Excel Document')
+                      ->setDescription('Excel Document')
+                      ->setKeywords('Excel Document')
+                      ->setCategory('PHPSpreadsheet excel file');
+    
+    # Аркуш
+    try {
+      $this->spreadsheet->setActiveSheetIndex(0)
+                        ->setTitle($this->title);
+    } catch (\Exception $e) {
+      throw new \Exception($e->getMessage(), -3);
+    }
+    
+    $this->sheet = $this->spreadsheet->getActiveSheet();
+  }
   
   public function download(bool $asAttachment = true):void
   {
@@ -41,7 +145,6 @@ final class Xml2Excel
       $objectWriter = IOFactory::createWriter($this->spreadsheet,
         mb_convert_case(trim($this->fileExt->value, '.'), MB_CASE_TITLE));
     } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
-      
       throw new \Exception($e->getMessage(), -100);
     }
     
@@ -111,128 +214,8 @@ final class Xml2Excel
     }
   }
   
-  public function init(\SimpleXMLElement $xml, bool $isDebug = false):void
-  {
-    if ('table' !== $xml->getName()) {
-      
-      throw new \Exception("Відсутні вхідні дані", -1);
-    }
-    
-    $this->xml = $xml;
-    
-    unset($xml);
-    
-    # Тип XLS|XLSX
-    $fileExt = Str::lowerCase(trim($this->xml['ext'] ?? ''));
-    
-    if ('' !== $fileExt && Extensions::tryFrom(".$fileExt")) {
-      $this->fileExt = Extensions::tryFrom(".$fileExt");
-    }
-    
-    if (!$this->fileExt) {
-      
-      throw new \Exception("Не визначено тип вихідного файлу", -2);
-    }
-    
-    $this->isDebug = $isDebug;
-    
-    # Назва файлу
-    $fileDownload = trim($this->xml['filename'] ?? '');
-    $this->fileDownload = '' === $fileDownload ? "Export_Excel_".(new \DateTime())->format('YmdHisu') : $fileDownload;
-    $this->fileDownload .= $this->fileExt->value;
-    
-    # Автоматичний фільтр
-    $autofilter = trim($this->xml['autofilter'] ?? '');
-    $this->isAutofilter = '' === $autofilter ? $this->isAutofilter : (bool)(int)$autofilter;
-    
-    # Автоматичний розмір
-    $autosize = trim($this->xml['autosize'] ?? '');
-    $this->isAutosize = '' === $autosize ? $this->isAutosize : (bool)(int)$autosize;
-    
-    # Рамки таблиці
-    $border = trim($this->xml['border'] ?? '');
-    $this->isBorder = '' === $border ? $this->isBorder : (bool)(int)$border;
-    
-    # Закріплення області
-    $freeze = trim($this->xml['freeze'] ?? '');
-    $this->isFreeze = '' === $freeze ? $this->isFreeze : (bool)(int)$freeze;
-    
-    # Назва аркуша
-    $title = trim($this->xml->sheet ?? $this->xml->scheet ?? '');
-    $this->title = '' === $title ? $this->title : $title;
-    
-    # Чи існує заголовок
-    $this->isCaption = '' !== trim($this->xml->caption[0] ?? '');
-    
-    # Чи існують дані таблиці
-    $this->isTbody = isset($this->xml->tbody->tr) && 0 < ($this->xml->tbody->tr[0]->td->count() ?? 0);
-    
-    # Чи існує футер таблиці
-    $this->isTfoot = isset($this->xml->tfoot->tr) && 0 < ($this->xml->tfoot->tr[0]->td->count() ?? 0);
-    
-    # Чи існує шапка таблиці
-    $this->isThead = isset($this->xml->thead->tr) && 0 < ($this->xml->thead->tr[0]->th->count() ?? 0);
-    
-    # Налаштування комірок
-    if (isset($this->xml->colgroup)) {
-      $this->colGroup();
-      $this->posX = 1;
-    }
-    
-    if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode([
-          'ext' => $this->fileExt->value,
-          'filename' => $this->fileDownload,
-          'isAutofilter' => $this->isAutofilter,
-          'isAutosize' => $this->isAutosize,
-          'isBorder' => $this->isBorder,
-          'isCaption' => $this->isCaption,
-          'isFreeze' => $this->isFreeze,
-          'isTfoot' => $this->isTfoot,
-          'isThead' => $this->isThead,
-          'title' => $this->title,
-          'colGroup' => $this->colGroup
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-    
-    # Створення аркуша
-    $this->spreadsheet = new Spreadsheet();
-    $this->spreadsheet->getProperties()
-                      ->setCreator('PHPSpreadsheet')
-                      ->setLastModifiedBy('PHPSpreadsheet')
-                      ->setTitle('Excel Document')
-                      ->setSubject('Excel Document')
-                      ->setDescription('Excel Document')
-                      ->setKeywords('Excel Document')
-                      ->setCategory('PHPSpreadsheet excel file');
-    
-    # Аркуш
-    try {
-      $this->spreadsheet->setActiveSheetIndex(0)
-                        ->setTitle($this->title);
-    } catch (\Exception $e) {
-      
-      throw new \Exception($e->getMessage(), -3);
-    }
-    
-    $this->sheet = $this->spreadsheet->getActiveSheet();
-  }
-  
-  /**
-   * Use output method
-   *
-   * @throws \Exception
-   * @return void
-   * @deprecated
-   */
-  public function save():void
-  {
-    $this->download(false);
-  }
-  
   private function alignHorizontal(string $align, string $default):string
   {
-    
     return match (Str::lowerCase($align)) {
       'center' => Alignment::HORIZONTAL_CENTER,
       'left' => Alignment::HORIZONTAL_LEFT,
@@ -244,7 +227,6 @@ final class Xml2Excel
   
   private function alignVertical(string $align):string
   {
-    
     return match (Str::lowerCase($align)) {
       'bottom' => Alignment::VERTICAL_BOTTOM,
       'top' => Alignment::VERTICAL_TOP,
@@ -255,7 +237,7 @@ final class Xml2Excel
   
   private function caption():void
   {
-    $caption = $this->xml->caption[0];
+    $caption = $this->xmlRequest->caption[0];
     $captionStyle = $this->style($caption, [
       'align' => Alignment::HORIZONTAL_LEFT,
       'font' => 'bold',
@@ -313,7 +295,7 @@ final class Xml2Excel
     if ($this->isDebug) {
       trigger_error(__METHOD__."\n".json_encode(array_merge($captionStyle, [
           'style' => $style
-        ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), E_USER_ERROR);
+        ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
     # Заголовок
@@ -346,9 +328,9 @@ final class Xml2Excel
   
   private function colgroup():void
   {
-    $this->colGroup['style'] = $this->style($this->xml->colgroup, ['border' => $this->isBorder]);
+    $this->colGroup['style'] = $this->style($this->xmlRequest->colgroup, ['border' => $this->isBorder]);
     
-    foreach ($this->xml->colgroup->col ?? [] as $col) {
+    foreach ($this->xmlRequest->colgroup->col ?? [] as $col) {
       $style = $this->style($col, $this->colGroup['style']);
       $type = $this->type(trim($col['type'] ?? ''));
       
@@ -370,7 +352,6 @@ final class Xml2Excel
   private function color(string $rgb, string $default):string
   {
     if ('' === $rgb) {
-      
       return Str::lowerCase(trim($default, '#'));
     }
     
@@ -428,7 +409,7 @@ final class Xml2Excel
   {
     $posY = $this->posY;
     
-    foreach ($this->xml->tbody->tr as $tr) {
+    foreach ($this->xmlRequest->tbody->tr as $tr) {
       $this->posX = 1;
       
       foreach ($tr->td as $td) {
@@ -548,7 +529,7 @@ final class Xml2Excel
   
   private function tfoot():void
   {
-    $tfoot = $this->xml->tfoot[0];
+    $tfoot = $this->xmlRequest->tfoot[0];
     $tfootStyle = $this->style($tfoot, [
       'bg-color' => $this->defaults['bgTfoot'],
       'font' => 'bold',
@@ -556,7 +537,8 @@ final class Xml2Excel
     ]);
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($tfootStyle, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), E_USER_ERROR);
+      trigger_error(__METHOD__."\n".json_encode($tfootStyle,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
     $this->posX = 1;
@@ -624,7 +606,7 @@ final class Xml2Excel
   
   private function thead():void
   {
-    $thead = $this->xml->thead[0];
+    $thead = $this->xmlRequest->thead[0];
     $theadStyle = $this->style($thead, [
       'align' => Alignment::HORIZONTAL_CENTER,
       'bg-color' => $this->defaults['bgThead'],
@@ -633,7 +615,8 @@ final class Xml2Excel
     ]);
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($theadStyle, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), E_USER_ERROR);
+      trigger_error(__METHOD__."\n".json_encode($theadStyle,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
     foreach ($thead->tr[0]->th as $th) {
@@ -690,7 +673,6 @@ final class Xml2Excel
   
   private function type(string $type):string
   {
-    
     return match (Str::lowerCase($type)) {
       'date', 'integer', 'numeric' => Str::lowerCase($type),
       default => 'char'
@@ -700,7 +682,6 @@ final class Xml2Excel
   private function value(string $type, array $coordinate, string $value):void
   {
     if ('' === $value) {
-      
       return;
     }
     

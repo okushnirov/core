@@ -66,31 +66,26 @@ final class UserSession
   
   public function getSessionLogin():string
   {
-    
     return Crypt::action($this->crcData['login'] ?? '', Decrypt::CHR);
   }
   
   public function getSessionPassword():string
   {
-    
     return Crypt::action(Crypt::action($this->crcData['hash'] ?? '', Decrypt::CHR), Decrypt::CHR);
   }
   
   public function getUserID():?int
   {
-    
     return $this->userID;
   }
   
   public function getUserLogin():?string
   {
-    
     return $this->userLogin;
   }
   
   public function getUserPassword():string
   {
-    
     return $this->userPassword;
   }
   
@@ -103,13 +98,11 @@ final class UserSession
   
   public function isAdmin():bool
   {
-    
     return $this->isAdmin;
   }
   
   public function isLogin():bool
   {
-    
     return $this->isLogin;
   }
   

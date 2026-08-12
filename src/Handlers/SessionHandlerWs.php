@@ -75,7 +75,6 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     self::$config ??= Config::get('session') ?? null;
     
     if (empty(self::$config)) {
-      
       throw new \Exception('Empty session settings');
     }
     

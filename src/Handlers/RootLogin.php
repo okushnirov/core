@@ -13,7 +13,6 @@ final class RootLogin
   {
     try {
       if ($auth->check($authType)) {
-        
         return;
       }
     } catch (\Throwable $e) {

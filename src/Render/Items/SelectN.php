@@ -2,9 +2,9 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Options, Items\Options\OptionsCount,
-  Items\Options\OptionsDict, Items\Options\OptionsSQL, Items\Options\OptionsWS, Render
-};
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Items\Options\{Options, OptionsCount, OptionsDict, OptionsSQL, OptionsWS};
+use okushnirov\core\Render\Render;
 
 class SelectN extends Render implements HtmlInterface
 {

@@ -32,7 +32,6 @@ final class Str
     $dateOut = date_create($dateIn);
     
     if ($formatOut === DateRu::ISO) {
-      
       return empty($dateOut) ? '' : self::wrapText($dateOut->format($formatOut->value), $startText, $endText);
     }
     
@@ -45,7 +44,6 @@ final class Str
     string $thousandSeparator = ' ', string $startText = '', string $endText = ''):bool | string
   {
     if (empty($number)) {
-      
       return $emptyText;
     }
     
@@ -57,7 +55,6 @@ final class Str
   public static function isINN(string $inn):bool
   {
     if (!preg_match('/^\d{10}$/', $inn)) {
-      
       return false;
     }
     
@@ -66,7 +63,6 @@ final class Str
         * $inn[7] + 9 * $inn[8]) % 11;
     
     if ((10 > $check ? $check : 0) === $control) {
-      
       return true;
     }
     
@@ -78,7 +74,6 @@ final class Str
   
   public static function lowerCase(string $value):string
   {
-    
     return mb_convert_case($value, MB_CASE_LOWER, Charset::UTF8->value);
   }
   
@@ -86,7 +81,6 @@ final class Str
     string $string, int $flags = ENT_QUOTES, string $startText = '', string $endText = '',
     string $emptyText = ''):string
   {
-    
     return '' === $string
       ? $emptyText
       : self::wrapText(htmlspecialchars($string, $flags, Charset::UTF8->value), $startText, $endText);
@@ -94,7 +88,6 @@ final class Str
   
   public static function removeSpecChar(string $string, array $search = []):array | string
   {
-    
     return '' === $string
       ? $string
       : str_replace($search
@@ -124,12 +117,10 @@ final class Str
   public static function separateEntity(string $string, string $tagName):string
   {
     if ('' === $string) {
-      
       return '';
     }
     
     if ('' === $tagName) {
-      
       return $string;
     }
     
@@ -141,7 +132,6 @@ final class Str
   public static function transformAccount(string $account, string $startText = '', string $endText = ''):string
   {
     if (19 !== mb_strlen($account)) {
-      
       return $account;
     }
     
@@ -153,7 +143,6 @@ final class Str
   public static function transformIBAN(string $iban, string $startText = '', string $endText = ''):string
   {
     if (29 !== mb_strlen($iban)) {
-      
       return $iban;
     }
     
@@ -166,7 +155,6 @@ final class Str
   public static function transliterateUk2En(string $text):string
   {
     if ('' === $text) {
-      
       return '';
     }
     
@@ -271,7 +259,6 @@ final class Str
   
   public static function upperCase(string $value):string
   {
-    
     return mb_convert_case($value, MB_CASE_UPPER, Charset::UTF8->value);
   }
   
@@ -293,7 +280,6 @@ final class Str
   
   public static function wrapText(string $text, string $startText = '', string $endText = ''):string
   {
-    
     return '' === $text ? $text : "$startText$text$endText";
   }
 }

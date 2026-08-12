@@ -35,7 +35,8 @@ final class YouControl
     $this->isDebug = $isDebug || $this->isDebug;
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Request\n".json_encode($request, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." Request\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     # Тип контрагента
@@ -63,12 +64,10 @@ final class YouControl
   public function sendRequest():string
   {
     if (!$this->isLoaded) {
-      
       throw new \Exception('Initialization not completed or service settings missing', -20);
     }
     
     if ($this->isDisabled) {
-      
       return '';
     }
     
@@ -92,7 +91,6 @@ final class YouControl
     $url = trim($photo->url ?? '');
     
     if ('' === $url) {
-      
       return;
     }
     
@@ -100,7 +98,6 @@ final class YouControl
     $file = file_get_contents("$url?apiKey=$this->APIKeyData");
     
     if (empty($file)) {
-      
       return;
     }
     
@@ -119,7 +116,6 @@ final class YouControl
     
     # Тип не визначено
     if ('' === $contentType) {
-      
       return;
     }
     
@@ -182,7 +178,6 @@ final class YouControl
     Config::load(['you-control.php']);
     
     if (!Config::isLoaded()) {
-      
       throw new \Exception('Error reading configuration file', -10);
     }
     
@@ -410,7 +405,6 @@ final class YouControl
         
         # Отримано відповідь
         if (202 !== Curl::$curlHttpCode) {
-          
           break;
         }
       }
@@ -641,7 +635,6 @@ final class YouControl
   private function wsPeps():object | string
   {
     if ('' === $this->middleName) {
-      
       return (object)[
         "isPep" => false,
         "isRelatedToPep" => false,
@@ -666,7 +659,6 @@ final class YouControl
     $result = $this->ws(YouControlTypes::peps, "v1/peps?$query");
     
     if ('string' === gettype($result) || !(($result->isPep ?? false) || ($result->isRelatedToPep ?? false))) {
-      
       return $result;
     }
     
@@ -723,7 +715,6 @@ final class YouControl
     
     # Помилка отримання даних
     if ('string' === gettype($resultSanctions)) {
-      
       return $resultSanctions;
     }
     

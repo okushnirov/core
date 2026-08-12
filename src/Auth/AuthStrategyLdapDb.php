@@ -17,7 +17,6 @@ final class AuthStrategyLdapDb implements AuthStrategy
   
   public function authenticate():bool
   {
-    
     return $this->ldap->authenticate() || $this->db->authenticate();
   }
 }

@@ -41,7 +41,6 @@ final class Authorization
     
     if (is_null($this->session->getUserLogin())) {
       $this->logout();
-      
       return false;
     }
     
@@ -55,16 +54,14 @@ final class Authorization
     }
     
     if (Auth::WS === $type || Auth::WS_DATA === $type) {
-      
       return SessionType::NONE === $sessionType || $this->session->saveUserSession();
     }
     
     try {
       $xmlUserData = (new UserAuthWS($this->session->getUserLogin(), $this->session->getUserID(), $sessionType))->get();
     } catch (\Exception $e) {
-      $xmlUserData = null;
-      
       trigger_error(__METHOD__.' UserAuthWS get error code ['.$e->getCode().'] message ['.$e->getMessage().']');
+      $xmlUserData = null;
     }
     
     if (!$xmlUserData) {
@@ -80,7 +77,6 @@ final class Authorization
   
   public function isActiveUserSession():bool
   {
-    
     return $this->session->saveUserSession();
   }
   

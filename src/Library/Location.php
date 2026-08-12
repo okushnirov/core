@@ -29,7 +29,6 @@ final class Location
   
   public static function getLocation(string $endSlash = '/'):string
   {
-    
     return '' === self::$folder || '/' === self::$folder
       ? self::serverName($endSlash)
       : self::serverName('').'/'.trim(self::$folder, '/').$endSlash;
@@ -62,7 +61,6 @@ final class Location
     parse_str(mb_strtolower($query), $result);
     
     if (!isset($result['logout'])) {
-      
       return;
     }
     

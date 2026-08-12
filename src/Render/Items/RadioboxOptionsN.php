@@ -2,9 +2,10 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\Items\Options\OptionsDict,
-  Render\Items\Options\OptionsSQL, Render\Render
-};
+use okushnirov\core\Library\Str;
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Items\Options\{OptionsDict, OptionsSQL};
+use okushnirov\core\Render\Render;
 
 class RadioboxOptionsN extends Render implements HtmlInterface
 {
@@ -13,7 +14,6 @@ class RadioboxOptionsN extends Render implements HtmlInterface
     mixed             $variables = false):string
   {
     if (!isset($xmlItem->source)) {
-      
       return '';
     }
     
@@ -30,7 +30,6 @@ class RadioboxOptionsN extends Render implements HtmlInterface
     }
     
     if (empty($source)) {
-      
       return '';
     }
     

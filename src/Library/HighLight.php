@@ -7,7 +7,6 @@ final class HighLight
   public static function get(string $text, string $searchString, string $lang = 'uk'):string
   {
     if ('' === $searchString) {
-      
       return $text;
     }
     
@@ -15,7 +14,6 @@ final class HighLight
     $sanitized = preg_replace('/\s+/', ' ', trim($sanitized));
     
     if ('' === $sanitized) {
-      
       return $text;
     }
     
@@ -24,7 +22,6 @@ final class HighLight
     
     foreach ($keywords as $word) {
       if ('' === $word) {
-        
         continue;
       }
       
@@ -32,7 +29,6 @@ final class HighLight
         : self::convertStringEnUa($word)) : $word;
       
       if ('' === $altWord) {
-        
         continue;
       }
       
@@ -42,7 +38,6 @@ final class HighLight
     }
     
     if (empty($patterns)) {
-      
       return $text;
     }
     
@@ -58,7 +53,6 @@ final class HighLight
   private static function convertStringEnRu(string $string):string
   {
     if ('' === $string) {
-      
       return '';
     }
     
@@ -137,7 +131,6 @@ final class HighLight
   private static function convertStringEnUa(string $string):string
   {
     if ('' === $string) {
-      
       return '';
     }
     

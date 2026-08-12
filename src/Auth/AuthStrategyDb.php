@@ -25,7 +25,6 @@ final class AuthStrategyDb implements AuthStrategy
     $settings = Config::getAsObject();
     
     if (empty($settings) || !isset($settings->dbase)) {
-      
       throw new \Exception('Empty database auth settings', -100);
     }
     
@@ -37,7 +36,6 @@ final class AuthStrategyDb implements AuthStrategy
     }
     
     if (false !== $connectNumber && !isset($settings->dbase->{"$connectNumber"})) {
-      
       throw new \Exception('Wrong DB connection settings', -105);
     }
     
@@ -47,7 +45,6 @@ final class AuthStrategyDb implements AuthStrategy
     $password = $this->session->getUserPassword();
     
     if (!DbSQLAnywhere::connect($connectNumber, $login, $password)) {
-      
       throw new \Exception("Wrong DB connect", -115);
     }
     

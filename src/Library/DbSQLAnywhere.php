@@ -27,19 +27,12 @@ final class DbSQLAnywhere implements DbSQL
    * @var resource|bool
    */
   public static $connect = false;
-  
   public static bool $isDebug = false;
-  
   public static string $queryError = '';
-  
   public static int $queryErrorCode = 0;
-  
   public static string $queryErrorMessage = '';
-  
   public static string $queryErrorState = '';
-  
   public static int $queryNumFields = 0;
-  
   public static int $queryNumRows = 0;
   
   private static Charset $charsetDB = Charset::WINDOWS1251;
@@ -50,7 +43,6 @@ final class DbSQLAnywhere implements DbSQL
     Config::load(['dbase.php']);
     
     if (empty(Config::get('dbase'))) {
-      
       return false;
     }
     
@@ -77,7 +69,8 @@ final class DbSQLAnywhere implements DbSQL
     if (self::$isDebug) {
       trigger_error(__METHOD__." for[$connection][$user:***] -> $connectString -> ".(self::$connect ? 'ok ['
           .self::$connect.']' : 'failed')."\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
-          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\nsettings[$c->connection][$c->user:$c->pass]");
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        ."\nsettings[$c->connection][$c->user:***] charsetDB[".self::$charsetDB->value.']');
     }
     
     unset($c, $s);
@@ -92,15 +85,15 @@ final class DbSQLAnywhere implements DbSQL
     if (!self::$connect) {
       if (self::$isDebug) {
         trigger_error(__METHOD__." connect not exist\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
-            JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+            JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
       }
-      
       return;
     }
     
     if (self::$isDebug) {
       trigger_error(__METHOD__.' for['.self::$connect."] disconnect\n"
-        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
     
     self::$connect = self::$connect && !sasql_disconnect(self::$connect);
@@ -113,9 +106,9 @@ final class DbSQLAnywhere implements DbSQL
     if (!self::$connect && !self::connect($connection, $user, $pass)) {
       if (self::$isDebug) {
         trigger_error(__METHOD__." connect [$connection][$user:***] not exist\n"
-          .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+          .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
+            JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
       }
-      
       return false;
     }
     
@@ -123,7 +116,8 @@ final class DbSQLAnywhere implements DbSQL
     
     if (self::$isDebug) {
       trigger_error(__METHOD__." for[".self::$connect."] ".(false === $queryStringEscaped ? 'error' : 'ok')."\n"
-        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+        .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
+          JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         ."\n[$queryString]->[$queryStringEscaped]");
     }
     
@@ -137,13 +131,12 @@ final class DbSQLAnywhere implements DbSQL
     self::clearProperties();
     
     $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
-    $trace = json_encode($backtrace, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    $trace = json_encode($backtrace, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     
     if (empty($queryString)) {
       if (self::$isDebug) {
         trigger_error(__METHOD__."\n$trace SQL is empty");
       }
-      
       return false;
     }
     
@@ -151,7 +144,6 @@ final class DbSQLAnywhere implements DbSQL
       if (self::$isDebug) {
         trigger_error(__METHOD__." \n$trace error connection for \n".$queryString);
       }
-      
       return false;
     }
     
@@ -172,7 +164,6 @@ final class DbSQLAnywhere implements DbSQL
         trigger_error(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
           .self::$queryErrorCode.'] queryError['.self::$queryError.'] SQL_NONE');
       }
-      
       return true;
     }
     
@@ -180,7 +171,6 @@ final class DbSQLAnywhere implements DbSQL
       trigger_error(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:***]\n"
         .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1),
           JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-      
       return false;
     }
     
@@ -189,7 +179,6 @@ final class DbSQLAnywhere implements DbSQL
         trigger_error(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
           .self::$queryErrorCode.'] queryError['.self::$queryError.'] SQL_CALL');
       }
-      
       return true;
     }
     
@@ -197,7 +186,6 @@ final class DbSQLAnywhere implements DbSQL
     
     if (false === $queryResult) {
       trigger_error(__METHOD__." Query [$queryString] return empty result");
-      
       return SQLAnywhere::OBJECT == $type || SQLAnywhere::OBJECT_ALL == $type ? (object)[] : [];
     }
     

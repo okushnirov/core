@@ -12,7 +12,6 @@ class OptionsWS
     $wsMethod = trim($xml['method'] ?? '');
     
     if ('' === $wsName || '' === $wsMethod) {
-      
       return [];
     }
     
@@ -21,7 +20,6 @@ class OptionsWS
     
     try {
       $webService = new WebService();
-      
       $ws = $webService->get($wsName);
       
       $auth = trim($xml['auth'] ?? '');
@@ -50,7 +48,6 @@ class OptionsWS
     }
     
     if (empty($response)) {
-      
       return [];
     }
     

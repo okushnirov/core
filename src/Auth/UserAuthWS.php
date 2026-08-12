@@ -25,7 +25,6 @@ final class UserAuthWS
     $settings = Config::getAsObject();
     
     if (empty($settings) || !isset($settings->login->auth)) {
-      
       throw new \Exception('Empty login auth settings', -10);
     }
     
@@ -66,7 +65,6 @@ final class UserAuthWS
     $user = $nodes[0] ?? null;
     
     if (is_null($user)) {
-      
       throw new \Exception($settings->login->error->{-60}->{Lang::$lang} ??
         $settings->login->error->{-60} ?? 'Empty user info', -60);
     }

@@ -12,7 +12,6 @@ enum CurrencyInt: int implements Currency
   
   public function getName():string
   {
-    
     return match ($this) {
       CurrencyInt::USD => CurrencyStr::USD->value,
       CurrencyInt::EUR => CurrencyStr::EUR->value,
@@ -22,7 +21,6 @@ enum CurrencyInt: int implements Currency
   
   public function getLabel(string $lang = 'uk'):string
   {
-    
     return match ($this) {
       CurrencyInt::USD => 'ru' === $lang ? 'доллар США' : 'долар США',
       CurrencyInt::EUR => 'ru' === $lang ? 'евро' : 'євро',
@@ -32,7 +30,6 @@ enum CurrencyInt: int implements Currency
   
   public function getLabelShort(string $lang = 'uk'):string
   {
-    
     return match ($this) {
       CurrencyInt::USD => 'дол. США',
       CurrencyInt::EUR => 'ru' === $lang ? 'евро' : 'євро',
@@ -42,7 +39,6 @@ enum CurrencyInt: int implements Currency
   
   public function getSymbol():string
   {
-    
     return match ($this) {
       CurrencyInt::USD => '$',
       CurrencyInt::EUR => '€',

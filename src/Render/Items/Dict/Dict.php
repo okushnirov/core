@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items\Dict;
 
-use okushnirov\core\{Library\DbSQLAnywhere, Library\Enums\SQLAnywhere, Library\Lang, Library\User, Render\Render};
+use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, User};
+use okushnirov\core\Render\Render;
 
 class Dict extends Render
 {
@@ -12,7 +13,6 @@ class Dict extends Render
     $id = (int)($xml['id'] ?? 0);
     
     if (!$id) {
-      
       return '';
     }
     

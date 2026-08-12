@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Render};
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Render;
 
 class CheckboxN extends Render implements HtmlInterface
 {

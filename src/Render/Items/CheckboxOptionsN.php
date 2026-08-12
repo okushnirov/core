@@ -2,9 +2,10 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\Items\Options\Options,
-  Render\Items\Options\OptionsDict, Render\Items\Options\OptionsSQL, Render\Render
-};
+use okushnirov\core\Library\Str;
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Items\Options\{Options, OptionsDict, OptionsSQL};
+use okushnirov\core\Render\Render;
 
 class CheckboxOptionsN extends Render implements HtmlInterface
 {
@@ -13,7 +14,6 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     mixed             $variables = false):string
   {
     if (!isset($xmlItem->source)) {
-      
       return '';
     }
     
@@ -26,14 +26,14 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     }
     
     if (empty($source)) {
-      
       return '';
     }
     
     $chkClass = trim($xmlItem->source['class'] ?? '');
     
     $readonly = self::isTrue($xmlItem->input['readonly'] ?? (is_object($variables)
-      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
+      ? ($variables->readonly ?? '')
+      : (is_array($variables) ? ($variables['readonly'] ?? '')
         : '')));
     
     $separator = $xmlItem->input['data-separator'] ?? ';';
@@ -70,7 +70,6 @@ class CheckboxOptionsN extends Render implements HtmlInterface
     
     foreach ($source as $key => $label) {
       if ('' !== $filter && false === mb_stripos($filter, "$separator$key$separator")) {
-        
         continue;
       }
       

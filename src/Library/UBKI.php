@@ -32,7 +32,6 @@ final class UBKI
   public function getSessionID():bool
   {
     if ($this->isDisabled) {
-      
       return false;
     }
     
@@ -70,7 +69,6 @@ final class UBKI
       $this->sessionID = $response->doc->auth->sessid ?? '';
       
       if ($this->sessionID) {
-        
         return FileIO::writeFile($_SERVER['DOCUMENT_ROOT'].$this->sessionIDFile,
           serialize([date('Y-m-d') => $this->sessionID]));
       }
@@ -108,12 +106,10 @@ final class UBKI
   public function sendRequest(string $request = ''):string
   {
     if (!$this->isLoaded) {
-      
       throw new \Exception('Initialization not completed or service settings missing', -20);
     }
     
     if ($this->isDisabled) {
-      
       return '';
     }
     
@@ -126,12 +122,10 @@ final class UBKI
     $url = trim($this->isTestMode ? $this->urlTest : $this->url);
     
     if ('' === $request) {
-      
       throw new \Exception('Empty request', -40);
     }
     
     if (empty($url)) {
-      
       throw new \Exception('Wrong URL service', -30);
     }
     
@@ -191,7 +185,6 @@ final class UBKI
     }
     
     if (!$this->sessionID && !self::getSessionID()) {
-      
       return '';
     }
     
@@ -205,7 +198,6 @@ final class UBKI
     Config::load(['ubki.php']);
     
     if (!Config::isLoaded()) {
-      
       throw new \Exception('Error reading configuration file', -10);
     }
     

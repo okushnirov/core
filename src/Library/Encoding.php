@@ -9,7 +9,6 @@ final class Encoding
   public static function decode(mixed $value, Charset $from = Charset::WINDOWS1251, Charset $to = Charset::UTF8):string
   {
     if (self::isWrongValue($value)) {
-      
       return '';
     }
     
@@ -24,13 +23,11 @@ final class Encoding
   
   public static function encode(mixed $value, Charset $from = Charset::UTF8, Charset $to = Charset::WINDOWS1251):string
   {
-    
     return self::decode($value, $from, $to);
   }
   
   private static function isWrongValue(mixed $value):bool
   {
-    
     return is_null($value) || is_array($value) || (is_object($value) && !method_exists($value, '__toString'));
   }
 }

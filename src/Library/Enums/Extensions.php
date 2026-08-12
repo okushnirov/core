@@ -12,7 +12,6 @@ enum Extensions: string
   
   public function getContentType():string
   {
-    
     return match ($this) {
       Extensions::DOC => 'application/msword',
       Extensions::DOCX => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

@@ -166,22 +166,18 @@ final class FinApCheckList
   public function sendRequest():string
   {
     if (!$this->isLoaded) {
-      
       throw new \Exception('Initialization not completed or service settings missing', -20);
     }
     
     if ($this->isDisabled) {
-      
       return '';
     }
     
     if (empty($this->url)) {
-      
       throw new \Exception('Wrong URL service', -30);
     }
     
     if ('' === $this->code) {
-      
       throw new \Exception('Empty client code', -40);
     }
     
@@ -228,10 +224,9 @@ final class FinApCheckList
   
   private function loadSettings():void
   {
-    Config::load(['fin-ap-checklist.json']);
+    Config::load(['fin-ap-checklist.php']);
     
     if (!Config::isLoaded()) {
-      
       throw new \Exception('Error reading configuration file', -10);
     }
     

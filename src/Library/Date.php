@@ -10,14 +10,12 @@ final class Date
   public static function getAge(string $birthday):bool | int
   {
     if ('' === $birthday) {
-      
       return false;
     }
     
     $birthdayTimestamp = strtotime($birthday);
     
     if (false === $birthdayTimestamp) {
-      
       return false;
     }
     
@@ -29,7 +27,6 @@ final class Date
   public static function getDateProp(string $lang = 'uk'):string
   {
     if ('en' === $lang) {
-      
       return date('F j, Y');
     }
     
@@ -513,7 +510,6 @@ final class Date
   ])]
   public static function setPeriodGroup():array
   {
-    
     return [
       'day' => [
         'Сегодня',

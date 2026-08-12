@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items\Options;
 
-use okushnirov\core\{Library\DbSQLAnywhere, Library\Enums\SQLAnywhere, Library\Lang, Library\Str, Render\Render};
+use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, Str};
+use okushnirov\core\Render\Render;
 
 class Options extends Render
 {
@@ -38,14 +39,12 @@ class Options extends Render
     $value = Str::lowerCase((string)($xml['value'] ?? ''));
     
     if (empty($name) || empty($value) || empty($query)) {
-      
       return [];
     }
     
     $result = DbSQLAnywhere::query($query, SQLAnywhere::FETCH_ALL);
     
     if (empty($result)) {
-      
       return [];
     }
     
@@ -58,7 +57,6 @@ class Options extends Render
       $optName = (string)($options[$name] ?? '');
       
       if (isset($source[$optValue]) || '' === $optValue) {
-        
         continue;
       }
       
@@ -112,7 +110,6 @@ class Options extends Render
     string $filter = '', string $fieldName = ''):string
   {
     if (empty($source)) {
-      
       return '';
     }
     
@@ -127,7 +124,6 @@ class Options extends Render
       $value = 'NULL' === $value ? '' : ('string' === $type ? (string)$value : (int)$value);
       
       if ('' !== $filter && false === mb_strpos($filter, ";$value;")) {
-        
         continue;
       }
       

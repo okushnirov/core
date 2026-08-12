@@ -11,7 +11,6 @@ final class FileIO
     $lastDotPos = mb_strrpos($basename, '.');
     
     if (false === $lastDotPos || $lastDotPos === mb_strlen($basename) - 1) {
-      
       return '';
     }
     
@@ -32,7 +31,6 @@ final class FileIO
   public static function writeFile(string $filename, string $data = ''):bool
   {
     if ('' === $filename) {
-      
       throw new \Exception('Empty filename', -2);
     }
     

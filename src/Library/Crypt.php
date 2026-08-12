@@ -12,7 +12,6 @@ final class Crypt
     string $string, CryptType $variant, string $startText = '', string $endText = ''):string
   {
     if ('' === $string) {
-      
       return '';
     }
     
@@ -38,7 +37,6 @@ final class Crypt
   private static function decryptString(string $string, bool $random = false):string
   {
     if (!$random) {
-      
       return base64_decode(base64_decode($string));
     }
     
@@ -68,7 +66,6 @@ final class Crypt
   private static function encryptString(string $string, bool $random = false):string
   {
     if (!$random) {
-      
       return base64_encode(base64_encode($string));
     }
     

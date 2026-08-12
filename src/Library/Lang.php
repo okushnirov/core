@@ -8,12 +8,10 @@ use okushnirov\core\Library\Enums\{CookieType, SessionType};
 final class Lang
 {
   public static string $lang = '';
-  
   public static ?LangHandler $language;
   
   public static function getShort(string $lang = ''):string
   {
-    
     return LangHandler::tryFrom($lang ? : self::$lang)
                       ?->short() ?? '';
   }
@@ -22,7 +20,6 @@ final class Lang
   {
     if (!enum_exists(LangHandler::class)) {
       trigger_error(__METHOD__.' No language enum handler found', E_USER_WARNING);
-      
       return;
     }
     
@@ -74,7 +71,6 @@ final class Lang
   
   private static function existsLang(string $lang):bool
   {
-    
     return !is_null(LangHandler::tryFrom($lang));
   }
 }

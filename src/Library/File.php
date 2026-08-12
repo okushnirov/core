@@ -9,7 +9,6 @@ final class File
   public static function isEmptyDir(string $dir):bool
   {
     if (!is_dir($dir)) {
-      
       return false;
     }
     
@@ -21,7 +20,6 @@ final class File
   public static function isFile(string $file, bool $isRoot = true):bool
   {
     if ('' === $file) {
-      
       return false;
     }
     
@@ -36,7 +34,6 @@ final class File
     $files = is_array($input) ? $input : (is_string($input) ? [$input] : []);
     
     if (empty($files)) {
-      
       throw new \Exception('Empty files', -1);
     }
     
@@ -46,7 +43,6 @@ final class File
     
     foreach ($files as $file) {
       if (!self::isFile($file, $isRoot)) {
-        
         throw new \Exception("File $file not found", -2);
       }
       
@@ -55,7 +51,6 @@ final class File
       $rawContent = file_get_contents($filePath);
       
       if (false === $rawContent) {
-        
         continue;
       }
       
@@ -105,7 +100,6 @@ final class File
     
     if (FileType::XML === $fileType) {
       if (empty($xmlElements)) {
-        
         return null;
       }
       
@@ -113,12 +107,10 @@ final class File
     }
     
     if (FileType::ANY === $fileType) {
-      
       return $resultString;
     }
     
     if ($isObjectResult) {
-      
       return empty($resultArray) ? new \stdClass() : json_decode(json_encode($resultArray, JSON_FORCE_OBJECT));
     }
     

@@ -2,9 +2,10 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Crypt, Library\Enums\Encrypt, Library\Lang, Library\Str, Library\User,
-  Render\Items\Dict\Dict, Render\Items\Interfaces\HtmlInterface, Render\Render
-};
+use okushnirov\core\Library\{Crypt, Enums\Encrypt, Lang, Str, User};
+use okushnirov\core\Render\Items\Dict\Dict;
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Render;
 
 class TableN extends Render implements HtmlInterface
 {
@@ -34,7 +35,6 @@ class TableN extends Render implements HtmlInterface
 <table $tableAttr>";
     
     if (!$xmlItem->column->count()) {
-      
       return $html."
 </table>";
     }
@@ -55,7 +55,6 @@ class TableN extends Render implements HtmlInterface
         
         if ($dictID) {
           if (empty($column['field'])) {
-            
             continue;
           }
           

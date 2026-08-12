@@ -32,7 +32,6 @@ final class ErrorRequest
     switch ($this->http_code) {
       case 200:
       case 404:
-        
         break;
       
       case 401:
@@ -46,7 +45,6 @@ final class ErrorRequest
         exit;
       
       default:
-        
         exit(http_response_code($this->http_code));
     }
     
@@ -70,7 +68,6 @@ final class ErrorRequest
           $absoluteRequest);
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
-        
         header('Location: '.Location::serverName());
       }
     }

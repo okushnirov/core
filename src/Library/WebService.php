@@ -10,6 +10,7 @@ final class WebService
   public static int $httpCode = 0;
   public static mixed $httpInfo = [];
   public static string $response = '';
+  
   private static mixed $settings = [];
   
   public function __construct(mixed $settings = null, bool $isDebug = false)
@@ -44,7 +45,6 @@ final class WebService
     $ws->url = $data->{'url'.($test ? 'Test' : '')} ?? $data->url ?? '';
     
     if ('' === $ws->url) {
-      
       throw new \Exception("Empty webservice url", -2);
     }
     
@@ -59,8 +59,8 @@ final class WebService
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." [$wsName]\n".json_encode($ws, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        E_USER_ERROR);
+      trigger_error(__METHOD__." [$wsName]\n".json_encode($ws,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
     
     return $ws;
@@ -77,11 +77,9 @@ final class WebService
       $json = $response ? json_decode($response) : null;
       
       if (is_null($json) || JSON_ERROR_NONE !== json_last_error()) {
-        
         throw new \Exception(json_last_error_msg() ? : 'Empty or wrong response', -2);
       }
     } catch (\Exception $e) {
-      
       throw new \Exception($e->getMessage(), -3);
     }
     
@@ -95,7 +93,6 @@ final class WebService
     try {
       $ws = empty($ws) ? $this->get($wsName) : $ws;
     } catch (\Exception) {
-      
       throw new \Exception("Empty webservice settings", -1);
     }
     
@@ -123,7 +120,6 @@ final class WebService
     self::$isDebug = false;
     
     if (200 !== Curl::$curlHttpCode) {
-      
       throw new \Exception(self::$response, -2);
     }
     
@@ -143,11 +139,9 @@ final class WebService
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;
       
       if (is_null($xml) || empty($xml->getName())) {
-        
         throw new \Exception('Empty or wrong response', -2);
       }
     } catch (\Exception $e) {
-      
       throw new \Exception($e->getMessage(), -3);
     }
     

@@ -43,7 +43,6 @@ final class Session
   public static function sessionStart(SessionType $session):bool
   {
     if (SessionType::NONE === $session) {
-      
       return false;
     }
     

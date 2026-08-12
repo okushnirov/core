@@ -8,6 +8,7 @@ use PhpOffice\PhpWord\{Exception\Exception, Settings, TemplateProcessor};
 final class Word
 {
   public bool $isDebug = false;
+  
   private \DateTime $dateTime;
   private string $fileCopy;
   private string $fileDownload;
@@ -29,17 +30,14 @@ final class Word
     $this->xml = $xml;
     
     if (!empty($this->xml['err'])) {
-      
       throw new \Exception("Помилка формування даних [{$this->xml['err']}]", -1);
     }
     
     if (empty($this->xml->данные)) {
-      
       throw new \Exception("Відсутні дані для друку", -2);
     }
     
     if (empty($this->xml->шаблон)) {
-      
       throw new \Exception("Відсутній шаблон документа", -3);
     }
     
@@ -55,7 +53,6 @@ final class Word
     $this->fileTemplate .= $this->fileExtIn->value;
     
     if (!File::isFile($this->fileTemplate, false)) {
-      
       throw new \Exception("Не знайдено шаблону документа [$directory{$this->xml->шаблон}".$this->fileExtIn->value.']',
         -4);
     }
@@ -90,7 +87,6 @@ final class Word
   public function download():void
   {
     if (!File::isFile($this->fileRead, false)) {
-      
       throw new \Exception('Відсутній файл для виводу', -50);
     }
     
@@ -119,7 +115,6 @@ final class Word
   public function fill():void
   {
     if (!isset($this->xml->данные->data) || !$this->xml->данные->data->children()) {
-      
       throw new \Exception('Відсутні дані для виводу', -20);
     }
     
@@ -129,7 +124,6 @@ final class Word
       $col = trim($child['col'] ?? '');
       
       if (empty($alias) || empty($param)) {
-        
         continue;
       }
       
@@ -137,7 +131,6 @@ final class Word
       $cntNode = count($node);
       
       if (!$cntNode) {
-        
         continue;
       }
       
@@ -172,7 +165,6 @@ final class Word
     try {
       $this->word = new TemplateProcessor($this->fileTemplate);
     } catch (Exception) {
-      
       throw new Exception('Помилка при відкритті шаблону документа', -10);
     }
   }
@@ -194,7 +186,6 @@ final class Word
     $this->word = null;
     
     if (!File::isFile($this->fileCopy, false)) {
-      
       throw new \Exception('Помилка створення копії шаблону файла', -30);
     }
     
@@ -222,7 +213,6 @@ final class Word
     exec('rmdir /S /Q "'.$tempLibreOfficeProfile.'"');
     
     if (!empty($return)) {
-      
       throw new \Exception('Помилка виконання команди конвертації', -40);
     }
   }
@@ -261,7 +251,6 @@ final class Word
       $linkID = trim($link['id'] ?? '');
       
       if ('' === $linkID) {
-        
         continue;
       }
       
@@ -280,7 +269,6 @@ final class Word
       $imageName = trim($image['name'] ?? '');
       
       if ('' === $imageName) {
-        
         continue;
       }
       

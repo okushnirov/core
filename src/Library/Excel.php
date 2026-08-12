@@ -12,6 +12,7 @@ final class Excel
   public array $request = [];
   public static ?object $settings;
   public ?Spreadsheet $spreadsheet = null;
+  
   private array $dateColumns = [];
   private \DateTime $dateTime;
   private string $fileDownload;
@@ -30,7 +31,6 @@ final class Excel
   public function __construct(array $request = [], bool $isDebug = false)
   {
     if (empty($request)) {
-      
       throw new \Exception("Відсутні дані для друку", -1);
     }
     
@@ -50,7 +50,6 @@ final class Excel
           'e',
           'p'
         ], true)) {
-          
           continue;
         }
         
@@ -59,7 +58,6 @@ final class Excel
     }
     
     if (empty($this->request['q'])) {
-      
       throw new \Exception("Не передано обов'язковий параметр", -2);
     }
     
@@ -93,7 +91,6 @@ final class Excel
       $objectWriter = IOFactory::createWriter($this->spreadsheet,
         mb_convert_case(trim($this->fileExt->value, '.'), MB_CASE_TITLE));
     } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
-      
       throw new \Exception($e->getMessage(), -100);
     }
     
@@ -204,7 +201,6 @@ final class Excel
     self::$settings = Config::getAsObject();
     
     if (empty(self::$settings)) {
-      
       throw new \Exception("Помилка налаштувань [dbase]", -3);
     }
     
@@ -212,7 +208,6 @@ final class Excel
     $connection = self::$settings->dbase->{$dbaseName} ?? null;
     
     if (is_null($connection)) {
-      
       throw new \Exception("Не визначено з'єднання із базою даних", -4);
     }
     
@@ -225,7 +220,6 @@ final class Excel
     DbSQLAnywhere::disconnect();
     
     if (empty($result)) {
-      
       throw new \Exception("Відсутні дані для формування", -10);
     }
     
@@ -254,14 +248,12 @@ final class Excel
     }
     
     if (!$success) {
-      
       throw new \Exception("Помилка отримання даних", -20);
     }
     
     try {
       $this->spreadsheet = new Spreadsheet();
     } catch (\Exception) {
-      
       throw new \Exception("Помилка створення таблиці", -30);
     }
     
@@ -278,7 +270,6 @@ final class Excel
       $this->spreadsheet->setActiveSheetIndex(0)
                         ->setTitle('' === ($this->request['s'] ?? '') ? 'Лист' : $this->request['s']);
     } catch (\Exception $e) {
-      
       throw new \Exception($e->getMessage(), -40);
     }
     
@@ -286,7 +277,6 @@ final class Excel
     
     if (self::$isDebug) {
       $loadTime = round(microtime(true) - $loadStart, 4);
-      
       trigger_error(__METHOD__." Query & Fetch took: $loadTime sec.", E_USER_ERROR);
     }
   }

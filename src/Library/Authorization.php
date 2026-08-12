@@ -257,7 +257,8 @@ final class Authorization
     $ldap = $settings->login->ldap->{0};
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." Settings\n".json_encode($ldap, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." Settings\n".json_encode($ldap,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES));
     }
     
     if (empty($ldap->domain)

@@ -7,7 +7,6 @@ use okushnirov\core\Library\Enums\HTTPMethods;
 final class Curl
 {
   public static int | bool $curlHttpCode = false;
-  
   public static mixed $curlHttpInfo;
   
   public static function exec(
@@ -20,7 +19,6 @@ final class Curl
     if ('' === $url) {
       trigger_error(__METHOD__." URL is empty!\n".json_encode($back,
           JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-      
       return false;
     }
     

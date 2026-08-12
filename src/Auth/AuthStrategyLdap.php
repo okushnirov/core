@@ -23,14 +23,14 @@ final class AuthStrategyLdap implements AuthStrategy
     $settings = Config::getAsObject();
     
     if (empty($settings->login) || !isset($settings->login->ldap)) {
-      
       throw new \Exception('Empty ldap auth settings', -200);
     }
     
     $ldap = $settings->login->ldap->{0};
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Settings\n".json_encode($ldap, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+      trigger_error(__METHOD__." Settings\n".json_encode($ldap,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     if (empty($ldap->domain)
@@ -38,7 +38,6 @@ final class AuthStrategyLdap implements AuthStrategy
       || empty($ldap->port)
       || empty($ldap->member)
       || empty($ldap->base)) {
-      
       throw new \Exception('Wrong LDAP parameters', -205);
     }
     
@@ -81,7 +80,6 @@ final class AuthStrategyLdap implements AuthStrategy
       }
       
       if (false === $resultSearchLDAP) {
-        
         continue;
       }
       

@@ -10,13 +10,9 @@ use okushnirov\core\Library\Enums\{Auth, CookieType, SessionType};
 final class Ajax
 {
   public static string $case = '';
-  
   public static false | string $contents = false;
-  
   public static ?array $in = [];
-  
   public static AjaxOut $out;
-  
   public static mixed $settings;
   
   public function __construct(
@@ -25,11 +21,10 @@ final class Ajax
     self::boot($jsonConfigs, $session, $cookie);
   }
   
-  public static function init(bool $isOnlyLocal = true, bool $traceError = true):bool
+  public static function init(bool $isOnlyLocal = true, bool $isTraceError = true):bool
   {
     if ($isOnlyLocal && !self::isLocalRequest()) {
-      self::handleForbiddenRequest($traceError);
-      
+      self::handleForbiddenRequest($isTraceError);
       exit;
     }
     
@@ -107,9 +102,9 @@ final class Ajax
     self::$settings = Config::getAsObject();
   }
   
-  private static function handleForbiddenRequest(bool $traceError):void
+  private static function handleForbiddenRequest(bool $isTraceError):void
   {
-    if ($traceError) {
+    if ($isTraceError) {
       (new TraceHandler(403, [
         'DEBUG' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),
         'COOKIE' => $_COOKIE ?? [],
@@ -124,7 +119,6 @@ final class Ajax
   private static function isLocalRequest():bool
   {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-      
       return false;
     }
     
@@ -132,7 +126,6 @@ final class Ajax
     
     # 1. Перевірка сучасних браузерних заголовків
     if (isset($headers['sec-fetch-site'])) {
-      
       return $headers['sec-fetch-site'] === 'same-origin';
     }
     

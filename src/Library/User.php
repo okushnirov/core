@@ -23,7 +23,6 @@ final class User extends Person
     self::$partner = new Partner();
     
     if (!self::$isLogin) {
-      
       return;
     }
     
@@ -31,7 +30,6 @@ final class User extends Person
     $user = $session['CRC'] ?? [];
     
     if (!isset($user['id'])) {
-      
       return;
     }
     
@@ -43,13 +41,11 @@ final class User extends Person
   public static function isAuthority(array | string $authorities):bool
   {
     if (!self::$isLogin) {
-      
       return false;
     }
     
     foreach (is_array($authorities) ? $authorities : [$authorities] as $authority) {
       if (false !== mb_stripos(self::$authority, ";$authority;")) {
-        
         return true;
       }
     }
@@ -59,7 +55,6 @@ final class User extends Person
   
   public static function isRole(array | string $roles):bool
   {
-    
     return self::$isLogin && in_array(self::$role, is_array($roles) ? $roles : [$roles], true);
   }
 }

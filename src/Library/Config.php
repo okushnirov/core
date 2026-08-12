@@ -14,7 +14,6 @@ final class Config
   public static function get(string $key, mixed $default = null):mixed
   {
     if (isset(self::$settings[$key])) {
-      
       return self::$settings[$key];
     }
     
@@ -23,7 +22,6 @@ final class Config
     
     foreach ($segments as $segment) {
       if (!is_array($data) || !array_key_exists($segment, $data)) {
-        
         return $default;
       }
       
@@ -35,13 +33,11 @@ final class Config
   
   public static function getAsArray():?array
   {
-    
     return self::$settings;
   }
   
   public static function getAsObject():?\stdClass
   {
-    
     return json_decode(json_encode(self::$settings, JSON_FORCE_OBJECT));
   }
   
@@ -50,19 +46,16 @@ final class Config
     $node = self::get($key);
     
     if (is_null($node)) {
-      
       return $default;
     }
     
     if (!is_array($node)) {
-      
       return is_null($lang) ? (string)$node : $default;
     }
     
     $activeLang = $lang ?? self::$lang;
     
     if (is_null($activeLang)) {
-      
       return $default;
     }
     
@@ -71,7 +64,6 @@ final class Config
   
   public static function isLoaded():bool
   {
-    
     return !empty(self::$settings);
   }
   

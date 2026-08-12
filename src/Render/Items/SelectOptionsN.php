@@ -2,9 +2,9 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Render\{Items\Interfaces\HtmlInterface, Items\Options\Options, Items\Options\OptionsDict,
-  Items\Options\OptionsSQL, Items\Options\OptionsWS, Render
-};
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Items\Options\{Options, OptionsDict, OptionsSQL, OptionsWS};
+use okushnirov\core\Render\Render;
 
 class SelectOptionsN extends Render implements HtmlInterface
 {
@@ -13,7 +13,6 @@ class SelectOptionsN extends Render implements HtmlInterface
     mixed             $variables = false):string
   {
     if (!isset($xmlItem->source) || !isset($xmlItem->destination)) {
-      
       return '';
     }
     
@@ -68,7 +67,7 @@ class SelectOptionsN extends Render implements HtmlInterface
       
       # Value into row table
       case 1:
-        // Значения из строк таблицы
+        # Додати обробку значень із таблиці
     }
     
     # Options Source & Destination

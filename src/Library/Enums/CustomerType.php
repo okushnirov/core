@@ -10,7 +10,6 @@ enum CustomerType
   
   public function getLabel(string $lang, string $variant = ''):string
   {
-    
     return match ($this) {
       CustomerType::COMPANY => match ($variant) {
         'short' => 'ru' === $lang ? 'ЮЛ' : 'ЮО',
@@ -29,11 +28,12 @@ enum CustomerType
   }
   
   /**
+   * Use getLabel
+   *
    * @deprecated
    */
   public function getShort(string $lang):string
   {
-    
     return match ($this) {
       CustomerType::COMPANY => 'ru' === $lang ? 'ЮЛ' : 'ЮО',
       CustomerType::PERSON => 'ru' === $lang ? 'ФЛ' : 'ФО',
@@ -90,7 +90,6 @@ enum CustomerType
   public function getCustomer(
     string $customer):null | CustomerFrontID | CustomerDocsID | CustomerFrontRef | CustomerDocsRef | CustomerTKBID
   {
-    
     return match ($this) {
       CustomerType::COMPANY => match ($customer) {
         CustomerFrontID::class => CustomerFrontID::Company,

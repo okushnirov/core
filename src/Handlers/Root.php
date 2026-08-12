@@ -15,6 +15,7 @@ final class Root extends \Exception
 {
   const ROOT_PATH = 'core\Root\\';
   const ROOT_FOLDERS = 'Folders\\';
+  
   public static bool $isDebug;
   public static ?array $path;
   public static ?string $query;
@@ -38,7 +39,7 @@ final class Root extends \Exception
           'Query' => $request,
           'Redirect' => $redirect,
           "SESSION type [$session->name]" => Session::decryptCRC($_SESSION ?? [])
-        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     if (SessionType::NONE !== $session && Session::sessionStart($session)) {
@@ -86,7 +87,6 @@ final class Root extends \Exception
         }
         
         if (class_exists($className) && method_exists($className, 'index')) {
-          
           break;
         }
         
@@ -102,7 +102,6 @@ final class Root extends \Exception
     if ($className) {
       try {
         (new $className)::index();
-        
         exit;
       } catch (\Throwable $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
@@ -113,7 +112,6 @@ final class Root extends \Exception
       (new Error([], $session, $cookie))::index(404, 0, '', $request);
     } catch (\Throwable $e) {
       trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
-      
       throw new \Exception($e->getMessage(), $e->getCode());
     }
   }

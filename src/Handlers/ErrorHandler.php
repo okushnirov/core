@@ -36,7 +36,6 @@ final class ErrorHandler
     int $errorNumber, string $errorMessage, string $errorFileName, int $errorLineNumber):bool
   {
     if (!(error_reporting() & $errorNumber)) {
-      
       return false;
     }
     
@@ -71,7 +70,6 @@ final class ErrorHandler
   
   public function exceptionHandler(\Throwable $e):bool
   {
-    
     return $this->errorHandler(E_ERROR, get_class($e).' '.$e->getMessage().' '.$e->getCode(), $e->getFile(),
       $e->getLine());
   }

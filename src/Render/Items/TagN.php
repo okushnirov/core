@@ -2,7 +2,9 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Crypt, Library\Enums\Encrypt, Render\Items\Interfaces\HtmlInterface, Render\Render};
+use okushnirov\core\Library\{Crypt, Enums\Encrypt};
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Render;
 
 class TagN extends Render implements HtmlInterface
 {
@@ -49,7 +51,6 @@ class TagN extends Render implements HtmlInterface
       $method = self::getMethodData($methodRef, self::getMethodList($objID));
       
       if (1 !== $method->access) {
-        
         return '';
       }
       

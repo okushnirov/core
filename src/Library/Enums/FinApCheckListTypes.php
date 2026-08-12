@@ -48,7 +48,6 @@ enum FinApCheckListTypes: string
   
   public function getTags():string
   {
-    
     return match ($this) {
       self::Sanctions => 'psanctions',
       self::PEPs => 'peps',
@@ -69,7 +68,6 @@ enum FinApCheckListTypes: string
   
   public function getLabels():string
   {
-    
     return match ($this) {
       self::Sanctions => 'Санкції ДСФМУ, РНБО, ООН, Європейський Союз, Велика Британія, США, Канада та інші іноземні санкційні списки',
       self::PEPs => 'Реєстр політично значущих осіб',

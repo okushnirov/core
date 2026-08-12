@@ -19,7 +19,6 @@ final class Email
   public function __construct(string $eName = '', array $config = [], bool $isDebug = false)
   {
     if ('' === $eName && empty($config['host'])) {
-      
       throw new \Exception("Empty hostname", -1);
     }
     
@@ -28,7 +27,6 @@ final class Email
     $emailConfig = '' === $eName ? null : (Config::get($eName) ?? null);
     
     if ('' !== $eName && empty($emailConfig)) {
-      
       throw new \Exception("Email settings not found", -2);
     }
     
@@ -36,7 +34,6 @@ final class Email
     self::$sender = (array)($config['sender'] ?? $emailConfig['sender'] ?? self::$sender);
     
     if (empty(self::$host) || empty(self::$sender)) {
-      
       throw new \Exception("Wrong required parameters", -3);
     }
     
@@ -78,7 +75,6 @@ final class Email
       
       foreach ($addresses as $address) {
         if (empty($address)) {
-          
           continue;
         }
         
@@ -95,7 +91,6 @@ final class Email
       
       foreach ($attachments as $attachment) {
         if (empty($attachment)) {
-          
           continue;
         }
         

@@ -19,7 +19,6 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
     self::$charsetDB = $charsetDBase;
     
     if (empty(Config::get('dbase'))) {
-      
       exit;
     }
     
@@ -46,7 +45,6 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   
   private static function _escape(string $s):string
   {
-    
     return "'".sasql_real_escape_string(self::$connect, $s)."'";
   }
   
@@ -88,7 +86,6 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
     self::$connect = sasql_connect("HOST=$c->host;SERVER=$c->server;DBN=$c->base;UID=$c->user;PWD=$c->pass;CharSet=$c->charset;CPOOL=NO;RetryConnTO=5;CON=PHP_Session;ENCRYPTION=simple;");
     
     if (!is_resource(self::$connect)) {
-      
       throw new \Exception('No session database connection', 0);
     }
     
@@ -105,7 +102,6 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   
   public function write(string $id, string $data):bool
   {
-    
     return (bool)self::_query('записать('.self::_escape($id).','.self::_escape($data).','
       .self::_escape($_SERVER['REMOTE_ADDR']));
   }

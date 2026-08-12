@@ -2,7 +2,9 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Location, Library\User, Render\Items\Interfaces\HtmlInterface, Render\Render};
+use okushnirov\core\Library\{Location, User};
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Render;
 
 class AvatarN extends Render implements HtmlInterface
 {

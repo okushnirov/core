@@ -25,7 +25,6 @@ class AuthStrategyWs implements AuthStrategy
     $settings = Config::getAsObject();
     
     if (empty($settings) || !isset($settings->login->ws->auth)) {
-      
       throw new \Exception('Empty ws auth settings', -10);
     }
     
@@ -56,13 +55,11 @@ class AuthStrategyWs implements AuthStrategy
     }
     
     if (401 === $webService::$httpCode) {
-      
       throw new \Exception($settings->login->error->{-115}->{Lang::$lang} ??
         $settings->login->error->{-115} ?? 'Unauthorized', -115);
     }
     
     if (200 !== $webService::$httpCode || empty((array)$jsonUserData)) {
-      
       throw new \Exception($settings->login->error->{-20}->{Lang::$lang} ??
         $settings->login->error->{-20} ?? 'Bad Gateway', -20);
     }
@@ -74,7 +71,6 @@ class AuthStrategyWs implements AuthStrategy
     }
     
     if (!isset($jsonUserData->user)) {
-      
       throw new \Exception($settings->login->error->{-60}->{Lang::$lang} ??
         $settings->login->error->{-60} ?? 'User data missing', -60);
     }

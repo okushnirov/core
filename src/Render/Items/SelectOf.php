@@ -2,9 +2,10 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\{Library\Str, Render\Items\Interfaces\HtmlInterface, Render\Items\Options\Options,
-  Render\Items\Options\OptionsDict, Render\Items\Options\OptionsSQL, Render\Items\Options\OptionsWS, Render\Render
-};
+use okushnirov\core\Library\Str;
+use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
+use okushnirov\core\Render\Items\Options\{Options, OptionsDict, OptionsSQL, OptionsWS};
+use okushnirov\core\Render\Render;
 
 class SelectOf extends Render implements HtmlInterface
 {
@@ -13,7 +14,6 @@ class SelectOf extends Render implements HtmlInterface
     mixed             $variables = false):string
   {
     if (!isset($xmlItem->source) || !isset($xmlItem->destination)) {
-      
       return '';
     }
     
@@ -36,8 +36,7 @@ class SelectOf extends Render implements HtmlInterface
     
     # Destination
     $isReadonly = self::isTrue($xmlItem->destination->input['readonly'] ?? (is_object($variables)
-      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '')
-        : '')));
+      ? ($variables->readonly ?? '') : (is_array($variables) ? ($variables['readonly'] ?? '') : '')));
     $destClass = (string)($xmlItem->destination->input['class'] ?? '');
     
     if ($isReadonly) {
@@ -71,7 +70,7 @@ class SelectOf extends Render implements HtmlInterface
       
       # Value into row table
       case 1:
-        // Значения из строк таблицы
+        # Додати обробку значень із таблиці
     }
     
     # Options Source

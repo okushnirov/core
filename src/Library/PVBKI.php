@@ -33,22 +33,18 @@ final class PVBKI
   public function sendRequest():string
   {
     if (!$this->isLoaded) {
-      
       throw new \Exception('Initialization not completed or service settings missing', -20);
     }
     
     if ($this->isDisabled) {
-      
       return '';
     }
     
     if (empty($this->url)) {
-      
       throw new \Exception('Wrong URL service', -30);
     }
     
     if ('' === $this->code) {
-      
       throw new \Exception('Empty client code', -40);
     }
     
@@ -104,7 +100,6 @@ final class PVBKI
     Config::load(['pvbki.php']);
     
     if (!Config::isLoaded()) {
-      
       throw new \Exception('Error reading configuration file', -10);
     }
     

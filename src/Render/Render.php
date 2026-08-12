@@ -2,9 +2,8 @@
 
 namespace okushnirov\core\Render;
 
-use okushnirov\core\Library\{Crypt, DbSQLAnywhere, Enums\DateRu, Enums\Encrypt, Enums\HeaderXML, Enums\SQLAnywhere,
-  File, Lang, Str, User
-};
+use okushnirov\core\Library\{Crypt, DbSQLAnywhere, File, Lang, Str, User};
+use okushnirov\core\Library\Enums\{DateRu, Encrypt, HeaderXML, SQLAnywhere};
 
 class Render
 {
@@ -26,7 +25,6 @@ class Render
         $ref = trim($method['Идентификатор'] ?? '');
         
         if ('' === $ref) {
-          
           continue;
         }
         
@@ -94,7 +92,6 @@ class Render
   public static function getXMLObject(int $objID, int $withChildren = 0):\SimpleXMLElement | bool
   {
     if (0 >= $objID) {
-      
       return false;
     }
     
@@ -112,7 +109,6 @@ class Render
   public static function getXMLValue(string $fieldName, \SimpleXMLElement | bool $xmlData):array | bool
   {
     if ('' === $fieldName || empty($xmlData) || !$xmlData->field->count()) {
-      
       return false;
     }
     
@@ -166,14 +162,12 @@ class Render
     
     foreach ($xpath->query('//*[@render]') as $node) {
       if ($node->nodeType !== XML_ELEMENT_NODE) {
-        
         continue;
       }
       
       $render = (string)($node->getAttribute('render') ?? '');
       
       if (!$render) {
-        
         continue;
       }
       
@@ -235,7 +229,6 @@ class Render
     string $file, int $objID = 0, \SimpleXMLElement | bool $xmlData = false, mixed $variables = false):string
   {
     if (!File::isFile($file)) {
-      
       return '';
     }
     
@@ -254,7 +247,6 @@ class Render
   protected static function convertValue(?\SimpleXMLElement $xml, string $value):string
   {
     if (empty($xml)) {
-      
       return $value;
     }
     
@@ -277,7 +269,6 @@ class Render
   protected static function cryptValue(\SimpleXMLElement $xml, \SimpleXMLElement | bool $xmlData = false):string
   {
     if (empty($xmlData)) {
-      
       return '';
     }
     
@@ -291,7 +282,6 @@ class Render
   protected static function getAttribute(?\SimpleXMLElement $xml):string
   {
     if (empty($xml)) {
-      
       return '';
     }
     
@@ -316,7 +306,6 @@ class Render
   protected static function getValue(?\SimpleXMLElement $xml):string
   {
     if (empty($xml)) {
-      
       return '';
     }
     
@@ -338,7 +327,6 @@ class Render
     ?\SimpleXMLElement $xml, \SimpleXMLElement | bool $xmlData = false, string $attribute = ''):string
   {
     if (!isset($xml['f-xpath']) && !$xmlData) {
-      
       return '';
     }
     
@@ -353,7 +341,6 @@ class Render
     }
     
     if (empty($f)) {
-      
       return $attribute;
     }
     
@@ -395,7 +382,6 @@ class Render
   protected static function getXPathValue(?\SimpleXMLElement $xml, \SimpleXMLElement | bool $xmlData = false):string
   {
     if (!isset($xml['xpath']) || !$xmlData) {
-      
       return '';
     }
     
@@ -414,7 +400,6 @@ class Render
   
   protected static function isTrue(?string $prepare = ''):bool
   {
-    
     return filter_var($prepare, FILTER_VALIDATE_BOOLEAN);
   }
 }

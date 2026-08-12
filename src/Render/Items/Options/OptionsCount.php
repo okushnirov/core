@@ -7,7 +7,6 @@ class OptionsCount
   public static function get(?\SimpleXMLElement $xml):array
   {
     if (empty($xml)) {
-      
       return [];
     }
     

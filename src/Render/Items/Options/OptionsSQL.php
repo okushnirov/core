@@ -9,7 +9,6 @@ class OptionsSQL
     $query = (string)($xml['sql'] ?? '');
     
     if (empty($query)) {
-      
       return [];
     }
     
