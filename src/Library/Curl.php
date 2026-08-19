@@ -8,23 +8,35 @@ final class Curl
 {
   public static int | bool $curlHttpCode = false;
   public static mixed $curlHttpInfo;
+  public static array $ignoreLogStatusCodes = [];
   
   public static function exec(
     string       $url, array $header = [], mixed $data = '', string $userLogin = '', string $userPassword = '',
-    ?HTTPMethods $httpMethod = HTTPMethods::POST, bool | int $ssl = false, int $timeout = 10,
-    bool         $isDebug = false):bool | string
+    ?HTTPMethods $httpMethod = HTTPMethods::POST, bool | int $ssl = false, int $timeout = 10, bool $isDebug = false,
+    array        $options = []):bool | string
   {
     $back = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
     
     if ('' === $url) {
       trigger_error(__METHOD__." URL is empty!\n".json_encode($back,
           JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+      
       return false;
     }
     
-    $ch = curl_init();
+    $ignoreStatusCodes = [];
+    
+    if (!empty($options)) {
+      if (array_is_list($options)) {
+        $ignoreStatusCodes = $options;
+      } else {
+        $ignoreStatusCodes = $options['ignore_status_codes'] ?? [];
+      }
+    }
     
     $method = $httpMethod?->value ?? HTTPMethods::POST->value;
+    
+    $ch = curl_init();
     
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -70,7 +82,10 @@ final class Curl
     $isSuccessHttpCode = 200 <= self::$curlHttpCode && 300 > self::$curlHttpCode;
     $isFailed = $response === false || !$isSuccessHttpCode;
     
-    if ($isDebug || $isFailed) {
+    $ignoredCodes = array_merge(self::$ignoreLogStatusCodes, $ignoreStatusCodes);
+    $isIgnoredCode = in_array(self::$curlHttpCode, $ignoredCodes, true);
+    
+    if (($isDebug || $isFailed) && !$isIgnoredCode) {
       $logPrefix = $isFailed ? "[ERROR RESPONSE]" : "[DEBUG RESPONSE]";
       
       $responseLog = [
@@ -83,6 +98,7 @@ final class Curl
         'DATA' => $data,
         'SSL_VERIFY' => (bool)$ssl,
         'TIMEOUT' => $timeout,
+        'OPTIONS' => $options,
         'STACK_TRACE' => $back
       ];
       
