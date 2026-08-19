@@ -3,9 +3,9 @@
 namespace okushnirov\core\Library;
 
 use okushnirov\core\Library\Enums\{Decrypt, Extensions, SQLAnywhere};
-use PhpOffice\PhpSpreadsheet\{Cell\DataType, Exception, IOFactory, Spreadsheet, Style\Alignment, Style\Border,
-  Style\Fill, Style\NumberFormat, Worksheet\Worksheet
-};
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\{Exception, IOFactory, Spreadsheet, Worksheet\Worksheet};
+use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill, NumberFormat};
 
 final class Excel
 {
@@ -27,6 +27,7 @@ final class Excel
   private int $rowFirst = 1;
   private Worksheet $sheet;
   private float $startTime;
+  private string $title = 'Аркуш';
   
   public function __construct(array $request = [], bool $isDebug = false)
   {
@@ -65,7 +66,6 @@ final class Excel
     
     if (self::$isDebug) {
       $this->startTime = microtime(true);
-      
       trigger_error(__METHOD__." Request\n".json_encode($request,
           JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
     }
@@ -109,7 +109,6 @@ final class Excel
     
     if (self::$isDebug) {
       $totalTime = round(microtime(true) - $this->startTime, 4);
-      
       trigger_error(__METHOD__." Preparing download finished. Total execution time: $totalTime sec.", E_USER_ERROR);
     }
     
@@ -187,7 +186,6 @@ final class Excel
     
     if (self::$isDebug) {
       $fillTime = round(microtime(true) - $fillStart, 4);
-      
       trigger_error(__METHOD__." Grid filling finished in: $fillTime sec.", E_USER_ERROR);
     }
   }
@@ -204,19 +202,18 @@ final class Excel
       throw new \Exception("Помилка налаштувань [dbase]", -3);
     }
     
-    $dbaseName = 'dbase'.(defined('TEST_SERVER') && TEST_SERVER ? 'Test' : '');
-    $connection = self::$settings->dbase->{$dbaseName} ?? null;
+    $conDB = self::$settings->dbase->{'dbase'.(defined('TEST_SERVER') && TEST_SERVER ? 'Test' : '')} ?? null;
+    $conID = $this->request['c'] ?? null;
+    $connection = $conID ?? $conDB;
     
     if (is_null($connection)) {
       throw new \Exception("Не визначено з'єднання із базою даних", -4);
     }
     
-    $connection = (int)($this->request['c'] ?? $connection);
-    
     $this->queryType = empty($this->request['p']) ? SQLAnywhere::COLUMN : $this->queryType;
     
     DbSQLAnywhere::disconnect();
-    $result = DbSQLAnywhere::query($this->request['q'], $this->queryType, $connection, flags: SQL_KEY_CASE_ORIGIN);
+    $result = DbSQLAnywhere::query($this->request['q'], $this->queryType, (int)$connection, flags: SQL_KEY_CASE_ORIGIN);
     DbSQLAnywhere::disconnect();
     
     if (empty($result)) {
@@ -267,8 +264,13 @@ final class Excel
                       ->setCategory('PHPSpreadsheet Excel Document');
     
     try {
-      $this->spreadsheet->setActiveSheetIndex(0)
-                        ->setTitle('' === ($this->request['s'] ?? '') ? 'Лист' : $this->request['s']);
+      $title = trim($this->request['s'] ?? '');
+      $invalidChars = Worksheet::getInvalidCharacters();
+      $cleanTitle = str_replace($invalidChars, '', $title);
+      $cleanTitle = trim(mb_substr($cleanTitle, 0, 31));
+      $this->title = '' === $cleanTitle ? $this->title : $cleanTitle;
+      
+      new Worksheet($this->spreadsheet, $this->title);
     } catch (\Exception $e) {
       throw new \Exception($e->getMessage(), -40);
     }

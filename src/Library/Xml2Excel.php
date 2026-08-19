@@ -4,9 +4,9 @@ namespace okushnirov\core\Library;
 
 use JetBrains\PhpStorm\ArrayShape;
 use okushnirov\core\Library\Enums\{DateEn, Extensions};
-use PhpOffice\PhpSpreadsheet\{Cell\Coordinate, Cell\DataType, Exception, IOFactory, Spreadsheet, Style\Alignment,
-  Style\Border, Style\Fill, Style\NumberFormat, Worksheet\Worksheet
-};
+use PhpOffice\PhpSpreadsheet\Cell\{Coordinate, DataType};
+use PhpOffice\PhpSpreadsheet\{Exception, IOFactory, Spreadsheet, Worksheet\Worksheet};
+use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill, NumberFormat};
 
 final class Xml2Excel
 {
@@ -42,7 +42,6 @@ final class Xml2Excel
     }
     
     $this->xmlRequest = $xmlRequest;
-    
     unset($xmlRequest);
     
     # Тип XLS|XLSX
@@ -81,7 +80,10 @@ final class Xml2Excel
     
     # Назва аркуша
     $title = trim($this->xmlRequest->sheet ?? $this->xmlRequest->scheet ?? '');
-    $this->title = '' === $title ? $this->title : $title;
+    $invalidChars = Worksheet::getInvalidCharacters();
+    $cleanTitle = str_replace($invalidChars, '', $title);
+    $cleanTitle = trim(mb_substr($cleanTitle, 0, 31));
+    $this->title = '' === $cleanTitle ? $this->title : $cleanTitle;
     
     # Чи існує заголовок
     $this->isCaption = '' !== trim($this->xmlRequest->caption[0] ?? '');
@@ -130,8 +132,7 @@ final class Xml2Excel
     
     # Аркуш
     try {
-      $this->spreadsheet->setActiveSheetIndex(0)
-                        ->setTitle($this->title);
+      new Worksheet($this->spreadsheet, $this->title);
     } catch (\Exception $e) {
       throw new \Exception($e->getMessage(), -3);
     }
