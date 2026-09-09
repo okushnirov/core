@@ -41,6 +41,7 @@ final class Authorization
     
     if (is_null($this->session->getUserLogin())) {
       $this->logout();
+      
       return false;
     }
     
@@ -53,7 +54,7 @@ final class Authorization
       return false;
     }
     
-    if (Auth::WS === $type || Auth::WS_DATA === $type) {
+    if ($type->isStandalone()) {
       return SessionType::NONE === $sessionType || $this->session->saveUserSession();
     }
     

@@ -14,13 +14,24 @@ final class AuthStrategyFactory
       $type = Auth::DB;
     }
     
+    if (Auth::MANUAL === $type) {
+      $manualClass = 'core\\Auth\\AuthStrategyManual';
+      
+      if (!class_exists($manualClass)) {
+        throw new \Exception("Auth strategy 'MANUAL' class [$manualClass] not found", -404);
+      }
+      
+      return new $manualClass($session, $isDebug);
+    }
+    
     return match ($type) {
       Auth::DB => new AuthStrategyDb($connection, $session, $isDebug),
       Auth::DB_USER => new AuthStrategyDbUser(),
       Auth::LDAP => new AuthStrategyLdap($session, $isDebug),
       Auth::LDAP_DB => new AuthStrategyLdapDb(new AuthStrategyLdap($session, $isDebug),
         new AuthStrategyDb($connection, $session, $isDebug)),
-      Auth::WS, Auth::WS_DATA => new AuthStrategyWs($session, Auth::WS_DATA === $type, $isDebug)
+      Auth::WS, Auth::WS_DATA => new AuthStrategyWs($session, Auth::WS_DATA === $type, $isDebug),
+      default => throw new \Exception("Strategy implementation for $type->name not found.", -405),
     };
   }
 }
