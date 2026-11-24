@@ -111,7 +111,7 @@ final class WebService
       trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name."\nURL ".($ws->url ?? ' url not found')."\nAuth ["
         .($ws->user ?? '').":".($ws->pass ?? '')."]".($header ? "\nHeader\n".json_encode($header,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '')
-        ."\nRequest\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response.(200 === self::$httpCode
+        ."\nRequest\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response."\n".(200 === self::$httpCode
           ? ''
           : "\nHTTP Curl info\n".json_encode(self::$httpInfo,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)), E_USER_ERROR);
