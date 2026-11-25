@@ -3,6 +3,7 @@
 namespace okushnirov\core\Library;
 
 use okushnirov\core\Library\Enums\{Charset, HTTPMethods};
+use okushnirov\core\Handlers\ErrorHandler;
 
 final class WebService
 {
@@ -35,7 +36,7 @@ final class WebService
     
     if (empty($data)) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." Empty webservice settings", E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__." Empty webservice settings");
       }
       
       throw new \Exception("Empty webservice settings", -1);
@@ -59,8 +60,8 @@ final class WebService
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." [$wsName]\n".json_encode($ws,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." [$wsName]\n".json_encode($ws,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     return $ws;
@@ -108,13 +109,13 @@ final class WebService
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." [$wsName] -> ".$httpMethod->name."\nURL ".($ws->url ?? ' url not found')."\nAuth ["
-        .($ws->user ?? '').":".($ws->pass ?? '')."]".($header ? "\nHeader\n".json_encode($header,
+      ErrorHandler::debug(__METHOD__." [$wsName] -> ".$httpMethod->name."\nURL ".($ws->url ?? ' url not found')
+        ."\nAuth [".($ws->user ?? '').":".($ws->pass ?? '')."]".($header ? "\nHeader\n".json_encode($header,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '')
         ."\nRequest\n$data\nResponse [HTTP ".Curl::$curlHttpCode."]\n".self::$response."\n".(200 === self::$httpCode
           ? ''
           : "\nHTTP Curl info\n".json_encode(self::$httpInfo,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)), E_USER_ERROR);
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)));
     }
     
     self::$isDebug = false;

@@ -3,6 +3,7 @@
 namespace okushnirov\core\Library;
 
 use JetBrains\PhpStorm\ArrayShape;
+use okushnirov\core\Handlers\ErrorHandler;
 use okushnirov\core\Library\Enums\{DateEn, Extensions};
 use PhpOffice\PhpSpreadsheet\Cell\{Coordinate, DataType};
 use PhpOffice\PhpSpreadsheet\{Exception, IOFactory, Spreadsheet, Worksheet\Worksheet};
@@ -59,7 +60,7 @@ final class Xml2Excel
     
     # Назва файлу
     $fileDownload = trim($this->xmlRequest['filename'] ?? '');
-    $this->fileDownload = '' === $fileDownload ? "Export_Excel_".(new \DateTime())->format('YmdHisu') : $fileDownload;
+    $this->fileDownload = '' === $fileDownload ? "Export_Excel_".new \DateTime()->format('YmdHisu') : $fileDownload;
     $this->fileDownload .= $this->fileExt->value;
     
     # Автоматичний фільтр
@@ -143,8 +144,9 @@ final class Xml2Excel
   public function download(bool $asAttachment = true):void
   {
     try {
-      $objectWriter = IOFactory::createWriter($this->spreadsheet,
-        mb_convert_case(trim($this->fileExt->value, '.'), MB_CASE_TITLE));
+      $objectWriter = trim($this->fileExt->value, '.')
+          |> (fn($x) => mb_convert_case($x, MB_CASE_TITLE))
+          |> (fn($x) => IOFactory::createWriter($this->spreadsheet, $x));
     } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
       throw new \Exception($e->getMessage(), -100);
     }
@@ -294,9 +296,9 @@ final class Xml2Excel
     }
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode(array_merge($captionStyle, [
+      ErrorHandler::debug(__METHOD__."\n".json_encode(array_merge($captionStyle, [
           'style' => $style
-        ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+        ]), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE / JSON_UNESCAPED_SLASHES));
     }
     
     # Заголовок
@@ -520,8 +522,8 @@ final class Xml2Excel
       }
       
       if ($this->isDebug) {
-        trigger_error(__METHOD__." $coordinate\n".json_encode($style,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__." $coordinate\n".json_encode($style,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
       }
       
       $this->setStyle($coordinate, $style);
@@ -538,8 +540,8 @@ final class Xml2Excel
     ]);
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($tfootStyle,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__."\n".json_encode($tfootStyle,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     $this->posX = 1;
@@ -616,8 +618,8 @@ final class Xml2Excel
     ]);
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($theadStyle,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__."\n".json_encode($theadStyle,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     foreach ($thead->tr[0]->th as $th) {

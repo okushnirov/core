@@ -3,6 +3,7 @@
 namespace okushnirov\core\Library;
 
 use core\Handlers\LangHandler;
+use okushnirov\core\Handlers\ErrorHandler;
 use okushnirov\core\Library\Enums\{CookieType, SessionType};
 
 final class Lang
@@ -19,7 +20,8 @@ final class Lang
   public static function set(SessionType $session = SessionType::WS, CookieType $cookie = CookieType::Yes):void
   {
     if (!enum_exists(LangHandler::class)) {
-      trigger_error(__METHOD__.' No language enum handler found', E_USER_WARNING);
+      ErrorHandler::debug(__METHOD__.' No language enum handler found');
+      
       return;
     }
     

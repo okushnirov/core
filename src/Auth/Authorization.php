@@ -59,7 +59,7 @@ final class Authorization
     }
     
     try {
-      $xmlUserData = (new UserAuthWS($this->session->getUserLogin(), $this->session->getUserID(), $sessionType))->get();
+      $xmlUserData = new UserAuthWS($this->session->getUserLogin(), $this->session->getUserID(), $sessionType)->get();
     } catch (\Exception $e) {
       trigger_error(__METHOD__.' UserAuthWS get error code ['.$e->getCode().'] message ['.$e->getMessage().']');
       $xmlUserData = null;

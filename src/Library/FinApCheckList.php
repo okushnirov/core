@@ -2,6 +2,7 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Handlers\ErrorHandler;
 use okushnirov\core\Library\Enums\HTTPMethods;
 
 final class FinApCheckList
@@ -148,11 +149,11 @@ final class FinApCheckList
     $this->isDebug = $isDebug || $this->isDebug;
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($request,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__."\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
-    $this->refID = isset($request->refID) ? trim((string)$request->refID) : (new \DateTime())->format('ymdHisv');
+    $this->refID = isset($request->refID) ? trim((string)$request->refID) : new \DateTime()->format('ymdHisv');
     $this->code = trim((string)($request->code ?? ''));
     $this->date = trim((string)($request->date ?? ''));
     $this->doc = trim((string)($request->document ?? ''));
@@ -190,8 +191,8 @@ final class FinApCheckList
     $response = trim(Curl::exec($finalUrl, httpMethod: HTTPMethods::GET, isDebug: $this->isDebug));
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Request\n".json_encode($request,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\nResponse\n".$response, E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Request\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\nResponse\n".$response);
     }
     
     return $response;

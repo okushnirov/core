@@ -84,14 +84,16 @@ final class SessionHandlerWs implements \SessionHandlerInterface
     $root->setAttribute('ip', trim($_SERVER['REMOTE_ADDR'] ?? ''));
     
     foreach ($data as $key => $value) {
-      $root->appendChild($request->createElement($key, htmlspecialchars($value, ENT_XML1)));
+      htmlspecialchars($value, ENT_XML1)
+        |> (fn(string $x) => $request->createElement($key, $x))
+        |> $root->appendChild(...);
     }
     
     $request->formatOutput = true;
     
     $response = Curl::exec(self::$config['url'.(TEST_SERVER ? 'Test' : '')] ?? self::$config['url'] ?? '', [
       'Content-Type: application/xml;charset=utf-8'
-    ], $request->saveXML(), timeout: 2);
+    ], $request->saveXML(), timeout: 3);
     
     try {
       $xml = $response && 200 === Curl::$curlHttpCode ? new \SimpleXMLElement($response) : null;

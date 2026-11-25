@@ -16,12 +16,12 @@ final class ErrorHandler
     E_USER_ERROR => 'Угода користувача',
     E_USER_WARNING => 'Попередження користувача',
     E_USER_NOTICE => 'Повідомлення користувача',
-    E_STRICT => 'Повідомлення часу виконання',
     E_RECOVERABLE_ERROR => 'Фатальна помилка, що перехоплюється',
     E_DEPRECATED => 'Використання застарілих конструкцій',
     E_USER_DEPRECATED => 'Використання застарілих конструкцій'
   ];
   private string $logPath = "C:\\Log\\";
+  private static ?self $instance = null;
   
   public function __construct(string $logPath = '', string $constantsFile = '')
   {
@@ -30,6 +30,15 @@ final class ErrorHandler
     if ('' !== $constantsFile && file_exists($constantsFile)) {
       require_once $constantsFile;
     }
+    
+    self::$instance = $this;
+  }
+  
+  public static function debug(string $message):bool
+  {
+    $handler = self::$instance ?? new self();
+    
+    return $handler->writeLog("\n$message");
   }
   
   public function errorHandler(
@@ -39,17 +48,17 @@ final class ErrorHandler
       return false;
     }
     
-    if (E_USER_ERROR === $errorNumber) {
-      $errorString = "\n$errorMessage";
-    } else {
-      $errorString = "\n".date('Y-m-d H:i:s.').substr(explode(' ', microtime())[0], 2, 6);
-      $errorString .= ' ['.($_SERVER['REMOTE_ADDR'] ?? 'localhost (CLI)').'] ';
-      $errorString .= $this->errorType[$errorNumber] ?? "[$errorNumber]";
-      $errorString .= false === mb_stripos($errorMessage, ' on line ') ? " -> $errorFileName on line $errorLineNumber"
-        : '';
-      $errorString .= "\n$errorMessage\n";
-    }
+    $errorString = "\n".date('Y-m-d H:i:s.').substr(explode(' ', microtime())[0], 2, 6);
+    $errorString .= ' ['.($_SERVER['REMOTE_ADDR'] ?? 'localhost (CLI)').'] ';
+    $errorString .= $this->errorType[$errorNumber] ?? "[$errorNumber]";
+    $errorString .= false === mb_stripos($errorMessage, ' on line ') ? " -> $errorFileName on line $errorLineNumber"
+      : '';
     
+    return $this->writeLog($errorString);
+  }
+  
+  private function writeLog(string $content):bool
+  {
     $logFile = ($_SERVER['SERVER_NAME'] ?? 'cli').'.log';
     
     $finalPath = is_dir($this->logPath)
@@ -58,7 +67,7 @@ final class ErrorHandler
     
     restore_error_handler();
     
-    $result = error_log($errorString, 3, $finalPath);
+    $result = error_log($content, 3, $finalPath);
     
     set_error_handler([
       $this,

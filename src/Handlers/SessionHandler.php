@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Handlers;
 
-use okushnirov\core\Library\{Config, Encoding, Enums\Charset};
+use okushnirov\core\Library\{Config, Encoding};
+use okushnirov\core\Library\Enums\Charset;
 use ReturnTypeWillChange;
 
 final class SessionHandler extends \Exception implements \SessionHandlerInterface
@@ -67,14 +68,12 @@ final class SessionHandler extends \Exception implements \SessionHandlerInterfac
   
   public function destroy(string $id):bool
   {
-    
     return (bool)self::_query('удалить('.self::_escape($id));
   }
   
   #[ReturnTypeWillChange]
   public function gc(int $max_lifetime):bool
   {
-    
     return (bool)self::_query('уборка('.self::_escape($max_lifetime));
   }
   

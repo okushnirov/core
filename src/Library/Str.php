@@ -13,7 +13,6 @@ final class Str
   {
     # IN: error date OUT: alternative text
     if ($dateIn == 'NA' || empty($dateIn) || is_bool($dateIn)) {
-      
       return $alternativeText;
     }
     

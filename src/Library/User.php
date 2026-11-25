@@ -40,17 +40,10 @@ final class User extends Person
   
   public static function isAuthority(array | string $authorities):bool
   {
-    if (!self::$isLogin) {
-      return false;
-    }
+    return self::$isLogin
+      && array_any(is_array($authorities) ? $authorities : [$authorities],
+        fn($authority) => false !== mb_stripos(self::$authority, ";$authority;"));
     
-    foreach (is_array($authorities) ? $authorities : [$authorities] as $authority) {
-      if (false !== mb_stripos(self::$authority, ";$authority;")) {
-        return true;
-      }
-    }
-    
-    return false;
   }
   
   public static function isRole(array | string $roles):bool

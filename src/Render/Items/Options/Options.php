@@ -2,12 +2,14 @@
 
 namespace okushnirov\core\Render\Items\Options;
 
-use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, Str};
+use okushnirov\core\Handlers\ErrorHandler;
+use okushnirov\core\Library\{DbSQLAnywhere, Lang, Str};
+use okushnirov\core\Library\Enums\SQLAnywhere;
 use okushnirov\core\Render\Render;
 
 class Options extends Render
 {
-  private static bool $debug = false;
+  private static bool $isDebug = false;
   
   public static function explode(array $source, string $string, string $separator = ';'):array
   {
@@ -21,7 +23,7 @@ class Options extends Render
       }
     }
     
-    if (self::$debug) {
+    if (self::$isDebug) {
       trigger_error(__METHOD__."\nValues:\n".json_encode($values, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
         ."\nSource:\n".json_encode($source, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\nDestination:\n"
         .json_encode($destination, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
@@ -93,7 +95,7 @@ class Options extends Render
         }
       }
       
-      if (self::$debug) {
+      if (self::$isDebug) {
         trigger_error(__METHOD__."\noptions value(".gettype($value)
           .")=$value\noptions default($type) $default\ncompare value = default = [".('' !== $default
             && $value === $default)."]");
@@ -135,8 +137,8 @@ class Options extends Render
         self::$prevValues[$fieldName] = $value;
       }
       
-      if (self::$debug) {
-        trigger_error(__METHOD__." Value[$value] = Default[$default] Selected[$selected]", E_USER_ERROR);
+      if (self::$isDebug) {
+        ErrorHandler::debug(__METHOD__." Value[$value] = Default[$default] Selected[$selected]");
       }
       
       if ($order) {

@@ -6,7 +6,7 @@ use core\Handlers\LangHandler;
 
 final class Config
 {
-  private const CONFIG_BASE_PATH = 'php\classes\Configs\\';
+  private const string CONFIG_BASE_PATH = 'php\classes\Configs\\';
   private static ?LangHandler $lang = null;
   private static ?string $projectRoot = null;
   private static mixed $settings = [];
@@ -73,7 +73,7 @@ final class Config
     
     $merged = [];
     
-    $rootDir = dirname((new \ReflectionClass(\Composer\Autoload\ClassLoader::class))->getFileName(), 3);
+    $rootDir = dirname(new \ReflectionClass(\Composer\Autoload\ClassLoader::class)->getFileName(), 3);
     
     self::$projectRoot = self::$projectRoot
       ? : $rootDir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR,

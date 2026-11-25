@@ -21,7 +21,7 @@ final class TraceHandler
       $this->trace['SESSION'] = Session::decryptCRC($this->trace['SESSION']);
     }
     
-    trigger_error("HTTP ".$this->http_code."\n".json_encode($this->trace,
-        JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+    ErrorHandler::debug("HTTP ".$this->http_code."\n".json_encode($this->trace,
+        JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
   }
 }

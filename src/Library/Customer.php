@@ -14,6 +14,7 @@ final class Customer
     
     if (preg_match('/(.)\1{6,}/u', $code)) {
       self::$errorCode = -2;
+      
       return false;
     }
     

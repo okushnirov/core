@@ -3,6 +3,7 @@
 namespace okushnirov\core\Library;
 
 use okushnirov\core\Library\Enums\{Decrypt, Extensions, SQLAnywhere};
+use okushnirov\core\Handlers\ErrorHandler;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\{Exception, IOFactory, Spreadsheet, Worksheet\Worksheet};
 use PhpOffice\PhpSpreadsheet\Style\{Alignment, Border, Fill, NumberFormat};
@@ -54,7 +55,12 @@ final class Excel
           continue;
         }
         
-        $this->request[$key] = '' === $value ? '' : urldecode(Crypt::action(trim($value), Decrypt::BASE));
+        $this->request[$key] = '' === $value
+          ? ''
+          : $value
+            |> trim(...)
+            |> (fn($x) => Crypt::action($x, Decrypt::BASE))
+            |> urldecode(...);
       }
     }
     
@@ -66,8 +72,8 @@ final class Excel
     
     if (self::$isDebug) {
       $this->startTime = microtime(true);
-      trigger_error(__METHOD__." Request\n".json_encode($request,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Request\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     $this->dateTime = new \DateTime();
@@ -88,8 +94,9 @@ final class Excel
   public function download():void
   {
     try {
-      $objectWriter = IOFactory::createWriter($this->spreadsheet,
-        mb_convert_case(trim($this->fileExt->value, '.'), MB_CASE_TITLE));
+      $objectWriter = trim($this->fileExt->value, '.')
+          |> (fn($x) => mb_convert_case($x, MB_CASE_TITLE))
+          |> (fn($x) => IOFactory::createWriter($this->spreadsheet, $x));
     } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
       throw new \Exception($e->getMessage(), -100);
     }
@@ -109,7 +116,7 @@ final class Excel
     
     if (self::$isDebug) {
       $totalTime = round(microtime(true) - $this->startTime, 4);
-      trigger_error(__METHOD__." Preparing download finished. Total execution time: $totalTime sec.", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Preparing download finished. Total execution time: $totalTime sec.");
     }
     
     $objectWriter->save('php://output');
@@ -180,13 +187,13 @@ final class Excel
       try {
         $this->sheet->mergeCells('A1:'.$this->highestColumn.'1');
       } catch (Exception $e) {
-        trigger_error(__METHOD__." mergeCells error\n".$e->getMessage());
+        ErrorHandler::debug(__METHOD__." mergeCells error\n".$e->getMessage());
       }
     }
     
     if (self::$isDebug) {
       $fillTime = round(microtime(true) - $fillStart, 4);
-      trigger_error(__METHOD__." Grid filling finished in: $fillTime sec.", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Grid filling finished in: $fillTime sec.");
     }
   }
   
@@ -240,8 +247,8 @@ final class Excel
     $success = $success && !empty($this->queryResult);
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." Query [".$this->request['q']."]\nConnection [$connection] Query type ["
-        .$this->queryType->name."] Query has result [$success]", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Query [".$this->request['q']."]\nConnection [$connection] Query type ["
+        .$this->queryType->name."] Query has result [$success]");
     }
     
     if (!$success) {
@@ -279,7 +286,7 @@ final class Excel
     
     if (self::$isDebug) {
       $loadTime = round(microtime(true) - $loadStart, 4);
-      trigger_error(__METHOD__." Query & Fetch took: $loadTime sec.", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Query & Fetch took: $loadTime sec.");
     }
   }
   

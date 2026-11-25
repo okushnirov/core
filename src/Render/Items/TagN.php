@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Library\{Crypt, Enums\Encrypt};
+use okushnirov\core\Library\Crypt;
+use okushnirov\core\Library\Enums\Encrypt;
 use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
 use okushnirov\core\Render\Render;
 
@@ -26,8 +27,9 @@ class TagN extends Render implements HtmlInterface
     unset($xmlItem['position'], $xmlItem['xpath']);
     
     if (isset($xmlItem['target'])) {
-      $attribute .= ' data-target="'.('crypt' === (string)$xmlItem['target']
-          ? Crypt::action((new \DateTime())->format('YmdHis'), Encrypt::CHR) : (new \DateTime())->format('YmdHis')).'"';
+      $currentTime = new \DateTime()->format('YmdHis');
+      $attribute .= ' data-target="'.('crypt' === (string)$xmlItem['target'] ? Crypt::action($currentTime, Encrypt::CHR)
+          : $currentTime).'"';
       
       unset($xmlItem['target']);
     }

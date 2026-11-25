@@ -3,7 +3,8 @@
 namespace okushnirov\core\Library;
 
 use JetBrains\PhpStorm\ArrayShape;
-use okushnirov\core\Library\{Enums\DateEn, Interfaces\DateFormat};
+use okushnirov\core\Library\Enums\DateEn;
+use okushnirov\core\Library\Interfaces\DateFormat;
 
 final class Date
 {
@@ -289,10 +290,10 @@ final class Date
   public static function getPeriodObject():array
   {
     $todayStr = date('Y-m-d');
-    $yesterday = (new \DateTime('yesterday'))->format('Y-m-d');
+    $yesterday = new \DateTime('yesterday')->format('Y-m-d');
     $monthPreviousFrom = new \DateTime('first day of previous month');
-    $month2AgoFrom = (new \DateTime('first day of this month'))->modify('-2 month');
-    $month3AgoFrom = (new \DateTime('first day of this month'))->modify('-3 month');
+    $month2AgoFrom = new \DateTime('first day of this month')->modify('-2 month');
+    $month3AgoFrom = new \DateTime('first day of this month')->modify('-3 month');
     $year2AgoFrom = new \DateTime('first day of 2 years ago');
     
     $labelCurrent = [
@@ -351,13 +352,13 @@ final class Date
         ]
       ],
       'Неделя' => [
-        'from' => (new \DateTime('monday this week'))->format('Y-m-d'),
+        'from' => new \DateTime('monday this week')->format('Y-m-d'),
         'to' => $todayStr,
         'label' => $labelCurrent
       ],
       'ПрошлаяНеделя' => [
-        'from' => (new \DateTime('monday previous week'))->format('Y-m-d'),
-        'to' => (new \DateTime('sunday previous week'))->format('Y-m-d'),
+        'from' => new \DateTime('monday previous week')->format('Y-m-d'),
+        'to' => new \DateTime('sunday previous week')->format('Y-m-d'),
         'label' => [
           'ua' => 'Попередній',
           'uk' => 'Попередній',

@@ -101,8 +101,13 @@ final class YouControl
       return;
     }
     
+    $headers = http_get_last_response_headers();
+    
+    if (empty($headers)) {
+      return;
+    }
+    
     $contentType = '';
-    $headers = $http_response_header ?? [];
     
     # Визначення типу зображення
     foreach ($headers as $header) {
@@ -190,7 +195,7 @@ final class YouControl
   }
   
   /**
-   * Інформація клієнта-юридичної особи та фізичної особи-підприємця
+   * Інформація клієнта - фізичної особи-підприємця
    *
    * @return array
    */
@@ -201,49 +206,22 @@ final class YouControl
     }
     
     # Відомості про справи про банкрутство (Bankruptcy Information)
-    $result[YouControlTypes::bankrupt->name] = $this->getPreviousResult(YouControlTypes::bankrupt->name) ??
-      $this->wsBankrupt();
+    $result[YouControlTypes::bankrupt->name] = $this->getPreviousResult(YouControlTypes::bankrupt->name)
+      ?? $this->wsBankrupt();
     
     # НПД та суб'єкти декларування пов'язані з компанією (PEPs affiliated to the company)
-    $result[YouControlTypes::companyPersons->name] = $this->getPreviousResult(YouControlTypes::companyPersons->name) ??
-      $this->wsCompanyPersons();
+    $result[YouControlTypes::companyPersons->name] = $this->getPreviousResult(YouControlTypes::companyPersons->name)
+      ?? $this->wsCompanyPersons();
     
     # Виконавчі провадження (Enforcement proceedings)
-    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name) ??
-      $this->wsExecutive();
+    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name)
+      ?? $this->wsExecutive();
     
-    # ФО - Зв'язок з ФПГ (Private individual - Affiliation with FIG)
-    $result[YouControlTypes::fig->name] = $this->getPreviousResult(YouControlTypes::fig->name) ?? $this->wsFig();
-    
-    # ФО - Перевірка паспорту (Passports check)
-    $result[YouControlTypes::passports->name] = $this->getPreviousResult(YouControlTypes::passports->name) ??
-      $this->wsPassports();
-    
-    # НПД скринінг (PEP Screening)
-    # Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
-    $result[YouControlTypes::peps->name] = $this->getPreviousResult(YouControlTypes::peps->name) ?? $this->wsPeps();
-    
-    # Санкції (Sanctions)
-    $result[YouControlTypes::sanctions->name] = $this->getPreviousResult(YouControlTypes::sanctions->name) ??
-      $this->wsSanctionsPersonal();
-    
-    # ФO - Податковий борг (Private individual - Tax debtors)
-    $result[YouControlTypes::taxDebtor->name] = $this->getPreviousResult(YouControlTypes::taxDebtor->name) ??
-      $this->wsTaxDebtor();
-    
-    # ФО - Терористи (Terrorists)
-    $result[YouControlTypes::terrorists->name] = $this->getPreviousResult(YouControlTypes::terrorists->name) ??
-      $this->wsTerrorists();
-    
-    # Безвісно зниклі та ті, які переховуються від органів влади (Missing or wanted persons)
-    $result[YouControlTypes::wanted->name] = $this->getPreviousResult(YouControlTypes::wanted->name) ??
-      $this->wsWanted();
-    
-    return $result;
+    return $this->runPersonalBusinessman($result);
   }
   
   /**
-   * Інформація клієнта-юридичної особи та фізичної особи-підприємця
+   * Інформація клієнта - юридичної особи
    *
    * @return array
    */
@@ -254,31 +232,31 @@ final class YouControl
     }
     
     # Відомості про справи про банкрутство (Bankruptcy Information)
-    $result[YouControlTypes::bankrupt->name] = $this->getPreviousResult(YouControlTypes::bankrupt->name) ??
-      $this->wsBankrupt();
+    $result[YouControlTypes::bankrupt->name] = $this->getPreviousResult(YouControlTypes::bankrupt->name)
+      ?? $this->wsBankrupt();
     
     # НПД та суб'єкти декларування пов'язані з компанією (PEPs affiliated to the company)
-    $result[YouControlTypes::companyPersons->name] = $this->getPreviousResult(YouControlTypes::companyPersons->name) ??
-      $this->wsCompanyPersons();
+    $result[YouControlTypes::companyPersons->name] = $this->getPreviousResult(YouControlTypes::companyPersons->name)
+      ?? $this->wsCompanyPersons();
     
     # Судові дані (Court data)
-    $result[YouControlTypes::courts->name] = $this->getPreviousResult(YouControlTypes::courts->name) ??
-      $this->wsCourts();
+    $result[YouControlTypes::courts->name] = $this->getPreviousResult(YouControlTypes::courts->name)
+      ?? $this->wsCourts();
     
     # Виконавчі провадження (Enforcement proceedings)
-    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name) ??
-      $this->wsExecutive();
+    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name)
+      ?? $this->wsExecutive();
     
     # Детальна інформація про ФПГ (Information about FIG)
     $result[YouControlTypes::fig->name] = $this->getPreviousResult(YouControlTypes::fig->name) ?? $this->wsFigCompany();
     
     # Санкції (Sanctions)
-    $result[YouControlTypes::sanctions->name] = $this->getPreviousResult(YouControlTypes::sanctions->name) ??
-      $this->wsSanctions();
+    $result[YouControlTypes::sanctions->name] = $this->getPreviousResult(YouControlTypes::sanctions->name)
+      ?? $this->wsSanctions();
     
     # Наявність у компанії податкового боргу (Company's tax dept)
-    $result[YouControlTypes::taxDebtor->name] = $this->getPreviousResult(YouControlTypes::taxDebtor->name) ??
-      $this->wsTaxDebtorCompany();
+    $result[YouControlTypes::taxDebtor->name] = $this->getPreviousResult(YouControlTypes::taxDebtor->name)
+      ?? $this->wsTaxDebtorCompany();
     
     return $result;
   }
@@ -295,15 +273,27 @@ final class YouControl
     }
     
     # ФО - Виконавчі провадження (Private individual - Enforcement proceedings)
-    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name) ??
-      $this->wsExecutivePersonal();
+    $result[YouControlTypes::executive->name] = $this->getPreviousResult(YouControlTypes::executive->name)
+      ?? $this->wsExecutivePersonal();
     
+    return $this->runPersonalBusinessman($result);
+  }
+  
+  /**
+   * Перевірка клієнтів - фізичної особи та фізичної особи-підприємця
+   *
+   * @param array $result
+   *
+   * @return array
+   */
+  private function runPersonalBusinessman(array $result):array
+  {
     # ФО - Зв'язок з ФПГ (Private individual - Affiliation with FIG)
     $result[YouControlTypes::fig->name] = $this->getPreviousResult(YouControlTypes::fig->name) ?? $this->wsFig();
     
     # ФО - Перевірка паспорту (Passports check)
-    $result[YouControlTypes::passports->name] = $this->getPreviousResult(YouControlTypes::passports->name) ??
-      $this->wsPassports();
+    $result[YouControlTypes::passports->name] = $this->getPreviousResult(YouControlTypes::passports->name)
+      ?? $this->wsPassports();
     
     # НПД скринінг (PEP Screening)
     # Пов'язані з шуканим НПД особи та компанії (Individuals and entities related to searched PEP)
@@ -311,20 +301,20 @@ final class YouControl
     
     # Санкції (Sanctions)
     # Санкції РНБО (RNBO Sanctions)
-    $result[YouControlTypes::sanctions->name] = $this->getPreviousResult(YouControlTypes::sanctions->name) ??
-      $this->wsSanctionsPersonal();
+    $result[YouControlTypes::sanctions->name] = $this->getPreviousResult(YouControlTypes::sanctions->name)
+      ?? $this->wsSanctionsPersonal();
     
     # ФO - Податковий борг (Private individual - Tax debtors)
-    $result[YouControlTypes::taxDebtor->name] = $this->getPreviousResult(YouControlTypes::taxDebtor->name) ??
-      $this->wsTaxDebtor();
+    $result[YouControlTypes::taxDebtor->name] = $this->getPreviousResult(YouControlTypes::taxDebtor->name)
+      ?? $this->wsTaxDebtor();
     
     # ФО - Терористи (Terrorists)
-    $result[YouControlTypes::terrorists->name] = $this->getPreviousResult(YouControlTypes::terrorists->name) ??
-      $this->wsTerrorists();
+    $result[YouControlTypes::terrorists->name] = $this->getPreviousResult(YouControlTypes::terrorists->name)
+      ?? $this->wsTerrorists();
     
     # Безвісно зниклі та ті, які переховуються від органів влади (Missing or wanted persons)
-    $result[YouControlTypes::wanted->name] = $this->getPreviousResult(YouControlTypes::wanted->name) ??
-      $this->wsWanted();
+    $result[YouControlTypes::wanted->name] = $this->getPreviousResult(YouControlTypes::wanted->name)
+      ?? $this->wsWanted();
     
     return $result;
   }
@@ -428,8 +418,8 @@ final class YouControl
     return 200 === Curl::$curlHttpCode
       ? (JSON_ERROR_NONE === json_last_error() ? (empty((array)$json) && 'string' === gettype($textEmpty) ? $textEmpty
         : $json) : json_last_error_msg())
-      : trim($json->error ?? $json->message ??
-        $json->status ?? "Помилка виконання запиту".(Curl::$curlHttpCode ? ' ['.Curl::$curlHttpCode.']' : ''));
+      : trim($json->error ?? $json->message ?? $json->status
+        ?? "Помилка виконання запиту".(Curl::$curlHttpCode ? ' ['.Curl::$curlHttpCode.']' : ''));
   }
   
   /**
@@ -595,8 +585,8 @@ final class YouControl
      * "message":"No passports were found amongst neither invalid nor stolen or lost passports for passport with series МН and number 648331"
      * }<br>
      * HTTP 200 - Можливій збіг<br>
-     * invalidPassports - блок відповіді реєстра ДМС<br>
-     * stolenOrLostPassports - блок відповіді реєстра МВС<br>
+     * invalidPassports - блок відповіді реєстру ДМС<br>
+     * stolenOrLostPassports - блок відповіді реєстру МВС<br>
      * {
      *  "invalidPassports": [
      *    {

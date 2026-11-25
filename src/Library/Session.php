@@ -2,7 +2,7 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Handlers\{SessionHandler, SessionHandlerWs};
+use okushnirov\core\Handlers\{ErrorHandler, SessionHandler, SessionHandlerWs};
 use okushnirov\core\Library\Enums\{Decrypt, SessionType};
 
 final class Session
@@ -60,8 +60,8 @@ final class Session
       } catch (\Exception $e) {
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
         
-        trigger_error(__METHOD__.' '.$e->getMessage()."\n".json_encode($backtrace,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__.' '.$e->getMessage()."\n".json_encode($backtrace,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
       }
     }
     

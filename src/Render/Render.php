@@ -39,9 +39,9 @@ class Render
       ? (int)$methods[$methodName]['доступен'] : -2);
     
     if (1 === $data->access) {
-      $data->name = Str::prepare($methods[$methodName]['название'] ??
-        $methods[$methodName]['название_'.Lang::getShort(Lang::$lang)] ??
-        $methods[$methodName]['название_'.Lang::$lang] ?? '');
+      $data->name = Str::prepare($methods[$methodName]['название']
+        ?? $methods[$methodName]['название_'.Lang::getShort(Lang::$lang)]
+        ?? $methods[$methodName]['название_'.Lang::$lang] ?? '');
       
       $data->attribute = ' data-method-ref="'.$methodName.'"';
       $data->attribute .= ' data-method-state="'.(int)(1 === $data->access).'"';
@@ -188,7 +188,7 @@ class Render
           $xmlItem = simplexml_import_dom($node);
           unset($xmlItem['render']);
           
-          $html = (new $classname())::html($xmlItem, $objID, $xmlData, $variables);
+          $html = new $classname()::html($xmlItem, $objID, $xmlData, $variables);
           
           break;
         } catch (\Exception) {
@@ -273,7 +273,6 @@ class Render
     }
     
     $isCrypt = self::isTrue($xml['crypt']);
-    
     $value = self::getXPathValue($xml, $xmlData);
     
     return 'data-crypt-id="'.($isCrypt ? Crypt::action($value, Encrypt::CHR) : $value).'"';

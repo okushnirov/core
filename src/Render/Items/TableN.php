@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items;
 
-use okushnirov\core\Library\{Crypt, Enums\Encrypt, Lang, Str, User};
+use okushnirov\core\Library\{Crypt, Lang, Str, User};
+use okushnirov\core\Library\Enums\Encrypt;
 use okushnirov\core\Render\Items\Dict\Dict;
 use okushnirov\core\Render\Items\Interfaces\HtmlInterface;
 use okushnirov\core\Render\Render;

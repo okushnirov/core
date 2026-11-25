@@ -2,8 +2,8 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\Enums\Charset;
-use okushnirov\core\Library\Enums\SQLAnywhere;
+use okushnirov\core\Library\Enums\{Charset, SQLAnywhere};
+use okushnirov\core\Handlers\ErrorHandler;
 use okushnirov\core\Library\Interfaces\DbSQL;
 
 /**
@@ -67,7 +67,7 @@ final class DbSQLAnywhere implements DbSQL
     self::$connect = sasql_connect($connectString);
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." for[$connection][$user:***] -> $connectString -> ".(self::$connect ? 'ok ['
+      ErrorHandler::debug(__METHOD__." for[$connection][$user:***] -> $connectString -> ".(self::$connect ? 'ok ['
           .self::$connect.']' : 'failed')."\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
           JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         ."\nsettings[$c->connection][$c->user:***] charsetDB[".self::$charsetDB->value.']');
@@ -84,14 +84,15 @@ final class DbSQLAnywhere implements DbSQL
     
     if (!self::$connect) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." connect not exist\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
-            JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        ErrorHandler::debug(__METHOD__." connect not exist\n".json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,
+            1)[0], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
       }
+      
       return;
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__.' for['.self::$connect."] disconnect\n"
+      ErrorHandler::debug(__METHOD__.' for['.self::$connect."] disconnect\n"
         .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
           JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
@@ -105,17 +106,18 @@ final class DbSQLAnywhere implements DbSQL
   {
     if (!self::$connect && !self::connect($connection, $user, $pass)) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." connect [$connection][$user:***] not exist\n"
+        ErrorHandler::debug(__METHOD__." connect [$connection][$user:***] not exist\n"
           .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
             JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
       }
+      
       return false;
     }
     
     $queryStringEscaped = sasql_real_escape_string(self::$connect, (string)$queryString);
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." for[".self::$connect."] ".(false === $queryStringEscaped ? 'error' : 'ok')."\n"
+      ErrorHandler::debug(__METHOD__." for[".self::$connect."] ".(false === $queryStringEscaped ? 'error' : 'ok')."\n"
         .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0],
           JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         ."\n[$queryString]->[$queryStringEscaped]");
@@ -135,20 +137,22 @@ final class DbSQLAnywhere implements DbSQL
     
     if (empty($queryString)) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__."\n$trace SQL is empty");
+        ErrorHandler::debug(__METHOD__."\n$trace SQL is empty");
       }
+      
       return false;
     }
     
     if (!self::$connect && !self::connect($connection, $user, $pass)) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." \n$trace error connection for \n".$queryString);
+        ErrorHandler::debug(__METHOD__." \n$trace error connection for \n".$queryString);
       }
+      
       return false;
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:***] SQL:\n$queryString");
+      ErrorHandler::debug(__METHOD__."\n$trace\nconnect[".self::$connect."][$user:***] SQL:\n$queryString");
     }
     
     $realResult = sasql_real_query(self::$connect, Encoding::encode($queryString, to: self::$charsetDB));
@@ -161,31 +165,35 @@ final class DbSQLAnywhere implements DbSQL
     
     if (SQLAnywhere::NO_RESULT == $type) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
+        ErrorHandler::debug(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
           .self::$queryErrorCode.'] queryError['.self::$queryError.'] SQL_NONE');
       }
+      
       return true;
     }
     
     if (!$realResult) {
-      trigger_error(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:***]\n"
+      ErrorHandler::debug(__METHOD__.' error['.self::$queryErrorMessage."] connect[$connection][$user:***]\n"
         .json_encode(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1),
           JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+      
       return false;
     }
     
     if (SQLAnywhere::CALL == $type) {
       if (self::$isDebug) {
-        trigger_error(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
+        ErrorHandler::debug(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
           .self::$queryErrorCode.'] queryError['.self::$queryError.'] SQL_CALL');
       }
+      
       return true;
     }
     
     $queryResult = sasql_use_result(self::$connect);
     
     if (false === $queryResult) {
-      trigger_error(__METHOD__." Query [$queryString] return empty result");
+      ErrorHandler::debug(__METHOD__." Query [$queryString] return empty result");
+      
       return SQLAnywhere::OBJECT == $type || SQLAnywhere::OBJECT_ALL == $type ? (object)[] : [];
     }
     
@@ -193,7 +201,7 @@ final class DbSQLAnywhere implements DbSQL
     self::$queryNumFields = (int)(sasql_num_fields($queryResult) ?? 0);
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
+      ErrorHandler::debug(__METHOD__." result queryErrorState[".self::$queryErrorState.'] queryErrorCode['
         .self::$queryErrorCode.'] queryError['.self::$queryError.'] numRows['.self::$queryNumRows.'] numFields['
         .self::$queryNumFields.']');
     }

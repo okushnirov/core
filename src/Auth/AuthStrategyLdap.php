@@ -48,7 +48,10 @@ final class AuthStrategyLdap implements AuthStrategy
     ldap_set_option(null, LDAP_OPT_NETWORK_TIMEOUT, 3);
     ldap_set_option(null, LDAP_OPT_TIMELIMIT, 3);
     
-    $connect = ldap_connect($ldap->host, $ldap->port);
+    $useSsl = (bool)($ldap->ssl ?? false);
+    $scheme = $useSsl ? 's' : '';
+    $uri = sprintf('ldap%s://%s:%d', $scheme, $ldap->host, (int)$ldap->port);
+    $connect = ldap_connect($uri);
     
     if (!$connect) {
       if ($this->isDebug) {

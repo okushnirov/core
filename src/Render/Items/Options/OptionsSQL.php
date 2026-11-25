@@ -19,6 +19,6 @@ class OptionsSQL
     
     //trigger_error(__METHOD__."\nPrepare\n$code\nResult\n$SQL");
     
-    return (new Options())::fill($xml, $SQL);
+    return new Options()::fill($xml, $SQL);
   }
 }

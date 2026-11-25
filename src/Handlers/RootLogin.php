@@ -4,7 +4,8 @@ namespace okushnirov\core\Handlers;
 
 use core\Handlers\LoginHandler;
 use okushnirov\core\Auth\Authorization;
-use okushnirov\core\Library\{Enums\Auth, Location};
+use okushnirov\core\Library\Enums\Auth;
+use okushnirov\core\Library\Location;
 
 final class RootLogin
 {

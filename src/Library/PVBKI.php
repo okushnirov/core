@@ -2,6 +2,8 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Handlers\ErrorHandler;
+
 final class PVBKI
 {
   public bool $isDisabled = true;
@@ -23,8 +25,8 @@ final class PVBKI
     $this->isDebug = $isDebug || $this->isDebug;
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__."\n".json_encode($request,
-          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__."\n".json_encode($request,
+          JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
     
     $this->code = trim((string)($request->code ?? ''));
@@ -76,19 +78,19 @@ final class PVBKI
       }
       
       if ($this->isDebug) {
-        trigger_error(__METHOD__." Soap response\n".$response);
+        ErrorHandler::debug(__METHOD__." Soap response\n".$response);
       }
       
       return $response;
     } catch (\SoapFault $e) {
       if ($this->isDebug) {
-        trigger_error(__METHOD__.' Soap error: '.$e->getMessage(), E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__.' Soap error: '.$e->getMessage());
       }
       
       return '';
     } catch (\Exception $e) {
       if ($this->isDebug) {
-        trigger_error(__METHOD__.' General error: '.$e->getMessage(), E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__.' General error: '.$e->getMessage());
       }
       
       return '';

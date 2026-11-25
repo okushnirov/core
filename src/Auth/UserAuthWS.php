@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Auth;
 
-use okushnirov\core\Library\{Config, Curl, Enums\CookieType, Enums\SessionType, Lang};
+use okushnirov\core\Library\{Config, Curl, Lang};
+use okushnirov\core\Library\Enums\{CookieType, SessionType};
 
 final class UserAuthWS
 {

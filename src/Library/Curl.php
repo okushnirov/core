@@ -77,7 +77,7 @@ final class Curl
     self::$curlHttpInfo = curl_getinfo($ch);
     self::$curlHttpCode = (int)(self::$curlHttpInfo['http_code'] ?? 0);
     
-    curl_close($ch);
+    unset($ch);
     
     $isSuccessHttpCode = 200 <= self::$curlHttpCode && 300 > self::$curlHttpCode;
     $isFailed = $response === false || !$isSuccessHttpCode;

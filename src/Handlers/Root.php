@@ -3,7 +3,6 @@
 namespace okushnirov\core\Handlers;
 
 define('DO_LOGIN_HANDLER', 1);
-
 define('DO_RELOAD_HOME', 2);
 
 use core\Root\Folders\Error;
@@ -13,8 +12,8 @@ use okushnirov\core\Library\{Lang, Location, Session};
 
 final class Root extends \Exception
 {
-  const ROOT_PATH = 'core\Root\\';
-  const ROOT_FOLDERS = 'Folders\\';
+  const string ROOT_PATH = 'core\Root\\';
+  const string ROOT_FOLDERS = 'Folders\\';
   
   public static bool $isDebug;
   public static ?array $path;
@@ -25,7 +24,9 @@ final class Root extends \Exception
     CookieType $cookie = CookieType::No, bool $redirect = true, int $flag = 0, bool $isDebug = false):void
   {
     self::$isDebug = $isDebug;
-    self::$path = explode('/', mb_strtolower(trim((string)parse_url($request, PHP_URL_PATH), '/')));
+    self::$path = trim((string)parse_url($request, PHP_URL_PATH), '/')
+        |> mb_strtolower(...)
+        |> (fn($x) => explode('/', $x));
     self::$query = trim((string)parse_url($request, PHP_URL_QUERY));
     
     Location::$folder = $folder;
@@ -46,8 +47,7 @@ final class Root extends \Exception
       $_SESSION['folder'] = $folder;
       
       if (self::$isDebug) {
-        trigger_error(__METHOD__."\nSession id = ".session_id()."\nSession folder = {$_SESSION['folder']}",
-          E_USER_ERROR);
+        ErrorHandler::debug(__METHOD__."\nSession id = ".session_id()."\nSession folder = ".$_SESSION['folder']);
       }
     }
     
@@ -83,7 +83,7 @@ final class Root extends \Exception
         $className = $classRoot.$classPath;
         
         if (self::$isDebug) {
-          trigger_error(__METHOD__." Find className: $className...", E_USER_ERROR);
+          ErrorHandler::debug(__METHOD__." Find className: $className...");
         }
         
         if (class_exists($className) && method_exists($className, 'index')) {
@@ -96,7 +96,7 @@ final class Root extends \Exception
     }
     
     if (self::$isDebug) {
-      trigger_error(__METHOD__." Set className: $className", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Set className: $className");
     }
     
     if ($className) {
@@ -109,7 +109,7 @@ final class Root extends \Exception
     }
     
     try {
-      (new Error([], $session, $cookie))::index(404, 0, '', $request);
+      new Error([], $session, $cookie)::index(404, 0, '', $request);
     } catch (\Throwable $e) {
       trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");
       throw new \Exception($e->getMessage(), $e->getCode());

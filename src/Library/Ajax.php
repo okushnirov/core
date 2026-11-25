@@ -63,8 +63,8 @@ final class Ajax
       # '' (дефолт) -> підставляємо стандартну помилку
       # null (заглушено в коді) -> ігноруємо автопідставлення, виводимо як є
       if ('' === self::$out->errorMessage) {
-        self::$out->errorMessage = self::$settings->error->{self::$out->errorCode}->{Lang::$lang} ??
-          self::$settings->error->{self::$out->errorCode} ?? "Undefined error [".self::$out->errorCode."]";
+        self::$out->errorMessage = self::$settings->error->{self::$out->errorCode}->{Lang::$lang}
+          ?? self::$settings->error->{self::$out->errorCode} ?? "Undefined error [".self::$out->errorCode."]";
       }
     }
     
@@ -105,14 +105,14 @@ final class Ajax
   private static function handleForbiddenRequest(bool $isTraceError):void
   {
     if ($isTraceError) {
-      (new TraceHandler(403, [
+      new TraceHandler(403, [
         'DEBUG' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),
         'COOKIE' => $_COOKIE ?? [],
         'REQUEST' => $_REQUEST ?? [],
         'SESSION' => $_SESSION ?? []
-      ]))->log();
+      ])->log();
     } else {
-      (new ErrorRequest('/error/', 403))->run();
+      new ErrorRequest('/error/', 403)->run();
     }
   }
   

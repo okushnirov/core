@@ -4,7 +4,6 @@ namespace okushnirov\core\Library\Number2Word;
 
 class LocaleUkrainian implements LocaleInterface
 {
-  
   public function getCentsDeclensions(string $currency):array
   {
     return match ($currency) {

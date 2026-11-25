@@ -2,11 +2,12 @@
 
 namespace okushnirov\core\Library;
 
-use okushnirov\core\Library\{Enums\Decrypt, Enums\Encrypt, Interfaces\CryptType};
+use okushnirov\core\Library\Enums\{Decrypt, Encrypt};
+use okushnirov\core\Library\Interfaces\CryptType;
 
 final class Crypt
 {
-  private const MATRIX_DIMENSION = 9;
+  private const int MATRIX_DIMENSION = 9;
   
   public static function action(
     string $string, CryptType $variant, string $startText = '', string $endText = ''):string
@@ -29,9 +30,10 @@ final class Crypt
   
   private static function decryptInteger(int | string $string):string
   {
-    $base8to10 = base_convert(base_convert(base_convert((string)$string, 8, 10), 8, 10), 8, 10);
-    
-    return substr($base8to10, 2, -2);
+    return base_convert((string)$string, 8, 10)
+        |> (fn(string $x) => base_convert($x, 8, 10))
+        |> (fn(string $x) => base_convert($x, 8, 10))
+        |> (fn(string $x) => substr($x, 2, -2));
   }
   
   private static function decryptString(string $string, bool $random = false):string
@@ -58,9 +60,10 @@ final class Crypt
   
   private static function encryptInteger(string $string):string
   {
-    $salted = rand(10, 99).$string.rand(10, 99);
-    
-    return base_convert(base_convert(base_convert($salted, 10, 8), 10, 8), 10, 8);
+    return (fn(string $v):string => rand(10, 99).$v.rand(10, 99))($string)
+        |> (fn(string $x) => base_convert($x, 10, 8))
+        |> (fn(string $x) => base_convert($x, 10, 8))
+        |> (fn(string $x) => base_convert($x, 10, 8));
   }
   
   private static function encryptString(string $string, bool $random = false):string
@@ -76,9 +79,10 @@ final class Crypt
       $salted .= rand(10, 99).$string[$i];
     }
     
-    $encryptedMatrix = self::safeCrypt($salted.rand(10, 99));
-    
-    return rtrim(strtr(base64_encode($encryptedMatrix), '+/', '-_'), '=');
+    return self::safeCrypt($salted.rand(10, 99))
+        |> base64_encode(...)
+        |> (fn($x) => strtr($x, '+/', '-_'))
+        |> (fn($x) => rtrim($x, '='));
   }
   
   private static function findCoordinates(array $matrix, string $symbol):?array

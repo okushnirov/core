@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Render\Items\Dict;
 
-use okushnirov\core\Library\{DbSQLAnywhere, Enums\SQLAnywhere, Lang, User};
+use okushnirov\core\Library\{DbSQLAnywhere, Lang, User};
+use okushnirov\core\Library\Enums\SQLAnywhere;
 use okushnirov\core\Render\Render;
 
 class Dict extends Render

@@ -2,6 +2,7 @@
 
 namespace okushnirov\core\Library;
 
+use okushnirov\core\Handlers\ErrorHandler;
 use okushnirov\core\Library\Enums\Extensions;
 use PhpOffice\PhpWord\{Exception\Exception, Settings, TemplateProcessor};
 
@@ -77,10 +78,9 @@ final class Word
     $this->isTestMode = $isTestMode || ($this->xml['test'] ?? false);
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Request\n".$this->xml->saveXML()."\nFile template: ".$this->fileTemplate
+      ErrorHandler::debug(__METHOD__." Request\n".$this->xml->saveXML()."\nFile template: ".$this->fileTemplate
         ."\nFile copy: ".$this->fileCopy."\nFile download: ".$this->fileDownload."\nFile read: ".$this->fileRead
-        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->isTestMode ? 'yes' : 'no')."\n",
-        E_USER_ERROR);
+        ."\nisConvert: ".($this->isConvert ? 'yes' : 'no')."\ntestMode: ".($this->isTestMode ? 'yes' : 'no')."\n");
     }
   }
   
@@ -104,7 +104,7 @@ final class Word
     header("Pragma: public");
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Read file $this->fileRead", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Read file $this->fileRead");
     }
     
     readfile($this->fileRead);
@@ -176,7 +176,7 @@ final class Word
     }
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." Remove variables....", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." Remove variables....");
     }
   }
   
@@ -206,7 +206,7 @@ final class Word
         "/", $tempLibreOfficeProfile)." --headless --convert-to pdf --outdir $tmpPath \"$this->fileCopy\"";
     
     if ($this->isDebug) {
-      trigger_error(__METHOD__." run command:\n\n$command\n", E_USER_ERROR);
+      ErrorHandler::debug(__METHOD__." run command:\n\n$command\n");
     }
     
     exec($command, $output, $return);
@@ -279,9 +279,8 @@ final class Word
       $fileImageDefault2 = '' === trim($image['def_2'] ?? '') ? '' : $pathImage.$image['def_2'];
       
       if ($this->isDebug) {
-        trigger_error("\n".__METHOD__
-          ."\nReplace $imageName\nImage: $fileImage\nImage Default: $fileImageDefault\nImage Default2: $fileImageDefault2",
-          E_USER_ERROR);
+        ErrorHandler::debug("\n".__METHOD__
+          ."\nReplace $imageName\nImage: $fileImage\nImage Default: $fileImageDefault\nImage Default2: $fileImageDefault2");
       }
       
       if (File::isFile($fileImage, false)) {
@@ -327,7 +326,7 @@ final class Word
       foreach ($item as $key => $value) {
         
         if ($this->isDebug) {
-          trigger_error("Replace $alias.$key$postfix = ".trim($value), E_USER_ERROR);
+          ErrorHandler::debug("Replace $alias.$key$postfix = ".trim($value));
         }
         
         $isEscape = false === mb_stripos($value, '<w:br/>');

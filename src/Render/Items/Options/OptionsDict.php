@@ -10,6 +10,6 @@ class OptionsDict
   {
     $query = Dict::getQuery($xml, $objID, $xmlData);
     
-    return '' === $query ? [] : (new Options())::fill($xml, $query);
+    return '' === $query ? [] : new Options()::fill($xml, $query);
   }
 }

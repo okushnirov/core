@@ -73,7 +73,7 @@ class CheckboxOptionsN extends Render implements HtmlInterface
         continue;
       }
       
-      $id = (new \DateTime())->format('u')."_$key";
+      $id = new \DateTime()->format('u')."_$key";
       
       $labelHtml = "<label ".($readonly ? 'data-readonly=""' : "for=\"$id\"")." $labelAttribute>".Str::prepare($label)
         ."</label>";

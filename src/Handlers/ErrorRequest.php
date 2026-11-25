@@ -20,7 +20,7 @@ final class ErrorRequest
     $this->http_code = $http_code ? : 404;
     
     if (!empty($trace)) {
-      (new TraceHandler($this->http_code, $trace))->log();
+      new TraceHandler($this->http_code, $trace)->log();
     }
     
     Location::$folder = 'error';
@@ -37,7 +37,7 @@ final class ErrorRequest
       case 401:
       case 403:
         try {
-          (new Error([], $session, $cookie))::index($this->http_code, 0, '', $this->request);
+          new Error([], $session, $cookie)::index($this->http_code, 0, '', $this->request);
         } catch (\Exception) {
           header('Location: '.Location::serverName());
         }
@@ -48,7 +48,10 @@ final class ErrorRequest
         exit(http_response_code($this->http_code));
     }
     
-    $path = explode('/', trim(mb_strtolower(parse_url($this->request, PHP_URL_PATH)), '/'));
+    $path = parse_url($this->request, PHP_URL_PATH)
+        |> mb_strtolower(...)
+        |> (fn($x) => trim($x, '/'))
+        |> (fn($x) => explode('/', $x));
     Location::$folder = 1 < count($path) ? implode('/', $path) : ($path[0] ?? Location::$folder);
     $absoluteRequest = Location::serverName().ltrim($this->request, '/');
     
@@ -64,7 +67,7 @@ final class ErrorRequest
       Root::handler(Location::$folder, $absoluteRequest, session: $session, cookie: $cookie);
     } catch (\Exception $e) {
       try {
-        (new Error(session: $session, cookie: $cookie))::index($this->http_code, $e->getCode(), $e->getMessage(),
+        new Error(session: $session, cookie: $cookie)::index($this->http_code, $e->getCode(), $e->getMessage(),
           $absoluteRequest);
       } catch (\Exception $e) {
         trigger_error(__METHOD__.' Exception '.$e->getMessage()." [{$e->getCode()}]");

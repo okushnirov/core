@@ -2,7 +2,8 @@
 
 namespace okushnirov\core\Auth;
 
-use okushnirov\core\Library\{Crypt, Enums\Decrypt, Enums\Encrypt};
+use okushnirov\core\Library\Crypt;
+use okushnirov\core\Library\Enums\{Decrypt, Encrypt};
 
 final class UserSession
 {

@@ -69,7 +69,7 @@ class RadioboxOptionsN extends Render implements HtmlInterface
     $htmlContainer = isset($xmlItem->container) ? "<fieldset ".self::getAttribute($xmlItem->container).">" : '';
     
     foreach ($source as $key => $label) {
-      $id = (new \DateTime())->format('Hisu')."_$key";
+      $id = new \DateTime()->format('Hisu')."_$key";
       $key = 'string' === $type ? $key : (int)$key;
       
       $labelHtml = "<label ".($readonly ? 'data-readonly=""' : "for=\"$id\"")." $labelAttribute>".Str::prepare($label)
